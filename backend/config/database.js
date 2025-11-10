@@ -8,6 +8,8 @@ if (process.env.NODE_ENV !== 'production') {
 
 // Verificar que DATABASE_URL esté disponible
 const DATABASE_URL = process.env.DATABASE_URL;
+console.log('🔍 DATABASE_URL:', DATABASE_URL ? 'Configurada' : 'NO CONFIGURADA');
+console.log('🔍 NODE_ENV:', process.env.NODE_ENV);
 if (!DATABASE_URL) {
   console.error('❌ ERROR: DATABASE_URL no está configurada');
   console.error('Variables de entorno disponibles:', Object.keys(process.env).filter(k => k.includes('DATABASE') || k.includes('NEON')));
