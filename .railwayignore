@@ -1,0 +1,54 @@
+# Railway ignore file - excluir archivos innecesarios del deploy
+
+# Node modules (se instalan en el container)
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Environment files (se configuran en Railway)
+.env
+.env.local
+.env.development
+.env.production
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build outputs (se generan en el container)
+dist
+build
+.next
+out
+
+# Documentation
+README.md
+CLAUDE.md
+docs/
+
+# CI/CD
+.github
+.gitlab-ci.yml
+
+# Development only
+.nodemon.json
+nodemon.json
+webpack.config.js
+.eslintrc*
+.prettierrc*
+
+# Old Dockerfiles (mantenemos solo los necesarios)
+Dockerfile
+Dockerfile.backend
+Dockerfile.frontend
