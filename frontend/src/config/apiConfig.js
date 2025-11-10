@@ -1,5 +1,7 @@
 // Configuración centralizada de la API
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+// Usar rutas relativas automáticamente (funciona en desarrollo y producción)
+const API_URL = import.meta.env.VITE_API_URL ||
+  (typeof window !== 'undefined' ? '' : 'http://localhost:5001');
 
 export const API_ENDPOINTS = {
   // Auth
