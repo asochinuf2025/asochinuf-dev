@@ -9,11 +9,11 @@ COPY frontend/package.json ./
 # Copiar yarn.lock si existe
 COPY frontend/yarn.lock* ./
 
-RUN yarn install
+RUN yarn install --frozen-lockfile || npm install
 
 COPY frontend/ .
 
-RUN yarn build
+RUN yarn build || npm run build
 
 # Etapa 2: Preparar backend
 FROM node:20-alpine AS backend-base
