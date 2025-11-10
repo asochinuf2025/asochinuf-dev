@@ -1,10 +1,20 @@
-import { neon } from '@neondatabase/serverless';
+import { neon, neonConfig } from '@neondatabase/serverless';
+import ws from 'ws';
 import dotenv from 'dotenv';
 
 // Solo cargar .env en desarrollo
 if (process.env.NODE_ENV !== 'production') {
   dotenv.config();
 }
+
+// Configuración de Neon para WebSocket en serverless
+neonConfig.wsEndpoint = (host) => {
+  // Usar WebSocket para conexiones en Railway
+  return `wss://${host}/sql`;
+};
+
+// Usar ws como cliente WebSocket
+neonConfig.webSocketConstructor = ws;
 
 // Verificar que DATABASE_URL esté disponible
 const DATABASE_URL = process.env.DATABASE_URL;
@@ -16,12 +26,8 @@ if (!DATABASE_URL) {
   throw new Error('DATABASE_URL environment variable is required');
 }
 
-// Usar Neon serverless para mejor rendimiento
-// Agregar configuración de timeout para evitar "fetch failed" en Railway
-const sql = neon(DATABASE_URL, {
-  fetchConnectionCache: true,
-  arrayMode: false,
-});
+// Usar Neon serverless con configuración optimizada
+const sql = neon(DATABASE_URL);
 
 // Función auxiliar para reintentos con backoff exponencial
 const retryWithBackoff = async (fn, maxRetries = 3, baseDelay = 1000) => {
@@ -72,6 +78,6 @@ const pool = {
   },
 };
 
-console.log('✅ Cliente Neon inicializado (conexión lazy-loaded)');
+console.log('✅ Cliente Neon inicializado con WebSocket (optimizado para Railway)');
 
 export default pool;
