@@ -1,14 +1,9 @@
 {
   "$schema": "https://railway.app/railway.schema.json",
   "services": {
-    "backend": {
+    "asochinuf": {
       "builder": "dockerfile",
-      "context": "backend",
-      "dockerfile": "Dockerfile"
-    },
-    "frontend": {
-      "builder": "dockerfile",
-      "context": "frontend",
+      "context": ".",
       "dockerfile": "Dockerfile"
     }
   }
