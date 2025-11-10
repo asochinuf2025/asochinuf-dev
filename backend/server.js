@@ -30,6 +30,10 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Servir archivos estáticos del frontend compilado (SPA)
+const publicPath = path.join(__dirname, 'public');
+app.use(express.static(publicPath));
+
 // Servir archivos estáticos - Imágenes de cursos (solo si existen en monorepo)
 const fotoCursoPath = path.join(__dirname, '..', 'frontend', 'public', 'foto_curso');
 try {
@@ -68,9 +72,16 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
-// Manejo de errores 404
-app.use((req, res) => {
-  res.status(404).json({ error: 'Ruta no encontrada' });
+// SPA fallback - Servir index.html para rutas del frontend (React Router)
+// DEBE estar ANTES del manejador 404
+app.get('*', (req, res) => {
+  const indexPath = path.join(publicPath, 'index.html');
+  res.sendFile(indexPath, (err) => {
+    if (err) {
+      // Si no existe index.html, retornar error JSON
+      res.status(404).json({ error: 'No se encontró la página solicitada' });
+    }
+  });
 });
 
 // Iniciar servidor
