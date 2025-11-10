@@ -1,83 +1,110 @@
 import { neon, neonConfig } from '@neondatabase/serverless';
 import ws from 'ws';
 import dotenv from 'dotenv';
+import pkg from 'pg';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-// Solo cargar .env en desarrollo
+const { Pool } = pkg;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const envPath = path.resolve(__dirname, '../.env');
+
 if (process.env.NODE_ENV !== 'production') {
-  dotenv.config();
+  dotenv.config({ path: envPath });
 }
 
-// Configuración de Neon para WebSocket en serverless
-neonConfig.wsEndpoint = (host) => {
-  // Usar WebSocket para conexiones en Railway
-  return `wss://${host}/sql`;
-};
-
-// Usar ws como cliente WebSocket
-neonConfig.webSocketConstructor = ws;
-
-// Verificar que DATABASE_URL esté disponible
 const DATABASE_URL = process.env.DATABASE_URL;
-console.log('🔍 DATABASE_URL:', DATABASE_URL ? 'Configurada' : 'NO CONFIGURADA');
-console.log('🔍 NODE_ENV:', process.env.NODE_ENV);
+const NODE_ENV = process.env.NODE_ENV;
+
+console.log('[db] DATABASE_URL:', DATABASE_URL ? 'Configurada' : 'NO CONFIGURADA');
+console.log('[db] NODE_ENV:', NODE_ENV || 'sin definir');
+
 if (!DATABASE_URL) {
-  console.error('❌ ERROR: DATABASE_URL no está configurada');
-  console.error('Variables de entorno disponibles:', Object.keys(process.env).filter(k => k.includes('DATABASE') || k.includes('NEON')));
+  console.error('[db] ERROR: DATABASE_URL no está configurada');
   throw new Error('DATABASE_URL environment variable is required');
 }
 
-// Usar Neon serverless con configuración optimizada
-const sql = neon(DATABASE_URL);
+let dbHost = '';
+try {
+  dbHost = new URL(DATABASE_URL).hostname || '';
+} catch {
+  dbHost = '';
+}
 
-// Función auxiliar para reintentos con backoff exponencial
-const retryWithBackoff = async (fn, maxRetries = 3, baseDelay = 1000) => {
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      return await fn();
-    } catch (error) {
-      if (attempt === maxRetries) {
+const usePgPool =
+  process.env.USE_PG_POOL === 'true' ||
+  /railway|rlwy\.net/i.test(dbHost);
+
+let pool;
+
+if (usePgPool) {
+  const sslEnabled = !/localhost|127\.0\.0\.1/i.test(dbHost);
+  console.log('[db] Usando pg Pool (modo Railway/Postgres estándar)');
+
+  const pgPool = new Pool({
+    connectionString: DATABASE_URL,
+    ssl: sslEnabled ? { rejectUnauthorized: false } : false,
+  });
+
+  pool = {
+    query: async (text, params = []) => {
+      try {
+        return await pgPool.query(text, params);
+      } catch (error) {
+        console.error('[db] Error en consulta PG:', error.message);
         throw error;
       }
-      const delay = baseDelay * Math.pow(2, attempt - 1);
-      console.log(`⚠️ Intento ${attempt} falló, reintentando en ${delay}ms...`);
-      await new Promise(resolve => setTimeout(resolve, delay));
+    },
+    connect: async () => pgPool.connect(),
+  };
+} else {
+  neonConfig.wsEndpoint = (host) => `wss://${host}/sql`;
+  neonConfig.webSocketConstructor = ws;
+
+  const sql = neon(DATABASE_URL);
+
+  const retryWithBackoff = async (fn, maxRetries = 3, baseDelay = 1000) => {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        return await fn();
+      } catch (error) {
+        if (attempt === maxRetries) {
+          throw error;
+        }
+        const delay = baseDelay * Math.pow(2, attempt - 1);
+        console.log(`[db] Intento ${attempt} falló, reintentando en ${delay}ms...`);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
     }
-  }
-};
+  };
 
-// Crear un objeto compatible con las queries existentes
-const pool = {
-  query: async (text, params = []) => {
-    try {
-      // Usar timeout de 30 segundos para evitar cuelgues
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Query timeout after 30s')), 30000)
-      );
+  pool = {
+    query: async (text, params = []) => {
+      try {
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Query timeout after 30s')), 30000)
+        );
 
-      const result = await Promise.race([
-        sql(text, params),
-        timeoutPromise,
-      ]);
+        const result = await Promise.race([sql(text, params), timeoutPromise]);
 
-      return {
-        rows: result,
-        rowCount: result.length,
-      };
-    } catch (error) {
-      console.error('❌ Error en la consulta:', error.message);
-      throw error;
-    }
-  },
+        return {
+          rows: result,
+          rowCount: result.length,
+        };
+      } catch (error) {
+        console.error('[db] Error en la consulta Neon:', error.message);
+        throw error;
+      }
+    },
+    connect: async () =>
+      retryWithBackoff(async () => {
+        const result = await sql('SELECT NOW()');
+        return result;
+      }),
+  };
 
-  // Función auxiliar para conectar con reintentos
-  connect: async () => {
-    return retryWithBackoff(async () => {
-      const result = await sql('SELECT NOW()');
-      return result;
-    });
-  },
-};
-
-console.log('✅ Cliente Neon inicializado con WebSocket (optimizado para Railway)');
+  console.log('[db] Cliente Neon inicializado con WebSocket');
+}
 
 export default pool;
