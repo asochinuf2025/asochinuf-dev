@@ -109,7 +109,7 @@ const CuotasNotification = ({ isDarkMode, setActiveTab }) => {
                 isDarkMode ? 'border-[#8c5cff]/20' : 'border-purple-200'
               }`}>
                 <h3 className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                  Estado de Cuotas
+                  Notificaciones
                 </h3>
                 <motion.button
                   whileHover={{ scale: 1.1 }}
@@ -199,6 +199,29 @@ const CuotasNotification = ({ isDarkMode, setActiveTab }) => {
                   </div>
                 )}
 
+                {/* Cuotas Pendientes (no vencidas) */}
+                {resumen.totalPendientes > 0 && !resumen.esMoroso && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`p-3 rounded-lg border-l-4 border-yellow-500 ${
+                      isDarkMode ? 'bg-yellow-500/10' : 'bg-yellow-50'
+                    }`}
+                  >
+                    <div className="flex items-start gap-2">
+                      <AlertCircle size={18} className="text-yellow-500 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <p className={`font-semibold text-sm ${isDarkMode ? 'text-yellow-400' : 'text-yellow-700'}`}>
+                          Cuotas Pendientes
+                        </p>
+                        <p className={`text-xs mt-1 ${isDarkMode ? 'text-yellow-300/80' : 'text-yellow-600/80'}`}>
+                          Tienes {resumen.totalPendientes} cuota{resumen.totalPendientes !== 1 ? 's' : ''} pendiente{resumen.totalPendientes !== 1 ? 's' : ''}
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
                 {/* Próximas a Vencer */}
                 {resumen.proximasAVencer.length > 0 && (
                   <div className="space-y-2">
@@ -225,22 +248,24 @@ const CuotasNotification = ({ isDarkMode, setActiveTab }) => {
                   </div>
                 )}
 
-                {/* Botón Ver Todas */}
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => {
-                    setActiveTab('cuotas');
-                    setIsOpen(false);
-                  }}
-                  className={`w-full mt-4 py-2 rounded-lg font-semibold transition-colors ${
-                    isDarkMode
-                      ? 'bg-[#8c5cff] text-white hover:bg-[#7a4cde]'
-                      : 'bg-purple-600 text-white hover:bg-purple-700'
-                  }`}
-                >
-                  Ver Todas las Cuotas
-                </motion.button>
+                {/* Botón Ver Todas - Solo si hay notificaciones de cuotas */}
+                {(resumen?.esMoroso || resumen?.totalPendientes > 0 || resumen?.proximasAVencer.length > 0) && (
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      setActiveTab('cuotas');
+                      setIsOpen(false);
+                    }}
+                    className={`w-full mt-4 py-2 rounded-lg font-semibold transition-colors ${
+                      isDarkMode
+                        ? 'bg-[#8c5cff] text-white hover:bg-[#7a4cde]'
+                        : 'bg-purple-600 text-white hover:bg-purple-700'
+                    }`}
+                  >
+                    Ver Cuotas y Pagos
+                  </motion.button>
+                )}
               </div>
             </motion.div>
           </>
