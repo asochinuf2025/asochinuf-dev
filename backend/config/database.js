@@ -32,33 +32,18 @@ try {
   dbHost = '';
 }
 
-const usePgPool =
-  process.env.USE_PG_POOL === 'true' ||
-  /railway|rlwy\.net/i.test(dbHost);
+// Determinar si es Neon o Railway
+const isNeon = /neon\.tech/i.test(dbHost);
+const isRailway = /railway|rlwy\.net/i.test(dbHost);
+
+console.log('[db] Detectado:', isNeon ? 'NEON' : isRailway ? 'RAILWAY' : 'OTRO');
 
 let pool;
 
-if (usePgPool) {
-  const sslEnabled = !/localhost|127\.0\.0\.1/i.test(dbHost);
-  console.log('[db] Usando pg Pool (modo Railway/Postgres estándar)');
+if (isNeon) {
+  // NEON usa WebSocket (Neon SDK)
+  console.log('[db] Usando Neon SDK (WebSocket)');
 
-  const pgPool = new Pool({
-    connectionString: DATABASE_URL,
-    ssl: sslEnabled ? { rejectUnauthorized: false } : false,
-  });
-
-  pool = {
-    query: async (text, params = []) => {
-      try {
-        return await pgPool.query(text, params);
-      } catch (error) {
-        console.error('[db] Error en consulta PG:', error.message);
-        throw error;
-      }
-    },
-    connect: async () => pgPool.connect(),
-  };
-} else {
   neonConfig.wsEndpoint = (host) => `wss://${host}/sql`;
   neonConfig.webSocketConstructor = ws;
 
@@ -103,8 +88,30 @@ if (usePgPool) {
         return result;
       }),
   };
+} else {
+  // RAILWAY usa TCP directo (pg.Pool)
+  console.log('[db] Usando pg.Pool (TCP directo - Railway)');
 
-  console.log('[db] Cliente Neon inicializado con WebSocket');
+  const sslEnabled = !/localhost|127\.0\.0\.1/i.test(dbHost);
+
+  const pgPool = new Pool({
+    connectionString: DATABASE_URL,
+    ssl: sslEnabled ? { rejectUnauthorized: false } : false,
+    connectionTimeoutMillis: 15000,
+    idleTimeoutMillis: 30000,
+  });
+
+  pool = {
+    query: async (text, params = []) => {
+      try {
+        return await pgPool.query(text, params);
+      } catch (error) {
+        console.error('[db] Error en consulta PG:', error.message);
+        throw error;
+      }
+    },
+    connect: async () => pgPool.connect(),
+  };
 }
 
 export default pool;

@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { User, Mail, Lock, Camera, Save, X, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'sonner';
-import ImageCropModal from '../../components/ImageCropModal';
+import CloudinaryImageCrop from '../../components/CloudinaryImageCrop';
 import { API_ENDPOINTS } from '../../config/apiConfig';
 
 const MiPerfil = () => {
@@ -19,10 +19,10 @@ const MiPerfil = () => {
     new: false,
     confirm: false,
   });
-  const [isUploading, setIsUploading] = useState(false);
-  const [previewImage, setPreviewImage] = useState(null);
+  const { token } = useAuth();
   const [isCropModalOpen, setIsCropModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [cloudinaryUrl, setCloudinaryUrl] = useState(null);
 
   const handlePasswordChange = async (e) => {
     e.preventDefault();
@@ -89,63 +89,16 @@ const MiPerfil = () => {
     reader.readAsDataURL(file);
   };
 
-  const handleCropComplete = async (croppedImageBlob) => {
-    console.log('🖼️ Blob recibido del modal:', croppedImageBlob);
-    console.log('📦 Tipo:', croppedImageBlob?.type);
-    console.log('📏 Tamaño:', croppedImageBlob?.size, 'bytes');
+  const handleUploadComplete = ({ url, publicId }) => {
+    console.log('✅ Imagen subida a Cloudinary:', url);
+    setCloudinaryUrl(url);
+    setIsCropModalOpen(false);
+    setSelectedImage(null);
+    toast.success('Foto de perfil actualizada exitosamente');
 
-    if (!croppedImageBlob) {
-      toast.error('Error al procesar la imagen');
-      return;
-    }
-
-    // Crear preview de la imagen recortada
-    const previewUrl = URL.createObjectURL(croppedImageBlob);
-    setPreviewImage(previewUrl);
-
-    // Subir imagen recortada y optimizada
-    setIsUploading(true);
-    const formData = new FormData();
-    formData.append('foto', croppedImageBlob, 'profile.jpg');
-
-    console.log('📤 Enviando FormData...');
-
-    try {
-      const response = await fetch(API_ENDPOINTS.AUTH.ACTUALIZAR_FOTO, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('asochinuf_token')}`,
-        },
-        body: formData,
-      });
-
-      console.log('📥 Respuesta recibida:', response.status);
-
-      const data = await response.json();
-      console.log('📄 Datos:', data);
-
-      if (response.ok) {
-        console.log('✅ Foto subida exitosamente, actualizando contexto...');
-        toast.success('Foto de perfil actualizada');
-
-        // Actualizar el usuario en el contexto directamente
-        actualizarUsuario({ foto: data.foto });
-
-        // Limpiar preview
-        setPreviewImage(null);
-
-        console.log('✅ Contexto actualizado, NO se recarga la página');
-      } else {
-        console.error('❌ Error del servidor:', data);
-        toast.error(data.error || 'Error al subir la foto');
-        setPreviewImage(null);
-      }
-    } catch (error) {
-      console.error('❌ Error de conexión:', error);
-      toast.error('Error de conexión: ' + error.message);
-      setPreviewImage(null);
-    } finally {
-      setIsUploading(false);
+    // Actualizar el contexto con la nueva URL
+    if (url) {
+      actualizarUsuario({ foto: url });
     }
   };
 
@@ -188,9 +141,9 @@ const MiPerfil = () => {
           {/* Preview de la foto */}
           <div className="relative">
             <div className="w-32 h-32 rounded-full bg-gradient-to-r from-[#8c5cff] to-[#6a3dcf] flex items-center justify-center text-4xl font-bold text-white overflow-hidden">
-              {previewImage || usuario?.foto ? (
+              {cloudinaryUrl || usuario?.foto ? (
                 <img
-                  src={previewImage || `/foto_perfil/${usuario.foto}?t=${Date.now()}`}
+                  src={cloudinaryUrl || usuario?.foto}
                   alt="Foto de perfil"
                   className="w-full h-full object-cover"
                 />
@@ -211,7 +164,6 @@ const MiPerfil = () => {
                 accept="image/*"
                 onChange={handleImageChange}
                 className="hidden"
-                disabled={isUploading}
               />
             </label>
           </div>
@@ -226,9 +178,9 @@ const MiPerfil = () => {
             <p className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-500'} mt-2`}>
               Tamaño máximo: 5MB. Formatos: JPG, PNG, GIF
             </p>
-            {isUploading && (
-              <p className="text-sm text-[#8c5cff] mt-2">Subiendo imagen...</p>
-            )}
+            <p className={`text-xs ${isDarkMode ? 'text-[#8c5cff]' : 'text-[#6a3dcf]'} mt-1`}>
+              Recorta tu foto y cárgala en Cloudinary
+            </p>
           </div>
         </div>
       </motion.div>
@@ -420,16 +372,18 @@ const MiPerfil = () => {
         )}
       </motion.div>
 
-      {/* Modal de recorte de imagen */}
-      <ImageCropModal
+      {/* Modal de recorte de imagen con Cloudinary */}
+      <CloudinaryImageCrop
         isOpen={isCropModalOpen}
         onClose={() => {
           setIsCropModalOpen(false);
           setSelectedImage(null);
         }}
         imageSrc={selectedImage}
-        onCropComplete={handleCropComplete}
+        onUploadComplete={handleUploadComplete}
         isDarkMode={isDarkMode}
+        tipo="perfil"
+        token={token}
       />
     </div>
   );

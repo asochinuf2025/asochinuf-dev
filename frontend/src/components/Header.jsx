@@ -30,7 +30,11 @@ const Header = ({ setActiveTab, setSettingsMenuOpen, settingsMenuOpen, handleLog
           <div className="w-8 h-8 rounded-full bg-gradient-to-r from-[#8c5cff] to-[#6a3dcf] flex items-center justify-center text-xs font-bold overflow-hidden">
             {usuario?.foto ? (
               <img
-                src={`/foto_perfil/${usuario.foto}?t=${Date.now()}`}
+                src={
+                  usuario.foto.startsWith('http')
+                    ? usuario.foto
+                    : `/foto_perfil/${usuario.foto}?t=${Date.now()}`
+                }
                 alt="Foto de perfil"
                 className="w-full h-full object-cover"
               />
@@ -163,7 +167,11 @@ const Header = ({ setActiveTab, setSettingsMenuOpen, settingsMenuOpen, handleLog
           <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[#8c5cff] to-[#6a3dcf] flex items-center justify-center text-sm font-bold overflow-hidden">
             {usuario?.foto ? (
               <img
-                src={`/foto_perfil/${usuario.foto}?t=${Date.now()}`}
+                src={
+                  usuario.foto.startsWith('http')
+                    ? usuario.foto
+                    : `/foto_perfil/${usuario.foto}?t=${Date.now()}`
+                }
                 alt="Foto de perfil"
                 className="w-full h-full object-cover"
               />

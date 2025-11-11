@@ -12,6 +12,7 @@ import categoriasRoutes from './routes/categorias.js';
 import cuotasRoutes from './routes/cuotas.js';
 import pagosRoutes from './routes/pagos.js';
 import inscripcionesRoutes from './routes/inscripciones.js';
+import cloudinaryRoutes from './routes/cloudinary.js';
 
 dotenv.config();
 
@@ -27,8 +28,9 @@ app.use(cors({
   ],
   credentials: true,
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Aumentar límite de tamaño para imágenes en base64 (10MB máximo)
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Servir archivos estáticos del frontend compilado (SPA)
 const publicPath = path.join(__dirname, 'public');
@@ -51,6 +53,7 @@ app.use('/api/categorias', categoriasRoutes);
 app.use('/api/cuotas', cuotasRoutes);
 app.use('/api/payments', pagosRoutes);
 app.use('/api/inscripciones', inscripcionesRoutes);
+app.use('/api/cloudinary', cloudinaryRoutes);
 
 // Health check
 app.get('/api/health', async (req, res) => {

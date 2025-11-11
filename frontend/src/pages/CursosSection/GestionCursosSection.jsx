@@ -30,7 +30,7 @@ import { useAuth } from '../../context/AuthContext';
 import { API_ENDPOINTS } from '../../config/apiConfig';
 import axios from 'axios';
 import ConfirmDialog from '../../components/ConfirmDialog';
-import ImageCropModalCursos from './ImageCropModalCursos';
+import CloudinaryImageCrop from '../../components/CloudinaryImageCrop';
 import { toast } from 'sonner';
 
 const GestionCursosSection = ({ containerVariants }) => {
@@ -107,28 +107,10 @@ const GestionCursosSection = ({ containerVariants }) => {
       setSubmitting(true);
       setError('');
 
-      let dataToSend;
-      let config = { headers: { Authorization: `Bearer ${token}` } };
+      const config = { headers: { Authorization: `Bearer ${token}` } };
 
-      // If there's an image file, use FormData
-      if (imagenFile) {
-        const formDataObj = new FormData();
-
-        // Append all form fields
-        Object.entries(formData).forEach(([key, value]) => {
-          if (value !== null && value !== undefined && value !== '') {
-            formDataObj.append(key, value);
-          }
-        });
-
-        // Append the image file
-        formDataObj.append('imagen_portada', imagenFile);
-        dataToSend = formDataObj;
-      } else {
-        dataToSend = formData;
-      }
-
-      const response = await axios.post(API_ENDPOINTS.CURSOS.CREATE, dataToSend, config);
+      // Send form data directly (imagen_portada will contain Cloudinary URL)
+      const response = await axios.post(API_ENDPOINTS.CURSOS.CREATE, formData, config);
 
       setCursos([response.data.curso, ...cursos]);
       resetForm();
@@ -155,29 +137,12 @@ const GestionCursosSection = ({ containerVariants }) => {
       setSubmitting(true);
       setError('');
 
-      let dataToSend = formData;
-      let headers = { Authorization: `Bearer ${token}` };
+      const config = { headers: { Authorization: `Bearer ${token}` } };
 
-      // If there's an image file, use FormData
-      if (imagenFile) {
-        const formDataObj = new FormData();
-
-        // Append all form fields
-        Object.entries(formData).forEach(([key, value]) => {
-          if (value !== null && value !== undefined && value !== '') {
-            formDataObj.append(key, value);
-          }
-        });
-
-        // Append the image file
-        formDataObj.append('imagen_portada', imagenFile);
-        dataToSend = formDataObj;
-      }
-
-      const config = { headers };
+      // Send form data directly (imagen_portada will contain Cloudinary URL)
       const response = await axios.put(
         API_ENDPOINTS.CURSOS.UPDATE(editingId),
-        dataToSend,
+        formData,
         config
       );
 
@@ -363,19 +328,13 @@ const GestionCursosSection = ({ containerVariants }) => {
     reader.readAsDataURL(file);
   };
 
-  const handleCropComplete = async (croppedImageBlob) => {
-    if (!croppedImageBlob) {
-      toast.error('Error al procesar la imagen');
-      return;
-    }
-
-    // Crear preview de la imagen recortada
-    const previewUrl = URL.createObjectURL(croppedImageBlob);
-    setImagenPreview(previewUrl);
-
-    // Convertir blob a File para que sea compatible con FormData
-    const file = new File([croppedImageBlob], `curso-image-${Date.now()}.jpg`, { type: 'image/jpeg' });
-    setImagenFile(file);
+  const handleUploadComplete = ({ url, publicId }) => {
+    console.log('✅ Imagen subida a Cloudinary:', url);
+    setImagenPreview(url);
+    setFormData(prev => ({ ...prev, imagen_portada: url }));
+    setIsCropModalOpen(false);
+    setSelectedImageForCrop(null);
+    toast.success('Imagen de portada actualizada');
   };
 
   // Filtrar cursos por nombre o código
@@ -1152,12 +1111,15 @@ const GestionCursosSection = ({ containerVariants }) => {
       </AnimatePresence>
 
       {/* Image Crop Modal */}
-      <ImageCropModalCursos
+      <CloudinaryImageCrop
         isOpen={isCropModalOpen}
         onClose={() => setIsCropModalOpen(false)}
         imageSrc={selectedImageForCrop}
-        onCropComplete={handleCropComplete}
+        onUploadComplete={handleUploadComplete}
         isDarkMode={isDarkMode}
+        tipo="curso"
+        cursoId={editingId}
+        token={token}
       />
 
       {/* Confirm Dialog */}

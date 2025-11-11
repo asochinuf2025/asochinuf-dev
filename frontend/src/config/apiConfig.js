@@ -71,6 +71,12 @@ export const API_ENDPOINTS = {
     CANCELAR: (id_curso) => `${API_URL}/api/inscripciones/${id_curso}`,
     TODAS: `${API_URL}/api/inscripciones/todas`,
   },
+  // Cloudinary
+  CLOUDINARY: {
+    UPLOAD_PERFIL: `${API_URL}/api/cloudinary/upload-perfil`,
+    UPLOAD_CURSO: `${API_URL}/api/cloudinary/upload-curso`,
+    DELETE: `${API_URL}/api/cloudinary/delete`,
+  },
 };
 
 export const BASE = API_URL;

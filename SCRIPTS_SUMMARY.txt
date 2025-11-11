@@ -1,0 +1,166 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║                  MIGRACIÓN NEON → RAILWAY - SCRIPTS CREADOS                 ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+📌 UBICACIÓN DE SCRIPTS:
+   backend/scripts/
+
+📦 SCRIPTS DISPONIBLES:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1️⃣  quick-test.js
+    ├─ Propósito: Probar conexión a ambas BDs
+    ├─ Uso: node scripts/quick-test.js
+    ├─ Tiempo: 5 segundos
+    └─ Salida: Muestra si Neon y Railway están conectables
+
+2️⃣  init-db-railway.js (EJECUTAR PRIMERO)
+    ├─ Propósito: Crear esquema en Railway
+    ├─ Uso: node scripts/init-db-railway.js
+    ├─ Tiempo: ~10 segundos
+    └─ Salida: 15 tablas + índices creados
+
+3️⃣  migrate-db.js (EJECUTAR SEGUNDO)
+    ├─ Propósito: Copiar TODOS los datos de Neon a Railway
+    ├─ Uso: node scripts/migrate-db.js
+    ├─ Tiempo: 1-5 minutos (depende volumen)
+    └─ Salida: Detalles de lo que se migró (usuarios, pacientes, etc.)
+
+4️⃣  validate-migration.js (EJECUTAR TERCERO)
+    ├─ Propósito: Validar que la migración fue exitosa
+    ├─ Uso: node scripts/validate-migration.js
+    ├─ Tiempo: ~10 segundos
+    └─ Salida: Comparación de registros y validación de integridad
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📚 GUÍAS DISPONIBLES:
+
+1. MIGRATION_README.md (LEER PRIMERO)
+   └─ Resumen completo con todos los pasos y detalles
+
+2. MIGRATION_STEPS.md
+   └─ Resumen visual rápido en 6 pasos
+
+3. backend/scripts/MIGRATION_GUIDE.md
+   └─ Guía detallada con solución de problemas
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚀 ORDEN DE EJECUCIÓN:
+
+   cd backend
+
+   1. node scripts/quick-test.js
+      └─ Verificar conexión a ambas BDs ✓
+
+   2. node scripts/init-db-railway.js
+      └─ Crear esquema en Railway ✓
+
+   3. node scripts/migrate-db.js
+      └─ Migrar datos ✓
+
+   4. node scripts/validate-migration.js
+      └─ Validar todo está correcto ✓
+
+   5. Actualizar .env con DATABASE_URL de Railway
+      └─ Cambiar a usar Railway en producción ✓
+
+   6. npm run dev
+      └─ Probar la aplicación ✓
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ CHECKLIST PREVIO:
+
+   [ ] Tienes URL de Railway (copiada desde railway.app)
+   [ ] Agregaste RAILWAY_DATABASE_URL en backend/.env
+   [ ] NODE_ENV está en development o tienes .env en backend/
+   [ ] Tienes npm install ejecutado en backend/
+   [ ] Neon está funcionando con datos actuales
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📊 DATOS QUE SE MIGRAN:
+
+   ✓ t_usuarios        - Todos los usuarios del sistema
+   ✓ t_pacientes       - Todos los pacientes/jugadores
+   ✓ t_clientes        - Relaciones usuario-cliente
+   ✓ t_nutricionistas  - Relaciones usuario-nutricionista
+   ✓ t_cursos          - Todos los cursos
+   ✓ t_inscripciones   - Inscripciones a cursos
+   ✓ t_planteles       - 44 equipos de fútbol
+   ✓ t_categorias      - 12 categorías (Sub-12, Sub-17, etc.)
+   ✓ t_sesion_mediciones     - Sesiones de mediciones
+   ✓ t_informe_antropometrico - TODAS las mediciones antropométricas
+   ✓ t_excel_uploads   - Historial de cargas Excel
+   ✓ t_recovery_tokens - Tokens de recuperación
+   ✓ t_cuotas_mensuales    - Cuotas mensuales globales
+   ✓ t_cuotas_usuario      - Asignación de cuotas a usuarios
+   ✓ t_pagos_cuotas        - Pagos registrados
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚙️  CARACTERISTICAS:
+
+   ✓ Mantiene integridad referencial
+   ✓ Preserva IDs de secuencias
+   ✓ Copia todos los índices
+   ✓ Maneja ON CONFLICT para datos duplicados
+   ✓ Desactiva/reactiva constraints durante migración
+   ✓ Validación automática de integridad
+   ✓ Mensaje detallado de progreso
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💡 TIPS:
+
+   • Ejecuta quick-test.js primero para asegurar conectividad
+   • Si migrate-db.js falla, puedes reintentar (usa ON CONFLICT)
+   • validate-migration.js te dice si algo se perdió
+   • Los scripts producen output clara para cada tabla
+   • Guardar los logs: node scripts/migrate-db.js > migration.log
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❓ PREGUNTAS FRECUENTES:
+
+   P: ¿Se pierden datos?
+   R: No, todos los datos se copian exactamente
+
+   P: ¿Cuánto tiempo toma?
+   R: Típicamente 1-5 minutos según volumen de datos
+
+   P: ¿Puedo revertir?
+   R: Sí, tu BD Neon original sigue intacta
+
+   P: ¿Necesito detener la app?
+   R: Recomendado para evitar cambios durante la migración
+
+   P: ¿Qué si falla a mitad?
+   R: Usa ON CONFLICT - puede reintentarse sin duplicar
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📞 SOPORTE:
+
+   Si algo falla:
+
+   1. Lee el error que te muestra el script
+   2. Revisa MIGRATION_GUIDE.md en backend/scripts/
+   3. Ejecuta quick-test.js para diagnosticar conexión
+   4. Verifica que .env tiene ambas URLs
+   5. Revisa que init-db-railway.js se ejecutó OK
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 CUANDO TERMINÉS:
+
+   1. validate-migration.js muestra "MIGRACIÓN EXITOSA"
+   2. .env cambió a usar RAILWAY_DATABASE_URL
+   3. npm run dev funciona sin errores
+   4. Aplicación carga datos correctamente
+
+╔════════════════════════════════════════════════════════════════════════════╗
+║                        ¡LISTO PARA MIGRAR! 🚀                             ║
+╚════════════════════════════════════════════════════════════════════════════╝
