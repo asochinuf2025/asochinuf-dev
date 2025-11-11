@@ -77,6 +77,15 @@ export const API_ENDPOINTS = {
     UPLOAD_CURSO: `${API_URL}/api/cloudinary/upload-curso`,
     DELETE: `${API_URL}/api/cloudinary/delete`,
   },
+  // Documentos
+  DOCUMENTOS: {
+    GET_ALL: `${API_URL}/api/documentos`,
+    GET_ONE: (id) => `${API_URL}/api/documentos/${id}`,
+    GET_CATEGORIAS: `${API_URL}/api/documentos/categorias`,
+    CREATE: `${API_URL}/api/documentos`,
+    UPDATE: (id) => `${API_URL}/api/documentos/${id}`,
+    DELETE: (id) => `${API_URL}/api/documentos/${id}`,
+  },
 };
 
 export const BASE = API_URL;

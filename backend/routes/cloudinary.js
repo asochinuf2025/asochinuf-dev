@@ -97,6 +97,48 @@ router.post('/upload-curso', verificarToken, async (req, res) => {
 });
 
 /**
+ * POST /api/cloudinary/upload-documento
+ * Subir documento (PDF, Word, etc) a Cloudinary
+ * Requiere: autenticación y rol admin/nutricionista
+ */
+router.post('/upload-documento', verificarToken, async (req, res) => {
+  try {
+    const { imagen, nombrePublico } = req.body;
+
+    if (!imagen || !nombrePublico) {
+      return res.status(400).json({ error: 'Documento y nombre requeridos' });
+    }
+
+    // Verificar permisos (solo admin o nutricionista)
+    if (!['admin', 'nutricionista'].includes(req.usuario.tipo_perfil)) {
+      return res.status(403).json({ error: 'No autorizado' });
+    }
+
+    // Subir a Cloudinary con resource_type auto para soportar documentos
+    const resultado = await subirImagenCloudinary(
+      imagen,
+      'asochinuf/documentos',
+      `doc-${Date.now()}-${nombrePublico}`
+    );
+
+    console.log(`✅ Documento subido correctamente: ${resultado.url}`);
+
+    res.json({
+      success: true,
+      url: resultado.url,
+      publicId: resultado.publicId,
+      urlOriginal: resultado.urlOriginal,
+      mensaje: 'Documento subido exitosamente',
+    });
+  } catch (error) {
+    console.error('Error en upload-documento:', error);
+    res.status(500).json({
+      error: error.message || 'Error al subir documento',
+    });
+  }
+});
+
+/**
  * DELETE /api/cloudinary/delete
  * Eliminar imagen de Cloudinary
  */

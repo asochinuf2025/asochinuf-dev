@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Home, BookOpen, Upload, Users, Trophy, DollarSign } from 'lucide-react';
+import { Home, BookOpen, Upload, Users, Trophy, DollarSign, FileText } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const BottomNav = ({ activeTab, setActiveTab }) => {
@@ -17,6 +17,9 @@ const BottomNav = ({ activeTab, setActiveTab }) => {
     ? [{ id: 'excel', label: 'Excel', icon: Upload }]
     : [];
 
+  // Documentos para todos
+  const documentosItem = [{ id: 'documentos', label: 'Documentos', icon: FileText }];
+
   // Cuotas solo para nutricionistas y admins
   const cuotasItem = usuario?.tipo_perfil !== 'cliente'
     ? [{ id: 'cuotas', label: 'Cuotas', icon: DollarSign }]
@@ -32,7 +35,7 @@ const BottomNav = ({ activeTab, setActiveTab }) => {
     ? [{ id: 'gestion', label: 'Usuarios', icon: Users }]
     : [];
 
-  const menuItems = [...baseMenuItems, ...excelItem, ...cuotasItem, ...gestionPlantelesItem, ...gestionUsuariosItem];
+  const menuItems = [...baseMenuItems, ...excelItem, ...documentosItem, ...cuotasItem, ...gestionPlantelesItem, ...gestionUsuariosItem];
 
   return (
     <motion.nav

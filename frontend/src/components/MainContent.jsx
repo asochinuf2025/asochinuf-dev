@@ -10,6 +10,7 @@ import GestionUsuariosSection from '../pages/GestionUsuariosSection/GestionUsuar
 import GestionPlantelesSection from '../pages/GestionPlantelesSection/GestionPlantelesSection';
 import MiPerfil from '../pages/PerfilSection/MiPerfil';
 import CuotasSection from '../pages/CuotasSection/CuotasSection';
+import DocumentosSection from '../pages/DocumentosSection/DocumentosSection';
 
 const MainContent = ({ activeTab }) => {
   const { isDarkMode } = useAuth();
@@ -41,6 +42,7 @@ const MainContent = ({ activeTab }) => {
         {activeTab === 'datos' && <DatosSection containerVariants={containerVariants} />}
         {activeTab === 'excel' && <UnifiedExcelSection containerVariants={containerVariants} />}
         {activeTab === 'cuotas' && <CuotasSection containerVariants={containerVariants} />}
+        {activeTab === 'documentos' && <DocumentosSection containerVariants={containerVariants} itemVariants={itemVariants} />}
         {activeTab === 'perfil' && <MiPerfil />}
         {activeTab === 'configuracion' && <ConfiguracionSection containerVariants={containerVariants} />}
         {activeTab === 'gestionplanteles' && <GestionPlantelesSection containerVariants={containerVariants} />}

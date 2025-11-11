@@ -546,6 +546,29 @@ const inicializarBD = async () => {
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_pagos_fecha_pago ON t_pagos_cuotas(fecha_pago);`);
     console.log('✓ Índices en t_pagos_cuotas creados\\n');
 
+    // ========== TABLA t_documentos ==========
+    console.log('Creando tabla t_documentos...');
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS t_documentos (
+        id SERIAL PRIMARY KEY,
+        titulo VARCHAR(255) NOT NULL,
+        descripcion TEXT,
+        archivo_url VARCHAR(255) NOT NULL,
+        categoria VARCHAR(100),
+        fecha_creacion TIMESTAMP DEFAULT NOW(),
+        fecha_actualizacion TIMESTAMP DEFAULT NOW(),
+        visible BOOLEAN DEFAULT true,
+        usuario_creacion INTEGER REFERENCES t_usuarios(id) ON DELETE SET NULL
+      );
+    `);
+    console.log('✓ Tabla t_documentos creada');
+
+    // Índices para t_documentos
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_documentos_categoria ON t_documentos(categoria);`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_documentos_visible ON t_documentos(visible);`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_documentos_fecha_creacion ON t_documentos(fecha_creacion);`);
+    console.log('✓ Índices en t_documentos creados\\n');
+
     console.log('\\n========================================');
     console.log('✓ BASE DE DATOS INICIALIZADA CORRECTAMENTE');
     console.log('========================================\\n');
@@ -562,7 +585,8 @@ const inicializarBD = async () => {
     console.log('  • t_excel_uploads (control de cargas Excel)');
     console.log('  • t_recovery_tokens (tokens de recuperación)');
     console.log('  • t_cuotas_mensuales (cuotas mensuales)');
-    console.log('  • t_pagos_cuotas (registro de pagos de cuotas)\\n');
+    console.log('  • t_pagos_cuotas (registro de pagos de cuotas)');
+    console.log('  • t_documentos (documentos y papers)\\n');
     console.log('Índices creados para optimizar consultas frecuentes.\\n');
 
     process.exit(0);

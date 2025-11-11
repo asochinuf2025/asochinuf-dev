@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LogOut, ChevronsLeft, Home, BookOpen, User, Upload, Settings, Moon, Sun, Users, Trophy, DollarSign } from 'lucide-react';
+import { LogOut, ChevronsLeft, Home, BookOpen, User, Upload, Settings, Moon, Sun, Users, Trophy, DollarSign, FileText } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen, activeTab, setActiveTab, handleLogout }) => {
@@ -17,6 +17,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeTab, setActiveTab, handleL
     ? [{ id: 'excel', label: 'Cargar Excel', icon: Upload }]
     : [];
 
+  // Documentos para todos
+  const documentosItem = [{ id: 'documentos', label: 'Documentos', icon: FileText }];
+
   // Cuotas para nutricionistas y admins
   const cuotasItem = usuario?.tipo_perfil !== 'cliente'
     ? [{ id: 'cuotas', label: 'Cuotas y Pagos', icon: DollarSign }]
@@ -32,7 +35,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeTab, setActiveTab, handleL
     ? [{ id: 'gestion', label: 'Gestión Usuarios', icon: Users }]
     : [];
 
-  const menuItems = [...baseMenuItems, ...excelItem, ...cuotasItem, ...gestionPlantelesItem, ...gestionUsuariosItem];
+  const menuItems = [...baseMenuItems, ...excelItem, ...documentosItem, ...cuotasItem, ...gestionPlantelesItem, ...gestionUsuariosItem];
 
   return (
     <motion.aside

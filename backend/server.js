@@ -13,6 +13,7 @@ import cuotasRoutes from './routes/cuotas.js';
 import pagosRoutes from './routes/pagos.js';
 import inscripcionesRoutes from './routes/inscripciones.js';
 import cloudinaryRoutes from './routes/cloudinary.js';
+import documentosRoutes from './routes/documentos.js';
 
 dotenv.config();
 
@@ -54,6 +55,7 @@ app.use('/api/cuotas', cuotasRoutes);
 app.use('/api/payments', pagosRoutes);
 app.use('/api/inscripciones', inscripcionesRoutes);
 app.use('/api/cloudinary', cloudinaryRoutes);
+app.use('/api/documentos', documentosRoutes);
 
 // Health check
 app.get('/api/health', async (req, res) => {
