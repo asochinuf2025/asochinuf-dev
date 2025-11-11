@@ -288,12 +288,16 @@ export const registrarPagoCuota = async (req, res) => {
     const usuarioId = req.usuario.id;
     const tipoUsuario = req.usuario.tipo_perfil;
 
+    console.log('📝 Registrando pago:', { cuotaUsuarioId, montoPagado, metodoPago, referenciaPago, usuarioId, tipoUsuario });
+
     // Validar datos
     if (!cuotaUsuarioId || !montoPagado) {
+      console.error('❌ Faltan campos: cuotaUsuarioId:', cuotaUsuarioId, 'montoPagado:', montoPagado);
       return res.status(400).json({ error: 'Faltan campos requeridos' });
     }
 
     // Obtener la cuota_usuario
+    console.log('🔍 Buscando cuota_usuario con ID:', cuotaUsuarioId);
     const cuotaUsuarioResult = await pool.query(
       `SELECT tcu.*, tcm.monto
        FROM t_cuotas_usuario tcu
@@ -303,8 +307,11 @@ export const registrarPagoCuota = async (req, res) => {
     );
 
     if (cuotaUsuarioResult.rows.length === 0) {
+      console.error('❌ Cuota no encontrada con ID:', cuotaUsuarioId);
       return res.status(404).json({ error: 'Cuota no encontrada' });
     }
+
+    console.log('✓ Cuota encontrada:', cuotaUsuarioResult.rows[0]);
 
     const cuotaUsuario = cuotaUsuarioResult.rows[0];
 
@@ -351,8 +358,13 @@ export const registrarPagoCuota = async (req, res) => {
       data: pagoResult.rows[0]
     });
   } catch (error) {
-    console.error('Error en registrarPagoCuota:', error);
-    res.status(500).json({ error: 'Error al registrar pago' });
+    console.error('❌ Error en registrarPagoCuota:', error.message);
+    console.error('   Stack:', error.stack);
+    console.error('   SQL:', error.query || 'N/A');
+    res.status(500).json({
+      error: 'Error al registrar pago',
+      detail: error.message
+    });
   }
 };
 
