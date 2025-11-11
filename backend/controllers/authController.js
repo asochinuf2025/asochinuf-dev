@@ -177,6 +177,18 @@ export const solicitarRecuperacion = async (req, res) => {
 
     const usuario = resultado.rows[0];
 
+    // Limpiar tokens expirados del usuario antes de crear uno nuevo
+    await pool.query(
+      'DELETE FROM t_recovery_tokens WHERE usuario_id = $1 AND fecha_expiracion < NOW()',
+      [usuario.id]
+    );
+
+    // También eliminar tokens no usados más antiguos del mismo usuario (para evitar acumulación)
+    await pool.query(
+      'DELETE FROM t_recovery_tokens WHERE usuario_id = $1 AND usado = false AND fecha_creacion < NOW() - INTERVAL \'24 hours\'',
+      [usuario.id]
+    );
+
     // Generar token único
     const token = crypto.randomBytes(32).toString('hex');
 
