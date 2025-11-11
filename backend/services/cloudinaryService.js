@@ -28,12 +28,6 @@ export const subirImagenCloudinary = async (imagenBase64, carpeta, nombrePublico
       public_id: nombrePublico,
       overwrite: true, // Sobrescribir si ya existe
       resource_type: 'auto',
-      transformation: [
-        {
-          quality: 'auto:good', // Optimizar calidad automáticamente
-          format: 'auto', // Formato automático según navegador
-        },
-      ],
     });
 
     return {
