@@ -1,5 +1,43 @@
 import pool from '../config/database.js';
 
+// Inicializar tabla (solo admin)
+export const inicializarTabla = async (req, res) => {
+  try {
+    // Verificar que sea admin
+    if (req.usuario?.tipo_perfil !== 'admin') {
+      return res.status(403).json({ error: 'Solo administradores pueden inicializar la tabla' });
+    }
+
+    // Crear tabla si no existe
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS t_documentos (
+        id SERIAL PRIMARY KEY,
+        titulo VARCHAR(255) NOT NULL,
+        descripcion TEXT,
+        archivo_url VARCHAR(255) NOT NULL,
+        categoria VARCHAR(100),
+        fecha_creacion TIMESTAMP DEFAULT NOW(),
+        fecha_actualizacion TIMESTAMP DEFAULT NOW(),
+        visible BOOLEAN DEFAULT true,
+        usuario_creacion INTEGER REFERENCES t_usuarios(id) ON DELETE SET NULL
+      );
+    `);
+
+    // Crear índices
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_documentos_categoria ON t_documentos(categoria);`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_documentos_visible ON t_documentos(visible);`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_documentos_fecha_creacion ON t_documentos(fecha_creacion);`);
+
+    res.json({ mensaje: 'Tabla t_documentos inicializada correctamente' });
+  } catch (error) {
+    console.error('Error al inicializar tabla:', error);
+    res.status(500).json({
+      error: 'Error al inicializar tabla',
+      detail: error.message
+    });
+  }
+};
+
 // Obtener todos los documentos visibles
 export const obtenerDocumentos = async (req, res) => {
   try {

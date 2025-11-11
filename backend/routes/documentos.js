@@ -5,7 +5,8 @@ import {
   obtenerCategorias,
   crearDocumento,
   actualizarDocumento,
-  eliminarDocumento
+  eliminarDocumento,
+  inicializarTabla
 } from '../controllers/documentosController.js';
 import { verificarToken, verificarAdmin } from '../middleware/auth.js';
 
@@ -20,5 +21,8 @@ router.get('/:id', obtenerDocumentoPorId);
 router.post('/', verificarToken, crearDocumento);
 router.put('/:id', verificarToken, actualizarDocumento);
 router.delete('/:id', verificarToken, verificarAdmin, eliminarDocumento);
+
+// Ruta de inicialización (solo admin)
+router.post('/admin/init-table', verificarToken, verificarAdmin, inicializarTabla);
 
 export default router;
