@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Home, BookOpen, User, Upload, Users, ClipboardList, Trophy } from 'lucide-react';
+import { Home, BookOpen, Upload, Users, Trophy, DollarSign } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const BottomNav = ({ activeTab, setActiveTab }) => {
@@ -9,12 +9,17 @@ const BottomNav = ({ activeTab, setActiveTab }) => {
   const baseMenuItems = [
     { id: 'inicio', label: 'Inicio', icon: Home },
     { id: 'cursos', label: 'Cursos', icon: BookOpen },
-    { id: 'datos', label: 'Informe', icon: User },
+    // { id: 'datos', label: 'Inf. Antropométrico', icon: User },
   ];
 
   // Excel solo para nutricionistas y admins
   const excelItem = usuario?.tipo_perfil !== 'cliente'
     ? [{ id: 'excel', label: 'Excel', icon: Upload }]
+    : [];
+
+  // Cuotas solo para nutricionistas y admins
+  const cuotasItem = usuario?.tipo_perfil !== 'cliente'
+    ? [{ id: 'cuotas', label: 'Cuotas', icon: DollarSign }]
     : [];
 
   // Gestión de Planteles solo para admins
@@ -27,7 +32,7 @@ const BottomNav = ({ activeTab, setActiveTab }) => {
     ? [{ id: 'gestion', label: 'Usuarios', icon: Users }]
     : [];
 
-  const menuItems = [...baseMenuItems, ...excelItem, ...gestionPlantelesItem, ...gestionUsuariosItem];
+  const menuItems = [...baseMenuItems, ...excelItem, ...cuotasItem, ...gestionPlantelesItem, ...gestionUsuariosItem];
 
   return (
     <motion.nav
