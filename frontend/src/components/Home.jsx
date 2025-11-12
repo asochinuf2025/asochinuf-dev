@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import {
   Menu, X, Activity, Utensils, HeartPulse,
@@ -11,6 +11,65 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Badge } from './ui/badge';
 import AuthModal from './AuthModal';
 import { mockData } from '../mock';
+
+// Typewriter Animation Component
+const TypewriterText = ({ text, onDeletingComplete }) => {
+  const [displayedText, setDisplayedText] = useState('');
+  const [phase, setPhase] = useState('typing'); // typing, pause, deleting
+  const typingSpeed = 50; // ms per character
+  const deletingSpeed = 25; // ms per character
+  const pauseDuration = 2500; // ms to pause after typing complete
+
+  useEffect(() => {
+    let timeout;
+
+    if (phase === 'typing') {
+      if (displayedText.length < text.length) {
+        timeout = setTimeout(() => {
+          setDisplayedText(text.slice(0, displayedText.length + 1));
+        }, typingSpeed);
+      } else {
+        // Text is fully typed, move to pause phase
+        timeout = setTimeout(() => {
+          setPhase('deleting');
+        }, pauseDuration);
+      }
+    } else if (phase === 'deleting') {
+      if (displayedText.length > 0) {
+        timeout = setTimeout(() => {
+          setDisplayedText(displayedText.slice(0, -1));
+        }, deletingSpeed);
+      } else {
+        // Text is fully deleted, signal completion
+        if (onDeletingComplete) {
+          onDeletingComplete();
+        }
+        setPhase('typing');
+      }
+    }
+
+    return () => clearTimeout(timeout);
+  }, [displayedText, phase, text, pauseDuration, onDeletingComplete]);
+
+  // Reset when text changes
+  useEffect(() => {
+    setDisplayedText('');
+    setPhase('typing');
+  }, [text]);
+
+  return (
+    <span>
+      {displayedText}
+      {displayedText.length > 0 && phase === 'typing' && (
+        <motion.span
+          animate={{ opacity: [1, 0] }}
+          transition={{ duration: 0.5, repeat: Infinity }}
+          className="inline-block w-0.5 h-6 md:h-7 ml-1 bg-[#8c5cff] align-middle"
+        />
+      )}
+    </span>
+  );
+};
 
 const Home = () => {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -37,15 +96,7 @@ const Home = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Rotating texts animation - Optimizado para mejor rendimiento
-  useEffect(() => {
-    if (isMobile) return; // Desactivar en móvil para mejorar rendimiento
-
-    const interval = setInterval(() => {
-      setCurrentTextIndex((prev) => (prev + 1) % mockData.hero.rotatingTexts.length);
-    }, 4000); // Aumentado a 4000ms para reducir cambios
-    return () => clearInterval(interval);
-  }, [isMobile]);
+  // Text rotation is now handled by TypewriterText component
 
   // Smooth scroll function
   const scrollToSection = (sectionId) => {
@@ -306,20 +357,18 @@ const Home = () => {
             {mockData.hero.subtitle}
           </motion.p>
 
-          {/* Rotating text animation */}
+          {/* Typewriter animation */}
           <div className="h-16 md:h-20 mb-8 flex items-center justify-center">
-            <AnimatePresence mode="wait">
-              <motion.p
-                key={currentTextIndex}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.5 }}
-                className="text-lg md:text-xl text-[#8c5cff] font-medium"
-              >
-                {mockData.hero.rotatingTexts[currentTextIndex]}
-              </motion.p>
-            </AnimatePresence>
+            <motion.p
+              className="text-lg md:text-xl text-[#8c5cff] font-medium min-h-8"
+            >
+              <TypewriterText
+                text={mockData.hero.rotatingTexts[currentTextIndex]}
+                onDeletingComplete={() => {
+                  setCurrentTextIndex((prev) => (prev + 1) % mockData.hero.rotatingTexts.length);
+                }}
+              />
+            </motion.p>
           </div>
 
           <motion.div
