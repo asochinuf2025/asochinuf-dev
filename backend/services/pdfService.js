@@ -1,109 +1,122 @@
-import * as pdfjsLib from 'pdfjs-dist';
 import { createCanvas } from 'canvas';
 
-// Configurar worker para pdfjs
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
-
 /**
- * Generar miniatura (thumbnail) de la primera página de un PDF
- * @param {Buffer} pdfBuffer - Buffer con contenido del PDF
- * @param {number} width - Ancho de la miniatura (default: 150px)
- * @param {number} height - Alto de la miniatura (default: 200px)
- * @returns {Promise<Buffer>} Buffer PNG de la miniatura
+ * Generar miniatura para documentos
+ * Retorna una imagen PNG simple con el tipo y nombre del archivo
+ * Esta versión funciona sin dependencias complejas (canvas solamente)
  */
-export const generarMiniaturasPDF = async (pdfBuffer, width = 150, height = 200) => {
+export const generarMiniatura = async (archivoBuffer, tipoArchivo, nombreArchivo) => {
   try {
-    // Cargar documento PDF
-    const pdf = await pdfjsLib.getDocument({
-      data: pdfBuffer,
-      isEvalSupported: false
-    }).promise;
-
-    // Obtener primera página
-    const page = await pdf.getPage(1);
-
-    // Calcular escala para que quepa en las dimensiones especificadas
-    const viewport = page.getViewport({ scale: 1 });
-    const scale = Math.min(width / viewport.width, height / viewport.height);
-    const scaledViewport = page.getViewport({ scale });
-
-    // Crear canvas
-    const canvas = createCanvas(scaledViewport.width, scaledViewport.height);
-    const context = canvas.getContext('2d');
-
-    // Renderizar página en canvas
-    await page.render({
-      canvasContext: context,
-      viewport: scaledViewport
-    }).promise;
-
-    // Convertir canvas a PNG buffer
-    return canvas.toBuffer('image/png');
-  } catch (error) {
-    console.error('Error generando miniatura de PDF:', error);
-    // Si hay error, retornar null para que se maneje sin miniatura
-    return null;
-  }
-};
-
-/**
- * Generar miniatura genérica para documentos no-PDF
- * Retorna una imagen PNG simple con el icono y nombre del archivo
- */
-export const generarMiniaturasDocumento = async (tipoArchivo, nombreArchivo) => {
-  try {
-    const width = 150;
-    const height = 200;
+    const width = 200;
+    const height = 250;
 
     const canvas = createCanvas(width, height);
     const context = canvas.getContext('2d');
 
+    // Determinar colores según tipo de archivo
+    let colorPrimario = '#8c5cff';
+    let colorSecundario = '#6a3adb';
+    let icono = '📄';
+    let tipo = 'DOCUMENTO';
+
+    if (tipoArchivo?.includes('pdf')) {
+      colorPrimario = '#dc2626';
+      colorSecundario = '#991b1b';
+      icono = '📕';
+      tipo = 'PDF';
+    } else if (tipoArchivo?.includes('word') || tipoArchivo?.includes('document')) {
+      colorPrimario = '#2563eb';
+      colorSecundario = '#1e40af';
+      icono = '📘';
+      tipo = 'WORD';
+    } else if (tipoArchivo?.includes('text')) {
+      colorPrimario = '#16a34a';
+      colorSecundario = '#15803d';
+      icono = '📗';
+      tipo = 'TXT';
+    } else if (tipoArchivo?.includes('sheet') || tipoArchivo?.includes('excel')) {
+      colorPrimario = '#059669';
+      colorSecundario = '#047857';
+      icono = '📙';
+      tipo = 'SHEET';
+    }
+
     // Fondo degradado
     const gradient = context.createLinearGradient(0, 0, width, height);
-    gradient.addColorStop(0, '#8c5cff');
-    gradient.addColorStop(1, '#6a3adb');
+    gradient.addColorStop(0, colorPrimario);
+    gradient.addColorStop(1, colorSecundario);
     context.fillStyle = gradient;
     context.fillRect(0, 0, width, height);
 
-    // Bordo blanco
-    context.strokeStyle = '#ffffff';
+    // Patrón de líneas sutiles
+    context.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+    context.lineWidth = 1;
+    for (let i = 0; i < height; i += 20) {
+      context.beginPath();
+      context.moveTo(0, i);
+      context.lineTo(width, i);
+      context.stroke();
+    }
+
+    // Bordo blanco/claro
+    context.strokeStyle = 'rgba(255, 255, 255, 0.3)';
     context.lineWidth = 2;
-    context.strokeRect(5, 5, width - 10, height - 10);
+    context.strokeRect(10, 10, width - 20, height - 20);
 
-    // Icono (símbolos simples)
-    context.fillStyle = '#ffffff';
-    context.font = 'bold 40px Arial';
+    // Icono grande
+    context.font = 'bold 60px Arial';
     context.textAlign = 'center';
+    context.fillText(icono, width / 2, height / 3);
 
-    // Determinar icono basado en tipo
-    let icon = '📄';
-    if (tipoArchivo?.includes('word')) icon = '📝';
-    if (tipoArchivo?.includes('text')) icon = '📋';
-
-    context.fillText(icon, width / 2, height / 2 - 20);
-
-    // Nombre del archivo
-    context.font = 'bold 12px Arial';
+    // Tipo de archivo
     context.fillStyle = '#ffffff';
-    const nombreCorto = nombreArchivo.substring(0, 20);
-    context.fillText(nombreCorto, width / 2, height / 2 + 40);
+    context.font = 'bold 20px Arial';
+    context.fillText(tipo, width / 2, height / 2 + 10);
+
+    // Nombre del archivo (truncado)
+    context.font = '12px Arial';
+    context.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    const nombreLimpio = nombreArchivo
+      .replace(/\.[^/.]+$/, '') // Quitar extensión
+      .substring(0, 25);
+    const palabras = nombreLimpio.split(/[\s\-_]/);
+    let texto = '';
+    for (let palabra of palabras) {
+      if ((texto + palabra).length > 20) break;
+      texto += (texto ? ' ' : '') + palabra;
+    }
+
+    // Dividir en dos líneas si es muy largo
+    if (texto.length > 15) {
+      const mitad = Math.ceil(texto.length / 2);
+      let pos = mitad;
+      while (pos > 0 && texto[pos] !== ' ') pos--;
+      const linea1 = texto.substring(0, pos);
+      const linea2 = texto.substring(pos + 1);
+      context.fillText(linea1, width / 2, height - 40);
+      if (linea2) context.fillText(linea2, width / 2, height - 20);
+    } else {
+      context.fillText(texto, width / 2, height - 30);
+    }
+
+    // Tamaño del archivo (abajo)
+    const tamaño = archivoBuffer.length;
+    let tamañoTexto = '';
+    if (tamaño > 1024 * 1024) {
+      tamañoTexto = (tamaño / (1024 * 1024)).toFixed(1) + ' MB';
+    } else if (tamaño > 1024) {
+      tamañoTexto = (tamaño / 1024).toFixed(1) + ' KB';
+    } else {
+      tamañoTexto = tamaño + ' B';
+    }
+
+    context.font = '10px Arial';
+    context.fillStyle = 'rgba(255, 255, 255, 0.7)';
+    context.fillText(tamañoTexto, width / 2, height - 5);
 
     return canvas.toBuffer('image/png');
   } catch (error) {
     console.error('Error generando miniatura de documento:', error);
     return null;
   }
-};
-
-/**
- * Generar miniatura según el tipo de archivo
- */
-export const generarMiniatura = async (pdfBuffer, tipoArchivo, nombreArchivo) => {
-  // Si es PDF, intentar generar miniatura de la primera página
-  if (tipoArchivo?.includes('pdf')) {
-    return await generarMiniaturasPDF(pdfBuffer);
-  }
-
-  // Para otros tipos, generar miniatura genérica
-  return await generarMiniaturasDocumento(tipoArchivo, nombreArchivo);
 };
