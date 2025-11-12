@@ -1,11 +1,82 @@
 import { createCanvas } from 'canvas';
 
+// Variable para almacenar pdfjs-dist
+let pdfjsLib = null;
+
+// Función async para cargar pdfjs-dist cuando sea necesario
+const cargarPdfjs = async () => {
+  if (!pdfjsLib) {
+    try {
+      const mod = await import('pdfjs-dist/legacy/build/pdf.js');
+      pdfjsLib = mod.default;
+    } catch (e) {
+      console.warn('No se pudo cargar pdfjs-dist:', e.message);
+      return null;
+    }
+  }
+  return pdfjsLib;
+};
+
 /**
  * Generar miniatura para documentos
- * Retorna una imagen PNG simple con el tipo y nombre del archivo
- * Esta versión funciona sin dependencias complejas (canvas solamente)
+ * Para PDFs: extrae la primera página y la renderiza
+ * Para otros archivos: crea una miniatura genérica con icono
  */
 export const generarMiniatura = async (archivoBuffer, tipoArchivo, nombreArchivo) => {
+  try {
+    // Si es PDF, intentar extraer primera página
+    if (tipoArchivo?.includes('pdf')) {
+      return await generarMiniaturaPDF(archivoBuffer, nombreArchivo);
+    }
+
+    // Para otros archivos, generar miniatura genérica
+    return generarMiniaturaPorTipo(archivoBuffer, tipoArchivo, nombreArchivo);
+  } catch (error) {
+    console.error('Error generando miniatura de documento:', error);
+    // En caso de error, devolver una miniatura genérica
+    return generarMiniaturaPorTipo(archivoBuffer, tipoArchivo, nombreArchivo);
+  }
+};
+
+/**
+ * Generar miniatura extrayendo la primera página del PDF
+ */
+const generarMiniaturaPDF = async (archivoBuffer, nombreArchivo) => {
+  try {
+    const pdfjs = await cargarPdfjs();
+
+    if (!pdfjs) {
+      console.log('pdfjs-dist no disponible, usando miniatura genérica');
+      return generarMiniaturaPorTipo(archivoBuffer, 'application/pdf', nombreArchivo);
+    }
+
+    // Convertir Buffer a Uint8Array para pdfjs-dist
+    const uint8Array = new Uint8Array(archivoBuffer);
+    const pdf = await pdfjs.getDocument({ data: uint8Array }).promise;
+    const page = await pdf.getPage(1);
+
+    // Calcular dimensiones manteniendo aspecto 3/4
+    const viewport = page.getViewport({ scale: 1.5 });
+    const canvas = createCanvas(viewport.width, viewport.height);
+    const context = canvas.getContext('2d');
+
+    await page.render({
+      canvasContext: context,
+      viewport: viewport
+    }).promise;
+
+    return canvas.toBuffer('image/png');
+  } catch (error) {
+    console.error('Error al renderizar PDF para miniatura:', error.message);
+    // Si falla, devolver miniatura genérica
+    return generarMiniaturaPorTipo(archivoBuffer, 'application/pdf', nombreArchivo);
+  }
+};
+
+/**
+ * Generar miniatura genérica con icono según tipo de archivo
+ */
+const generarMiniaturaPorTipo = (archivoBuffer, tipoArchivo, nombreArchivo) => {
   try {
     const width = 200;
     const height = 250;
@@ -116,7 +187,7 @@ export const generarMiniatura = async (archivoBuffer, tipoArchivo, nombreArchivo
 
     return canvas.toBuffer('image/png');
   } catch (error) {
-    console.error('Error generando miniatura de documento:', error);
+    console.error('Error generando miniatura genérica:', error);
     return null;
   }
 };

@@ -1,39 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Download, Trash2 } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
 import { API_ENDPOINTS } from '../../config/apiConfig';
-import { toast } from 'sonner';
+import * as pdfjsLib from 'pdfjs-dist';
+
+// Set up PDF.js worker - use local worker file
+pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
 
 const DocumentViewer = ({ documento, isOpen, onClose, onDeleted, esAdmin }) => {
   const { isDarkMode, token } = useAuth();
-  const [deleting, setDeleting] = useState(false);
+  const [pdfPages, setPdfPages] = useState([]);
+  const [pdfCache, setPdfCache] = useState(null); // Cache del PDF cargado
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [loadingPdf, setLoadingPdf] = useState(false);
+  const [pdfError, setPdfError] = useState(null);
+  const [zoom, setZoom] = useState(100);
 
-  const handleDescargar = () => {
-    window.location.href = `${API_ENDPOINTS.DOCUMENTOS.GET_ONE(documento.id)}?download=true`;
-    toast.success('Descarga iniciada');
-  };
-
-  const handleEliminar = async () => {
-    if (!window.confirm('¿Estás seguro de que deseas eliminar este documento?')) {
-      return;
-    }
-
-    try {
-      setDeleting(true);
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.delete(API_ENDPOINTS.DOCUMENTOS.DELETE(documento.id), config);
-      onDeleted(documento.id);
-      onClose();
-      toast.success('Documento eliminado');
-    } catch (error) {
-      console.error('Error al eliminar:', error);
-      toast.error('Error al eliminar documento');
-    } finally {
-      setDeleting(false);
-    }
-  };
 
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString('es-CL', {
@@ -50,6 +35,112 @@ const DocumentViewer = ({ documento, isOpen, onClose, onDeleted, esAdmin }) => {
     return bytes + ' B';
   };
 
+  // Load PDF when viewer opens or documento changes
+  useEffect(() => {
+    if (isOpen && documento && documento.archivo_tipo?.includes('pdf')) {
+      loadPdfDocument();
+    } else {
+      setPdfPages([]);
+      setPdfError(null);
+      setCurrentPage(1);
+      setTotalPages(0);
+    }
+  }, [isOpen, documento]);
+
+  const loadPdfDocument = async () => {
+    try {
+      setLoadingPdf(true);
+      setPdfError(null);
+
+      let pdf = pdfCache;
+
+      // Si no hay cache, descargar el PDF
+      if (!pdf) {
+        const response = await axios.get(`${API_ENDPOINTS.DOCUMENTOS.GET_ONE(documento.id)}?preview=true`, {
+          headers: { Authorization: `Bearer ${token}` },
+          responseType: 'arraybuffer'
+        });
+
+        pdf = await pdfjsLib.getDocument({ data: response.data }).promise;
+        setPdfCache(pdf);
+      }
+
+      setTotalPages(pdf.numPages);
+
+      // Render first page
+      const page = await pdf.getPage(1);
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      const viewport = page.getViewport({ scale: 2 }); // Always render at 2x for quality
+
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+
+      await page.render({
+        canvasContext: context,
+        viewport: viewport
+      }).promise;
+
+      setPdfPages([canvas.toDataURL()]);
+      setCurrentPage(1);
+    } catch (error) {
+      console.error('Error loading PDF:', error);
+      setPdfError('No se pudo cargar el PDF. Intenta descargando el archivo.');
+    } finally {
+      setLoadingPdf(false);
+    }
+  };
+
+  const renderPage = async (pageNum) => {
+    try {
+      if (!pdfCache) return;
+
+      const page = await pdfCache.getPage(pageNum);
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      const viewport = page.getViewport({ scale: 2 }); // Always render at 2x for quality
+
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+
+      await page.render({
+        canvasContext: context,
+        viewport: viewport
+      }).promise;
+
+      setCurrentPage(pageNum);
+      setPdfPages(prev => {
+        const newPages = [...prev];
+        newPages[pageNum - 1] = canvas.toDataURL();
+        return newPages;
+      });
+    } catch (error) {
+      console.error('Error rendering page:', error);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      renderPage(currentPage + 1);
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      renderPage(currentPage - 1);
+    }
+  };
+
+  const handleZoomIn = () => {
+    setZoom(prev => Math.min(prev + 20, 200));
+  };
+
+  const handleZoomOut = () => {
+    setZoom(prev => Math.max(prev - 20, 50));
+  };
+
+  const isPdf = documento?.archivo_tipo?.includes('pdf');
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -65,43 +156,150 @@ const DocumentViewer = ({ documento, isOpen, onClose, onDeleted, esAdmin }) => {
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0.95, y: 20 }}
             onClick={(e) => e.stopPropagation()}
-            className={`w-full max-w-2xl rounded-xl overflow-hidden shadow-2xl ${
+            className={`w-full max-w-lg h-[90vh] flex flex-col rounded-xl overflow-hidden shadow-2xl ${
               isDarkMode ? 'bg-[#0f1117]' : 'bg-white'
             }`}
           >
-            {/* Header */}
-            <div className={`flex items-center justify-between p-6 border-b ${
+            {/* Header - With Controls */}
+            <div className={`flex items-center justify-between gap-3 p-3 border-b ${
               isDarkMode ? 'border-[#8c5cff]/20' : 'border-purple-200'
             }`}>
-              <div className="flex-1">
-                <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                  {documento.titulo}
-                </h2>
-                {documento.categoria && (
-                  <span className={`inline-block mt-2 px-3 py-1 rounded text-sm font-semibold ${
-                    isDarkMode
-                      ? 'bg-[#8c5cff]/20 text-[#8c5cff]'
-                      : 'bg-purple-100 text-purple-700'
-                  }`}>
-                    {documento.categoria}
-                  </span>
-                )}
-              </div>
+              <h2 className={`text-sm font-semibold truncate flex-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                {documento.titulo}
+              </h2>
+
+              {/* Page Controls - Only show for PDF */}
+              {isPdf && totalPages > 0 && (
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handlePrevPage}
+                    disabled={currentPage === 1}
+                    className={`p-1 rounded-lg transition-colors ${
+                      currentPage === 1
+                        ? 'opacity-50 cursor-not-allowed'
+                        : isDarkMode
+                          ? 'hover:bg-[#8c5cff]/20 text-gray-400'
+                          : 'hover:bg-gray-100 text-gray-600'
+                    }`}
+                  >
+                    <ChevronLeft size={16} />
+                  </motion.button>
+
+                  <div className={`text-xs font-semibold px-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    {currentPage}/{totalPages}
+                  </div>
+
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleNextPage}
+                    disabled={currentPage === totalPages}
+                    className={`p-1 rounded-lg transition-colors ${
+                      currentPage === totalPages
+                        ? 'opacity-50 cursor-not-allowed'
+                        : isDarkMode
+                          ? 'hover:bg-[#8c5cff]/20 text-gray-400'
+                          : 'hover:bg-gray-100 text-gray-600'
+                    }`}
+                  >
+                    <ChevronRight size={16} />
+                  </motion.button>
+                </div>
+              )}
+
+              {/* Zoom Controls - Only show for PDF */}
+              {isPdf && pdfPages.length > 0 && (
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleZoomOut}
+                    disabled={zoom === 50}
+                    className={`p-1 rounded-lg transition-colors ${
+                      zoom === 50
+                        ? 'opacity-50 cursor-not-allowed'
+                        : isDarkMode
+                          ? 'hover:bg-[#8c5cff]/20 text-gray-400'
+                          : 'hover:bg-gray-100 text-gray-600'
+                    }`}
+                  >
+                    <ZoomOut size={16} />
+                  </motion.button>
+
+                  <div className={`text-xs font-semibold px-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    {zoom}%
+                  </div>
+
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleZoomIn}
+                    disabled={zoom === 200}
+                    className={`p-1 rounded-lg transition-colors ${
+                      zoom === 200
+                        ? 'opacity-50 cursor-not-allowed'
+                        : isDarkMode
+                          ? 'hover:bg-[#8c5cff]/20 text-gray-400'
+                          : 'hover:bg-gray-100 text-gray-600'
+                    }`}
+                  >
+                    <ZoomIn size={16} />
+                  </motion.button>
+                </div>
+              )}
+
+              {/* Close Button */}
               <button
                 onClick={onClose}
-                className={`p-2 rounded-lg transition-colors ${
+                className={`p-1 rounded-lg transition-colors flex-shrink-0 ${
                   isDarkMode
                     ? 'hover:bg-[#8c5cff]/20 text-gray-400'
                     : 'hover:bg-gray-100 text-gray-500'
                 }`}
               >
-                <X size={24} />
+                <X size={18} />
               </button>
             </div>
 
-            {/* Miniatura grande */}
-            <div className={`w-full h-80 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-100'} flex items-center justify-center`}>
-              {documento.miniatura ? (
+            {/* Preview Section - Take all available space */}
+            <div className={`flex-1 w-full ${isDarkMode ? 'bg-gray-900' : 'bg-gray-100'} flex items-center justify-center relative`}>
+              {isPdf ? (
+                <div className="w-full h-full flex flex-col">
+                  {loadingPdf ? (
+                    <div className="flex-1 flex items-center justify-center">
+                      <div className="animate-spin">
+                        <div className="w-8 h-8 border-4 border-[#8c5cff] border-t-transparent rounded-full"></div>
+                      </div>
+                    </div>
+                  ) : pdfError ? (
+                    <div className="flex-1 flex items-center justify-center text-center">
+                      <div>
+                        <div className="text-6xl mb-4">⚠️</div>
+                        <p className={`text-lg font-semibold ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                          {pdfError}
+                        </p>
+                      </div>
+                    </div>
+                  ) : pdfPages.length > 0 && pdfPages[currentPage - 1] ? (
+                    <div className="flex-1 overflow-auto flex items-center justify-center p-4">
+                      <img
+                        src={pdfPages[currentPage - 1]}
+                        alt={`Page ${currentPage}`}
+                        className="max-w-full max-h-full object-contain"
+                        style={{ transform: `scale(${zoom / 100})` }}
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex-1 flex items-center justify-center">
+                      <div className="animate-spin">
+                        <div className="w-8 h-8 border-4 border-[#8c5cff] border-t-transparent rounded-full"></div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : documento.miniatura ? (
                 <img
                   src={`data:image/png;base64,${documento.miniatura}`}
                   alt={documento.titulo}
@@ -117,105 +315,6 @@ const DocumentViewer = ({ documento, isOpen, onClose, onDeleted, esAdmin }) => {
               )}
             </div>
 
-            {/* Contenido */}
-            <div className={`p-6 space-y-4 border-t ${isDarkMode ? 'border-[#8c5cff]/20' : 'border-purple-200'}`}>
-              {/* Descripción */}
-              {documento.descripcion && (
-                <div>
-                  <h3 className={`text-sm font-semibold mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                    Descripción
-                  </h3>
-                  <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                    {documento.descripcion}
-                  </p>
-                </div>
-              )}
-
-              {/* Info del archivo */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className={`text-sm font-semibold ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                    Nombre del archivo
-                  </p>
-                  <p className={`text-sm mt-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                    {documento.archivo_nombre}
-                  </p>
-                </div>
-                <div>
-                  <p className={`text-sm font-semibold ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                    Tamaño
-                  </p>
-                  <p className={`text-sm mt-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                    {formatSize(documento.archivo_tamaño)}
-                  </p>
-                </div>
-              </div>
-
-              {/* Metadata */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className={`text-sm font-semibold ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                    Subido por
-                  </p>
-                  <p className={`text-sm mt-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                    {documento.nombre} {documento.apellido}
-                  </p>
-                </div>
-                <div>
-                  <p className={`text-sm font-semibold ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                    Fecha
-                  </p>
-                  <p className={`text-sm mt-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                    {formatDate(documento.fecha_creacion)}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Botones */}
-            <div className={`flex gap-3 p-6 border-t ${isDarkMode ? 'border-[#8c5cff]/20' : 'border-purple-200'}`}>
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={handleDescargar}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-[#8c5cff] text-white font-semibold hover:bg-[#7a4cde] transition-colors"
-              >
-                <Download size={18} />
-                Descargar
-              </motion.button>
-
-              {esAdmin && (
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleEliminar}
-                  disabled={deleting}
-                  className={`px-4 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2 ${
-                    deleting
-                      ? 'opacity-50 cursor-not-allowed'
-                      : isDarkMode
-                        ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
-                        : 'bg-red-100 text-red-600 hover:bg-red-200'
-                  }`}
-                >
-                  <Trash2 size={18} />
-                  Eliminar
-                </motion.button>
-              )}
-
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={onClose}
-                className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
-                  isDarkMode
-                    ? 'bg-[#8c5cff]/20 text-[#8c5cff] hover:bg-[#8c5cff]/30'
-                    : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
-                }`}
-              >
-                Cerrar
-              </motion.button>
-            </div>
           </motion.div>
         </motion.div>
       )}

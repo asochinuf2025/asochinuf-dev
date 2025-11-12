@@ -18,7 +18,7 @@ const BottomNav = ({ activeTab, setActiveTab }) => {
     : [];
 
   // Documentos para todos
-  const documentosItem = [{ id: 'documentos', label: 'Documentos', icon: FileText }];
+  const documentosItem = [{ id: 'documentos', label: 'Docs', icon: FileText }];
 
   // Cuotas solo para nutricionistas y admins
   const cuotasItem = usuario?.tipo_perfil !== 'cliente'
@@ -48,7 +48,7 @@ const BottomNav = ({ activeTab, setActiveTab }) => {
           : 'bg-gradient-to-t from-white to-[#f5f5f7] border-purple-200'
       } border-t backdrop-blur-xl z-40`}
     >
-      <div className="flex items-center justify-around py-3 px-2">
+      <div className="flex items-center justify-around py-2 px-1 overflow-x-auto">
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
@@ -59,7 +59,7 @@ const BottomNav = ({ activeTab, setActiveTab }) => {
               whileTap={{ scale: 0.95 }}
               onClick={() => setActiveTab(item.id)}
               title={item.label}
-              className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-all duration-300 ${
+              className={`flex flex-col items-center gap-0.5 p-1.5 rounded-lg transition-all duration-300 flex-shrink-0 ${
                 isActive
                   ? 'text-[#8c5cff]'
                   : isDarkMode
@@ -67,12 +67,12 @@ const BottomNav = ({ activeTab, setActiveTab }) => {
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              <Icon size={24} className="flex-shrink-0" />
+              <Icon size={20} className="flex-shrink-0" />
               <span className="text-xs font-semibold whitespace-nowrap">{item.label}</span>
               {isActive && (
                 <motion.div
                   layoutId="mobileActiveIndicator"
-                  className="h-1 w-12 rounded-full bg-[#8c5cff] mt-1"
+                  className="h-1 w-8 rounded-full bg-[#8c5cff]"
                 />
               )}
             </motion.button>

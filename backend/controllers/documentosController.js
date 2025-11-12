@@ -126,10 +126,15 @@ export const obtenerDocumentoPorId = async (req, res) => {
 
     const doc = result.rows[0];
 
-    // Si es una solicitud de descarga, servir el archivo
+    // Si es una solicitud de descarga, servir el archivo como attachment
     if (req.query.download === 'true') {
       res.setHeader('Content-Type', doc.archivo_tipo);
       res.setHeader('Content-Disposition', `attachment; filename="${doc.archivo_nombre}"`);
+      res.send(doc.archivo_contenido);
+    } else if (req.query.preview === 'true') {
+      // Si es una solicitud de preview (para PDF viewer), enviar el archivo como inline
+      res.setHeader('Content-Type', doc.archivo_tipo);
+      res.setHeader('Content-Disposition', `inline; filename="${doc.archivo_nombre}"`);
       res.send(doc.archivo_contenido);
     } else {
       // Si es una solicitud de metadatos, no enviar el contenido binario

@@ -221,6 +221,8 @@ const DocumentosSection = ({ containerVariants, itemVariants }) => {
                   documento={doc}
                   onOpen={handleOpenDocument}
                   isDarkMode={isDarkMode}
+                  esAdmin={usuario?.tipo_perfil === 'admin'}
+                  onDeleted={handleDocumentoEliminado}
                 />
               </motion.div>
             ))}
