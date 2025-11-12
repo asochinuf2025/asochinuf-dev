@@ -4,7 +4,7 @@ export const mockData = {
   // Hero Section
   hero: {
     title: "ASOCHINUF",
-    subtitle: "Asociación Chilena de Nutricionistas de Fútbol",
+    subtitle: "Asociación Chilena de Nutricionistas en el Fútbol",
     description: "Profesionales de la nutrición deportiva especializados en equipos de fútbol profesional de Chile",
     ctaText: "Comencemos",
     rotatingTexts: [
@@ -115,6 +115,18 @@ export const mockData = {
     }
   ],
 
+  // Misión y Visión Section
+  misionVision: {
+    mision: {
+      title: "Nuestra Misión",
+      description: "Ser la asociación referente que promueve la excelencia en nutrición deportiva, fortaleciendo la especialización profesional de nutricionistas en el fútbol chileno a través de formación continua, investigación y aplicación de evidencia científica para optimizar el rendimiento y la salud integral de los deportistas."
+    },
+    vision: {
+      title: "Nuestra Visión",
+      description: "Posicionarse como líderes en nutrición deportiva en Latinoamérica, contribuyendo al desarrollo del fútbol profesional chileno mediante profesionales altamente capacitados, innovadores y comprometidos con la excelencia, la ciencia y el bienestar de los atletas."
+    }
+  },
+
   // Organigrama Section
   organigrama: {
     title: "Organización 2025-2027",
@@ -191,6 +203,7 @@ export const mockData = {
     navigation: [
       { name: "Inicio", href: "#hero" },
       { name: "Cursos", href: "#cursos" },
+      { name: "Misión y Visión", href: "#mision-vision" },
       { name: "Capacitaciones", href: "#capacitaciones" },
       { name: "Profesionales", href: "#profesionales" },
       { name: "Organigrama", href: "#organigrama" }
