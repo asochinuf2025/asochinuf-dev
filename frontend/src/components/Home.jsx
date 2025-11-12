@@ -376,16 +376,81 @@ const Home = () => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.8 }}
           >
-            <Button
+            <style>{`
+              @keyframes borderGlow {
+                0% {
+                  background-position: 0% 50%;
+                }
+                50% {
+                  background-position: 100% 50%;
+                }
+                100% {
+                  background-position: 0% 50%;
+                }
+              }
+
+              .cta-button {
+                position: relative;
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 1.75rem 3rem;
+                font-size: 1.125rem;
+                font-weight: 600;
+                color: white;
+                background: transparent;
+                border: 2px solid transparent;
+                border-radius: 9999px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                background-image:
+                  linear-gradient(90deg, #000 0%, #000 100%),
+                  linear-gradient(90deg, #8c5cff, #6a3dcf, #8c5cff);
+                background-origin: border-box;
+                background-clip: padding-box, border-box;
+              }
+
+              .cta-button::before {
+                content: '';
+                position: absolute;
+                top: -2px;
+                left: -2px;
+                right: -2px;
+                bottom: -2px;
+                background: linear-gradient(90deg, transparent, #8c5cff, transparent);
+                border-radius: 9999px;
+                opacity: 0;
+                animation: borderGlow 3s ease-in-out infinite;
+                z-index: -1;
+              }
+
+              .cta-button:hover::before {
+                opacity: 1;
+              }
+
+              .cta-button:hover {
+                box-shadow: 0 0 30px rgba(140, 92, 255, 0.5);
+                transform: scale(1.05);
+              }
+
+              .cta-button-content {
+                position: relative;
+                z-index: 1;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+              }
+            `}</style>
+
+            <button
               onClick={() => setIsLoginOpen(true)}
-              className="bg-[#8c5cff] hover:bg-[#7a4de6] text-white text-lg px-12 py-7 rounded-full font-semibold shadow-2xl hover:shadow-[#8c5cff]/50 transition-all duration-300 transform hover:scale-105 relative overflow-hidden group"
+              className="cta-button group"
             >
-              <span className="relative z-10 flex items-center gap-2">
+              <span className="cta-button-content">
                 {mockData.hero.ctaText}
                 <ArrowRight className="group-hover:translate-x-1 transition-transform duration-300" size={20} />
               </span>
-              <span className="absolute inset-0 bg-white/20 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></span>
-            </Button>
+            </button>
           </motion.div>
         </motion.div>
 
