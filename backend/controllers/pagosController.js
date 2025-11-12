@@ -119,15 +119,23 @@ export const webhookMercadoPago = async (req, res) => {
 
     const cuota = cuotaResult.rows[0];
 
-    // Registrar el pago
-    await pool.query(
-      `INSERT INTO t_pagos_cuotas
-       (cuota_usuario_id, monto_pagado, metodo_pago, id_mercado_pago,
-        estado_pago, fecha_pago)
-       VALUES ($1, $2, 'mercado_pago', $3, 'completado', NOW())
-       ON CONFLICT (id_mercado_pago) DO NOTHING`,
-      [cuotaUsuarioId, cuota.monto, paymentId]
+    // Verificar si ya existe un pago con este ID de Mercado Pago
+    const existingPaymentResult = await pool.query(
+      `SELECT id FROM t_pagos_cuotas WHERE id_mercado_pago = $1`,
+      [paymentId]
     );
+
+    // Si ya existe, no duplicar el registro
+    if (existingPaymentResult.rows.length === 0) {
+      // Registrar el pago solo si no existe
+      await pool.query(
+        `INSERT INTO t_pagos_cuotas
+         (cuota_usuario_id, monto_pagado, metodo_pago, id_mercado_pago,
+          estado_pago, fecha_pago)
+         VALUES ($1, $2, 'mercado_pago', $3, 'completado', NOW())`,
+        [cuotaUsuarioId, cuota.monto, paymentId]
+      );
+    }
 
     // Actualizar estado de cuota_usuario a pagada
     await pool.query(

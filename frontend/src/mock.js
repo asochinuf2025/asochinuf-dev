@@ -191,7 +191,7 @@ export const mockData = {
         nivel: 3,
         cargo: "Director Investigación",
         nombre: "Felipe Gonzalez",
-        descripcion: "Nutricionista deportivo, con posgrados en Fisiología del Ejercicio, Metodología de la Investigación e Inteligencia Artificial aplicada a las Ciencias de la Salud, y certificación ISAK Nivel II. Se desempeña como académico en la Universidad Santo Tomás y nutricionista del Club Deportes Antofagasta. Actualmente cursa el Doctorado en Ciencias de la Actividad Física y del Deporte en la Universidad Autónoma de Madrid, con una línea de investigación enfocada en la psicometría aplicada a la validación de instrumentos y al estudio del conocimiento y las conductas alimentarias en el fútbol profesional. Cuenta con publicaciones científicas en el ámbito de la nutrición, el comportamiento alimentario y la actividad física.",
+        descripcion: "Nutricionista deportivo, con posgrados en Fisiología del Ejercicio, Metodología de la Investigación e Inteligencia Artificial aplicada a las Ciencias de la Salud, y certificación ISAK Nivel II. Se desempeña como académico en la Universidad Santo Tomás y nutricionista del Club Deportes Antofagasta. Actualmente cursa el Doctorado en Ciencias de la Actividad Física y del Deporte en la Universidad Autónoma de Madrid, con una línea de investigación enfocada en la psicometría aplicada a la validación de instrumentos y al estudio del conocimiento y las conductas alimentarias en el fútbol profesional.",
         foto: "/organigrama/investigacion.png",
         area: "Desarrollo Científico"
       }

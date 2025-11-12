@@ -376,14 +376,14 @@ const Home = () => {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.8 }}
+            className="flex items-center justify-center"
           >
             <StarBorder
               as="button"
               onClick={() => setIsLoginOpen(true)}
               color="#8c5cff"
               speed="5s"
-              className="flex items-center justify-center gap-2 text-lg font-semibold hover:scale-105 transition-transform duration-300 group"
-              style={{ padding: '1px 0' }}
+              className="text-lg font-semibold hover:scale-105 transition-all duration-300 group"
             >
               <span className="flex items-center gap-2">
                 {mockData.hero.ctaText}
@@ -399,7 +399,7 @@ const Home = () => {
             <motion.div
               className="sponsors-carousel flex gap-16 items-center"
               animate={{
-                x: [0, -2400]
+                x: [-1200, -3600]
               }}
               transition={{
                 x: {
@@ -409,9 +409,10 @@ const Home = () => {
                   ease: "linear"
                 }
               }}
+              initial={{ x: -1200 }}
             >
-              {/* Duplicate sponsors for seamless loop */}
-              {[...mockData.sponsors, ...mockData.sponsors].map((sponsor, index) => (
+              {/* Triplicate sponsors for seamless loop */}
+              {[...mockData.sponsors, ...mockData.sponsors, ...mockData.sponsors].map((sponsor, index) => (
                 <div
                   key={`${sponsor.id}-${index}`}
                   className={`sponsor-logo flex-shrink-0 flex items-center justify-center ${!isMobile ? 'hover:scale-110' : ''} transition-transform duration-300 cursor-pointer`}
