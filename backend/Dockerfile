@@ -1,5 +1,5 @@
 # Dockerfile para ASOCHINUF Backend
-FROM node:20-alpine
+FROM node:20
 
 WORKDIR /app
 
@@ -7,7 +7,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Instalar dependencias en producción
-RUN npm install --production
+RUN npm install --production --legacy-peer-deps
 
 # Copiar el resto del código
 COPY . .
