@@ -18,14 +18,22 @@ const PaymentModal = ({ isOpen, onClose, cuota, onSuccess }) => {
 
   // Inicializar Mercado Pago cuando el componente monta
   useEffect(() => {
-    if (window.MercadoPago && !window.mp) {
-      const publicKey = window.MERCADO_PAGO_PUBLIC_KEY || 'APP_USR-fb0f565e-a4a8-4102-94f8-bd91b6a87cd7';
-      window.mp = new window.MercadoPago(publicKey, {
-        locale: 'es-CL'
-      });
-      console.log('✅ Mercado Pago inicializado correctamente');
+    if (isOpen && window.MercadoPago && !window.mp) {
+      // Obtener Public Key desde el backend
+      axios.get('/api/payments/public-key')
+        .then(response => {
+          const publicKey = response.data.public_key;
+          window.mp = new window.MercadoPago(publicKey, {
+            locale: 'es-CL'
+          });
+          console.log('✅ Mercado Pago inicializado correctamente con Public Key desde el backend');
+        })
+        .catch(err => {
+          console.error('❌ Error al obtener Public Key:', err);
+          setError('Error al cargar Mercado Pago. Por favor, intenta de nuevo.');
+        });
     }
-  }, []);
+  }, [isOpen]);
 
   // Resetear el estado cuando el modal se abre o cierra
   useEffect(() => {
@@ -51,8 +59,17 @@ const PaymentModal = ({ isOpen, onClose, cuota, onSuccess }) => {
       }, config);
 
       // Redirigir a Mercado Pago
-      // Usar sandbox_init_point para pruebas, init_point para producción
-      const checkoutUrl = response.data.data.sandbox_init_point || response.data.data.init_point;
+      // En producción usar init_point, en desarrollo sandbox_init_point
+      const isProduction = process.env.NODE_ENV === 'production';
+      const checkoutUrl = isProduction
+        ? response.data.data.init_point
+        : (response.data.data.sandbox_init_point || response.data.data.init_point);
+
+      if (!checkoutUrl) {
+        setError('No se pudo obtener la URL de pago de Mercado Pago');
+        return;
+      }
+
       window.location.href = checkoutUrl;
     } catch (err) {
       console.error('Error al iniciar pago:', err);

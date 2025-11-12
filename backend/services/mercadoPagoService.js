@@ -65,6 +65,7 @@ export const crearPreferenciaPago = async (cuota, usuario) => {
     const response = await mpClient.post('/checkout/preferences', preference);
 
     console.log('✅ Preferencia creada exitosamente:', response.data.id);
+    console.log('🔗 Checkout URL (init_point):', response.data.init_point);
 
     return {
       id: response.data.id,
