@@ -111,20 +111,39 @@ const DocumentosSection = ({ containerVariants, itemVariants }) => {
       <AnimatePresence>
         {showUpload && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-            className={`p-6 rounded-xl border ${
-              isDarkMode
-                ? 'bg-[#0f1117] border-[#8c5cff]/20'
-                : 'bg-purple-50 border-purple-200'
-            }`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+            onClick={() => setShowUpload(false)}
           >
-            <DocumentUpload
-              onSuccess={handleDocumentoCreado}
-              onCancel={() => setShowUpload(false)}
-            />
+            <motion.div
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className={`w-full max-w-md rounded-xl shadow-2xl p-6 ${
+                isDarkMode
+                  ? 'bg-[#0f1117] border border-[#8c5cff]/20'
+                  : 'bg-white border border-purple-200'
+              }`}
+            >
+              {/* Header del Modal */}
+              <div className="mb-6">
+                <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                  Subir Documento
+                </h2>
+                <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Carga un nuevo documento a la biblioteca
+                </p>
+              </div>
+
+              {/* Form */}
+              <DocumentUpload
+                onSuccess={handleDocumentoCreado}
+                onCancel={() => setShowUpload(false)}
+              />
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -239,23 +258,6 @@ const DocumentosSection = ({ containerVariants, itemVariants }) => {
           onDeleted={handleDocumentoEliminado}
           esAdmin={usuario?.tipo_perfil === 'admin'}
         />
-      )}
-
-      {/* Estadísticas */}
-      {documentosFiltrados.length > 0 && (
-        <motion.div
-          variants={itemVariants}
-          className={`text-center py-4 rounded-lg ${
-            isDarkMode
-              ? 'bg-[#0f1117] text-gray-400'
-              : 'bg-purple-50 text-gray-600'
-          }`}
-        >
-          <p className="text-sm">
-            Mostrando <span className="font-semibold">{documentosFiltrados.length}</span> de{' '}
-            <span className="font-semibold">{documentos.length}</span> documentos
-          </p>
-        </motion.div>
       )}
     </motion.div>
   );
