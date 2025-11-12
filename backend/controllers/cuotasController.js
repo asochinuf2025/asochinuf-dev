@@ -626,6 +626,7 @@ export const obtenerTodosLosUsuarios = async (req, res) => {
 /**
  * Reparar secuencia de cuotas (admin only)
  * Se ejecuta si hay error "duplicate key value violates unique constraint"
+ * Repara AMBAS secuencias: t_cuotas_mensuales y t_cuotas_usuario
  */
 export const repararSecuenciaCuotas = async (req, res) => {
   try {
@@ -635,28 +636,37 @@ export const repararSecuenciaCuotas = async (req, res) => {
       return res.status(403).json({ error: 'Solo administradores pueden reparar la secuencia' });
     }
 
-    console.log('🔧 Reparando secuencia de t_cuotas_mensuales...');
+    console.log('🔧 Reparando secuencias de cuotas...');
 
-    // Obtener el máximo ID actual
-    const result = await pool.query(`SELECT MAX(id) as max_id FROM t_cuotas_mensuales`);
-    const maxId = result.rows[0].max_id || 0;
+    // Reparar t_cuotas_mensuales
+    const resultCuotas = await pool.query(`SELECT MAX(id) as max_id FROM t_cuotas_mensuales`);
+    const maxIdCuotas = resultCuotas.rows[0].max_id || 0;
+    console.log(`📊 ID máximo en t_cuotas_mensuales: ${maxIdCuotas}`);
+    await pool.query(`SELECT setval('t_cuotas_mensuales_id_seq', ${maxIdCuotas + 1})`);
+    console.log(`✅ Secuencia t_cuotas_mensuales actualizada a: ${maxIdCuotas + 1}`);
 
-    console.log(`📊 ID máximo actual: ${maxId}`);
-
-    // Resetear la secuencia
-    await pool.query(`SELECT setval('t_cuotas_mensuales_id_seq', ${maxId + 1})`);
-
-    console.log(`✅ Secuencia actualizada a: ${maxId + 1}`);
+    // Reparar t_cuotas_usuario
+    const resultCuotasUsuario = await pool.query(`SELECT MAX(id) as max_id FROM t_cuotas_usuario`);
+    const maxIdCuotasUsuario = resultCuotasUsuario.rows[0].max_id || 0;
+    console.log(`📊 ID máximo en t_cuotas_usuario: ${maxIdCuotasUsuario}`);
+    await pool.query(`SELECT setval('t_cuotas_usuario_id_seq', ${maxIdCuotasUsuario + 1})`);
+    console.log(`✅ Secuencia t_cuotas_usuario actualizada a: ${maxIdCuotasUsuario + 1}`);
 
     res.json({
-      mensaje: 'Secuencia reparada exitosamente',
+      mensaje: 'Secuencias reparadas exitosamente',
       detalles: {
-        maxIdAnterior: maxId,
-        proximoId: maxId + 1
+        t_cuotas_mensuales: {
+          maxIdAnterior: maxIdCuotas,
+          proximoId: maxIdCuotas + 1
+        },
+        t_cuotas_usuario: {
+          maxIdAnterior: maxIdCuotasUsuario,
+          proximoId: maxIdCuotasUsuario + 1
+        }
       }
     });
   } catch (error) {
-    console.error('❌ Error reparando la secuencia:', error);
-    res.status(500).json({ error: 'Error al reparar la secuencia de cuotas' });
+    console.error('❌ Error reparando las secuencias:', error);
+    res.status(500).json({ error: 'Error al reparar las secuencias de cuotas' });
   }
 };

@@ -16,6 +16,17 @@ const PaymentModal = ({ isOpen, onClose, cuota, onSuccess }) => {
   const [metodoPago, setMetodoPago] = useState('mercado_pago');
   const [referencia, setReferencia] = useState('');
 
+  // Inicializar Mercado Pago cuando el componente monta
+  useEffect(() => {
+    if (window.MercadoPago && !window.mp) {
+      const publicKey = window.MERCADO_PAGO_PUBLIC_KEY || 'APP_USR-fb0f565e-a4a8-4102-94f8-bd91b6a87cd7';
+      window.mp = new window.MercadoPago(publicKey, {
+        locale: 'es-CL'
+      });
+      console.log('✅ Mercado Pago inicializado correctamente');
+    }
+  }, []);
+
   // Resetear el estado cuando el modal se abre o cierra
   useEffect(() => {
     if (isOpen) {
