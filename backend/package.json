@@ -9,7 +9,8 @@
     "dev": "nodemon server.js",
     "db:init": "node scripts/init-db.js",
     "migrate:documentos": "node scripts/migrate-documentos.js",
-    "regenerate-thumbnails": "node scripts/regenerate-pdf-thumbnails.js"
+    "regenerate-thumbnails": "node scripts/regenerate-pdf-thumbnails.js",
+    "fix:cuotas-sequence": "node scripts/fix-cuotas-sequence.js"
   },
   "keywords": [
     "asochinuf",
