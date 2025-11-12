@@ -40,10 +40,13 @@ const DocumentViewer = ({ documento, isOpen, onClose, onDeleted, esAdmin }) => {
     if (isOpen && documento && documento.archivo_tipo?.includes('pdf')) {
       loadPdfDocument();
     } else {
+      // Limpiar todo cuando se cierra el modal
+      setPdfCache(null);
       setPdfPages([]);
       setPdfError(null);
       setCurrentPage(1);
       setTotalPages(0);
+      setZoom(100);
     }
   }, [isOpen, documento]);
 
@@ -51,20 +54,21 @@ const DocumentViewer = ({ documento, isOpen, onClose, onDeleted, esAdmin }) => {
     try {
       setLoadingPdf(true);
       setPdfError(null);
+      // Limpiar cache y estados cuando se carga un nuevo PDF
+      setPdfCache(null);
+      setPdfPages([]);
+      setCurrentPage(1);
+      setTotalPages(0);
+      setZoom(100);
 
-      let pdf = pdfCache;
+      // Descargar el PDF
+      const response = await axios.get(`${API_ENDPOINTS.DOCUMENTOS.GET_ONE(documento.id)}?preview=true`, {
+        headers: { Authorization: `Bearer ${token}` },
+        responseType: 'arraybuffer'
+      });
 
-      // Si no hay cache, descargar el PDF
-      if (!pdf) {
-        const response = await axios.get(`${API_ENDPOINTS.DOCUMENTOS.GET_ONE(documento.id)}?preview=true`, {
-          headers: { Authorization: `Bearer ${token}` },
-          responseType: 'arraybuffer'
-        });
-
-        pdf = await pdfjsLib.getDocument({ data: response.data }).promise;
-        setPdfCache(pdf);
-      }
-
+      const pdf = await pdfjsLib.getDocument({ data: response.data }).promise;
+      setPdfCache(pdf);
       setTotalPages(pdf.numPages);
 
       // Render first page
