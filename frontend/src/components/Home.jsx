@@ -19,10 +19,13 @@ const Home = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [showMemberDescription, setShowMemberDescription] = useState(null);
   const { scrollYProgress } = useScroll();
+
+  // Optimizar parallax - desactivar en móvil para mejor rendimiento
   const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
   const headerOpacity = useTransform(scrollYProgress, [0, 0.1], [0, 1]);
-  const y = useTransform(scrollYProgress, [0, 1], [0, 300]);
-  const y2 = useTransform(scrollYProgress, [0, 1], [0, -300]);
+  // Reducir magnitud de parallax en desktop también para mejor rendimiento
+  const y = useTransform(scrollYProgress, [0, 1], [0, 150]);
+  const y2 = useTransform(scrollYProgress, [0, 1], [0, -150]);
 
   // Detect mobile devices
   useEffect(() => {
@@ -34,13 +37,15 @@ const Home = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Rotating texts animation
+  // Rotating texts animation - Optimizado para mejor rendimiento
   useEffect(() => {
+    if (isMobile) return; // Desactivar en móvil para mejorar rendimiento
+
     const interval = setInterval(() => {
       setCurrentTextIndex((prev) => (prev + 1) % mockData.hero.rotatingTexts.length);
-    }, 3000);
+    }, 4000); // Aumentado a 4000ms para reducir cambios
     return () => clearInterval(interval);
-  }, []);
+  }, [isMobile]);
 
   // Smooth scroll function
   const scrollToSection = (sectionId) => {

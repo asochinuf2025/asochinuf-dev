@@ -11,10 +11,9 @@ const DocumentCard = ({ documento, onDeleted, esAdmin }) => {
   const [deleting, setDeleting] = useState(false);
 
   const handleDescargar = () => {
-    if (documento.archivo_url) {
-      window.open(documento.archivo_url, '_blank');
-      toast.success('Descarga iniciada');
-    }
+    // Descargar el PDF desde el endpoint con parámetro download=true
+    window.location.href = `${API_ENDPOINTS.DOCUMENTOS.GET_ONE(documento.id)}?download=true`;
+    toast.success('Descarga iniciada');
   };
 
   const handleEliminar = async () => {
@@ -48,15 +47,35 @@ const DocumentCard = ({ documento, onDeleted, esAdmin }) => {
     <motion.div
       whileHover={{ y: -4 }}
       whileTap={{ scale: 0.98 }}
-      className={`h-full rounded-xl border overflow-hidden transition-all duration-300 ${
+      className={`h-full rounded-xl border overflow-hidden transition-all duration-300 flex flex-col ${
         isDarkMode
           ? 'bg-[#0f1117] border-[#8c5cff]/20 hover:border-[#8c5cff]/40'
           : 'bg-white border-purple-200 hover:border-purple-400 hover:shadow-lg'
       }`}
     >
+      {/* Miniatura del documento */}
+      {documento.miniatura ? (
+        <div className={`w-full h-48 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'} overflow-hidden`}>
+          <img
+            src={`data:image/png;base64,${documento.miniatura}`}
+            alt={documento.titulo}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      ) : (
+        <div className={`w-full h-48 ${isDarkMode ? 'bg-gradient-to-br from-[#8c5cff]/30 to-[#6a3adb]/30' : 'bg-gradient-to-br from-purple-100 to-purple-200'} flex items-center justify-center`}>
+          <div className="text-center">
+            <div className="text-4xl mb-2">📄</div>
+            <p className={`text-sm font-semibold ${isDarkMode ? 'text-purple-300' : 'text-purple-700'}`}>
+              {documento.archivo_nombre?.split('.').pop()?.toUpperCase() || 'DOC'}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Header con color de categoría */}
       <div
-        className={`h-2 ${
+        className={`h-1 ${
           documento.categoria === 'Actualización'
             ? 'bg-blue-500'
             : documento.categoria === 'Reglamento'
@@ -68,7 +87,7 @@ const DocumentCard = ({ documento, onDeleted, esAdmin }) => {
       />
 
       {/* Contenido */}
-      <div className="p-5 space-y-4 flex flex-col h-[calc(100%-8px)]">
+      <div className="p-5 space-y-4 flex flex-col flex-1">
         {/* Título y Categoría */}
         <div className="flex-1">
           <div className="flex items-start justify-between gap-2 mb-2">

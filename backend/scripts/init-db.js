@@ -548,12 +548,20 @@ const inicializarBD = async () => {
 
     // ========== TABLA t_documentos ==========
     console.log('Creando tabla t_documentos...');
+
+    // Primero eliminar tabla existente si existe
+    await pool.query(`DROP TABLE IF EXISTS t_documentos CASCADE;`);
+
     await pool.query(`
-      CREATE TABLE IF NOT EXISTS t_documentos (
+      CREATE TABLE t_documentos (
         id SERIAL PRIMARY KEY,
         titulo VARCHAR(255) NOT NULL,
         descripcion TEXT,
-        archivo_url VARCHAR(255) NOT NULL,
+        archivo_contenido BYTEA NOT NULL,
+        archivo_nombre VARCHAR(255) NOT NULL,
+        archivo_tipo VARCHAR(100) NOT NULL,
+        archivo_tamaño INTEGER,
+        miniatura BYTEA,
         categoria VARCHAR(100),
         fecha_creacion TIMESTAMP DEFAULT NOW(),
         fecha_actualizacion TIMESTAMP DEFAULT NOW(),
@@ -561,7 +569,7 @@ const inicializarBD = async () => {
         usuario_creacion INTEGER REFERENCES t_usuarios(id) ON DELETE SET NULL
       );
     `);
-    console.log('✓ Tabla t_documentos creada');
+    console.log('✓ Tabla t_documentos creada (con almacenamiento de PDF en binario)');
 
     // Índices para t_documentos
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_documentos_categoria ON t_documentos(categoria);`);

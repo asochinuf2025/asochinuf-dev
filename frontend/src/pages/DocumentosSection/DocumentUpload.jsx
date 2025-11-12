@@ -1,11 +1,10 @@
 import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Upload, X, Loader } from 'lucide-react';
+import { Upload, Loader } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
 import { API_ENDPOINTS } from '../../config/apiConfig';
 import { toast } from 'sonner';
-import cloudinaryService from '../../services/cloudinaryService';
 
 const DocumentUpload = ({ onSuccess, onCancel }) => {
   const { isDarkMode, token } = useAuth();
@@ -77,21 +76,16 @@ const DocumentUpload = ({ onSuccess, onCancel }) => {
         try {
           const base64Data = e.target.result;
 
-          // Subir a Cloudinary
-          const cloudinaryResult = await cloudinaryService.uploadDocument(base64Data, titulo);
-
-          if (!cloudinaryResult.url) {
-            throw new Error('Error al subir archivo');
-          }
-
-          // Crear documento en la BD
+          // Crear documento en la BD (enviar PDF directamente)
           const config = { headers: { Authorization: `Bearer ${token}` } };
           await axios.post(
             API_ENDPOINTS.DOCUMENTOS.CREATE,
             {
               titulo: titulo.trim(),
               descripcion: descripcion.trim() || null,
-              archivo_url: cloudinaryResult.url,
+              archivo_base64: base64Data,
+              archivo_nombre: archivo.name,
+              archivo_tipo: archivo.type,
               categoria: categoria
             },
             config
