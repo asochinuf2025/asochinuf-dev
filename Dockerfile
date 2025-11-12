@@ -4,7 +4,7 @@
 # ============================================================================
 # STAGE 1: Frontend Builder
 # ============================================================================
-FROM node:20-alpine AS frontend-builder
+FROM node:20 AS frontend-builder
 
 WORKDIR /app/frontend
 
@@ -23,7 +23,7 @@ RUN yarn build 2>/dev/null || npm run build
 # ============================================================================
 # STAGE 2: Production - Node.js + Express
 # ============================================================================
-FROM node:20-alpine
+FROM node:20
 
 WORKDIR /app
 
