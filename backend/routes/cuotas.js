@@ -11,7 +11,8 @@ import {
   obtenerPagosCuota,
   obtenerEstadisticas,
   obtenerCuotasGlobales,
-  obtenerTodosLosUsuarios
+  obtenerTodosLosUsuarios,
+  repararSecuenciaCuotas
 } from '../controllers/cuotasController.js';
 
 const router = express.Router();
@@ -51,5 +52,8 @@ router.post('/:cuotaId/pagos', registrarPagoCuota);
 
 // Obtener historial de pagos de una cuota
 router.get('/:cuotaId/pagos', obtenerPagosCuota);
+
+// Reparar secuencia de cuotas (admin) - si hay error de duplicate key
+router.post('/admin/reparar-secuencia', repararSecuenciaCuotas);
 
 export default router;
