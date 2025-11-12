@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }) => {
       const response = await fetch(API_ENDPOINTS.AUTH.LOGIN, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: email.toLowerCase(), password }),
       });
 
       const data = await response.json();
@@ -69,7 +69,7 @@ export const AuthProvider = ({ children }) => {
       const response = await fetch(API_ENDPOINTS.AUTH.REGISTRO, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, nombre, apellido }),
+        body: JSON.stringify({ email: email.toLowerCase(), password, nombre, apellido }),
       });
 
       const data = await response.json();

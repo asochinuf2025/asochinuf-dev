@@ -39,11 +39,12 @@ export const registro = async (req, res) => {
     }
 
     const { email, password, nombre, apellido } = value;
+    const emailNormalizado = email.toLowerCase();
 
     // Verificar si el email ya existe
     const usuarioExistente = await pool.query(
-      'SELECT id FROM t_usuarios WHERE email = $1',
-      [email]
+      'SELECT id FROM t_usuarios WHERE LOWER(email) = $1',
+      [emailNormalizado]
     );
 
     if (usuarioExistente.rows.length > 0) {
@@ -57,7 +58,7 @@ export const registro = async (req, res) => {
     // Crear usuario (por defecto cliente)
     const resultado = await pool.query(
       'INSERT INTO t_usuarios (email, password_hash, nombre, apellido, tipo_perfil, activo, fecha_registro) VALUES ($1, $2, $3, $4, $5, $6, NOW()) RETURNING id, email, nombre, apellido, tipo_perfil, foto',
-      [email, passwordHash, nombre, apellido, 'cliente', true]
+      [emailNormalizado, passwordHash, nombre, apellido, 'cliente', true]
     );
 
     const usuario = resultado.rows[0];
@@ -90,11 +91,12 @@ export const login = async (req, res) => {
     }
 
     const { email, password } = value;
+    const emailNormalizado = email.toLowerCase();
 
     // Buscar usuario
     const resultado = await pool.query(
-      'SELECT * FROM t_usuarios WHERE email = $1 AND activo = true',
-      [email]
+      'SELECT * FROM t_usuarios WHERE LOWER(email) = $1 AND activo = true',
+      [emailNormalizado]
     );
 
     if (resultado.rows.length === 0) {
@@ -164,10 +166,12 @@ export const solicitarRecuperacion = async (req, res) => {
       return res.status(400).json({ error: 'El email es requerido' });
     }
 
+    const emailNormalizado = email.toLowerCase();
+
     // Buscar usuario
     const resultado = await pool.query(
-      'SELECT id, nombre FROM t_usuarios WHERE email = $1',
-      [email]
+      'SELECT id, nombre FROM t_usuarios WHERE LOWER(email) = $1',
+      [emailNormalizado]
     );
 
     if (resultado.rows.length === 0) {
@@ -304,6 +308,7 @@ export const obtenerUsuarios = async (req, res) => {
 export const crearUsuario = async (req, res) => {
   try {
     const { email, password, nombre, apellido, tipo_perfil } = req.body;
+    const emailNormalizado = email.toLowerCase();
 
     // Validar datos
     if (!email || !password || !nombre || !apellido || !tipo_perfil) {
@@ -320,8 +325,8 @@ export const crearUsuario = async (req, res) => {
 
     // Verificar si el email ya existe
     const usuarioExistente = await pool.query(
-      'SELECT id FROM t_usuarios WHERE email = $1',
-      [email]
+      'SELECT id FROM t_usuarios WHERE LOWER(email) = $1',
+      [emailNormalizado]
     );
 
     if (usuarioExistente.rows.length > 0) {
@@ -335,7 +340,7 @@ export const crearUsuario = async (req, res) => {
     // Crear usuario
     const resultado = await pool.query(
       'INSERT INTO t_usuarios (email, password_hash, nombre, apellido, tipo_perfil, activo, fecha_registro) VALUES ($1, $2, $3, $4, $5, $6, NOW()) RETURNING id, email, nombre, apellido, tipo_perfil, activo, fecha_registro',
-      [email, passwordHash, nombre, apellido, tipo_perfil, true]
+      [emailNormalizado, passwordHash, nombre, apellido, tipo_perfil, true]
     );
 
     const usuario = resultado.rows[0];
