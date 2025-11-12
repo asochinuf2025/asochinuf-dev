@@ -4,7 +4,19 @@ import axios from 'axios';
 const MP_ACCESS_TOKEN = process.env.MERCADO_PAGO_ACCESS_TOKEN;
 const MP_API_URL = 'https://api.mercadopago.com';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:5001';
+
+// Construir la URL del webhook basándose en FRONTEND_URL
+const getWebhookUrl = () => {
+  if (FRONTEND_URL.includes('localhost') || FRONTEND_URL.includes('127.0.0.1')) {
+    // Desarrollo: usar localhost:5001
+    return 'http://localhost:5001/api/payments/webhook';
+  }
+  // Producción: usar el mismo dominio que FRONTEND_URL
+  return `${FRONTEND_URL}/api/payments/webhook`;
+};
+
+const WEBHOOK_URL = getWebhookUrl();
+console.log('🔔 WEBHOOK_URL configurada como:', WEBHOOK_URL);
 
 const mpClient = axios.create({
   baseURL: MP_API_URL,
@@ -53,7 +65,7 @@ export const crearPreferenciaPago = async (cuota, usuario) => {
 
     if (!isLocalhost) {
       preference.auto_return = 'approved';
-      preference.notification_url = `${BACKEND_URL}/api/payments/webhook`;
+      preference.notification_url = WEBHOOK_URL;
     } else {
       console.warn('⚠️ Modo desarrollo (localhost): omitiendo auto_return y notification_url.');
       console.warn('   → El usuario deberá hacer clic en "Volver al sitio" después del pago.');
