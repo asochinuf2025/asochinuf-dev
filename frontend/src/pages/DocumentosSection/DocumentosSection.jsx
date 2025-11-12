@@ -7,6 +7,7 @@ import { API_ENDPOINTS } from '../../config/apiConfig';
 import { toast } from 'sonner';
 import DocumentCard from './DocumentCard';
 import DocumentUpload from './DocumentUpload';
+import DocumentViewer from './DocumentViewer';
 
 const DocumentosSection = ({ containerVariants, itemVariants }) => {
   const { isDarkMode, token, usuario } = useAuth();
@@ -16,6 +17,8 @@ const DocumentosSection = ({ containerVariants, itemVariants }) => {
   const [showUpload, setShowUpload] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategoria, setSelectedCategoria] = useState('todas');
+  const [selectedDocument, setSelectedDocument] = useState(null);
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
 
   // Cargar documentos y categorías
   useEffect(() => {
@@ -52,7 +55,13 @@ const DocumentosSection = ({ containerVariants, itemVariants }) => {
 
   const handleDocumentoEliminado = (id) => {
     setDocumentos(documentos.filter(d => d.id !== id));
+    setIsViewerOpen(false);
     toast.success('Documento eliminado');
+  };
+
+  const handleOpenDocument = (doc) => {
+    setSelectedDocument(doc);
+    setIsViewerOpen(true);
   };
 
   // Filtrar documentos por búsqueda
@@ -196,27 +205,38 @@ const DocumentosSection = ({ containerVariants, itemVariants }) => {
       ) : (
         <motion.div
           variants={containerVariants}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
         >
           <AnimatePresence mode="popLayout">
             {documentosFiltrados.map((doc) => (
               <motion.div
                 key={doc.id}
                 variants={itemVariants}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
                 layout
               >
                 <DocumentCard
                   documento={doc}
-                  onDeleted={handleDocumentoEliminado}
-                  esAdmin={usuario?.tipo_perfil === 'admin'}
+                  onOpen={handleOpenDocument}
+                  isDarkMode={isDarkMode}
                 />
               </motion.div>
             ))}
           </AnimatePresence>
         </motion.div>
+      )}
+
+      {/* Modal Viewer */}
+      {selectedDocument && (
+        <DocumentViewer
+          documento={selectedDocument}
+          isOpen={isViewerOpen}
+          onClose={() => setIsViewerOpen(false)}
+          onDeleted={handleDocumentoEliminado}
+          esAdmin={usuario?.tipo_perfil === 'admin'}
+        />
       )}
 
       {/* Estadísticas */}
