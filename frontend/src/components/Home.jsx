@@ -4,7 +4,7 @@ import {
   Menu, X, Activity, Utensils, HeartPulse,
   Droplet, Facebook, Instagram, Twitter, Linkedin,
   GraduationCap, Clock, Sparkles, ArrowRight, Star,
-  Users, Award, TrendingUp, Lock, Target, Compass
+  Users, Award, TrendingUp, Lock
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
@@ -515,157 +515,144 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Misión y Visión Section - Premium Split Design */}
+      {/* Misión y Visión Section - Clean Layout with Logo */}
       <section id="mision-vision" className="py-24 px-4 bg-gradient-to-b from-[#0a0a0a] via-black to-[#0a0a0a] relative overflow-hidden">
-        {/* Background decorations */}
-        <div className="absolute inset-0 opacity-20">
+        {/* Background decorations - animated gradient */}
+        <div className="absolute inset-0 overflow-hidden">
           <motion.div
             animate={{
-              scale: [1, 1.1, 1],
-              rotate: [0, 90, 180]
+              x: [0, 50, 0],
+              y: [0, 30, 0],
+            }}
+            transition={{
+              duration: 15,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+            className="absolute top-0 right-0 w-96 h-96 bg-[#8c5cff]/15 rounded-full blur-3xl"
+          />
+          <motion.div
+            animate={{
+              x: [0, -30, 0],
+              y: [0, -50, 0],
             }}
             transition={{
               duration: 20,
               repeat: Infinity,
-              ease: "linear"
+              ease: "easeInOut"
             }}
-            className="absolute -top-1/2 -left-1/2 w-full h-full bg-[#8c5cff]/10 rounded-full blur-3xl"
+            className="absolute bottom-0 left-0 w-80 h-80 bg-[#6a3dcf]/15 rounded-full blur-3xl"
           />
         </div>
 
-        <div className="container mx-auto max-w-6xl relative z-10">
-          {/* Header */}
-          <motion.div
-            initial={isMobile ? { opacity: 1 } : { opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="text-center mb-20"
-          >
+        <div className="container mx-auto max-w-7xl relative z-10">
+          {/* Main content - Logo left, Text right */}
+          <div className="grid md:grid-cols-2 gap-16 items-center">
+            {/* Logo Section - Left */}
             <motion.div
-              initial={isMobile ? { opacity: 1 } : { scale: 0.9, opacity: 0 }}
-              whileInView={{ scale: 1, opacity: 1 }}
+              initial={isMobile ? { opacity: 1 } : { opacity: 0, x: -100, scale: 0.8 }}
+              whileInView={{ opacity: 1, x: 0, scale: 1 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="inline-block mb-4"
+              transition={{ duration: 1, delay: 0.1 }}
+              className="flex justify-center items-center md:justify-start"
             >
-              <div className="px-6 py-2 bg-gradient-to-r from-[#8c5cff]/20 to-[#6a3dcf]/20 rounded-full border border-[#8c5cff]/30 backdrop-blur-sm">
-                <span className="text-[#8c5cff] font-semibold text-sm tracking-wider uppercase">Nuestra Identidad</span>
-              </div>
-            </motion.div>
-            <h2 className="text-3xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-white via-[#8c5cff] to-white bg-clip-text text-transparent" style={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
-              Misión y Visión
-            </h2>
-          </motion.div>
-
-          {/* Misión y Visión Cards - Split Layout */}
-          <div className="grid md:grid-cols-2 gap-8 items-stretch">
-            {/* Misión Card */}
-            <motion.div
-              initial={isMobile ? { opacity: 1 } : { opacity: 0, x: -50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.8, delay: 0.1 }}
-              className="group relative"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-[#8c5cff]/20 to-[#6a3dcf]/10 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-
-              <div className="relative h-full bg-gradient-to-br from-[#2a2c33]/80 via-[#1f2127]/80 to-[#1a1c22]/80 rounded-3xl overflow-hidden border border-[#8c5cff]/30 hover:border-[#8c5cff]/60 transition-all duration-700 p-8 md:p-10 backdrop-blur-sm flex flex-col justify-between">
-                {/* Animated gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-r from-[#8c5cff]/0 via-[#8c5cff]/5 to-[#8c5cff]/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-
-                {/* Decorative icon */}
+              <motion.div
+                animate={{
+                  y: [0, -15, 0],
+                }}
+                transition={{
+                  duration: 4,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+                className="relative"
+              >
                 <motion.div
-                  className="relative z-10 mb-6"
-                  animate={!isMobile ? { y: [0, -8, 0] } : {}}
-                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                  animate={{
+                    boxShadow: [
+                      "0 0 20px rgba(140, 92, 255, 0.3)",
+                      "0 0 40px rgba(140, 92, 255, 0.6)",
+                      "0 0 20px rgba(140, 92, 255, 0.3)"
+                    ]
+                  }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                  className="relative bg-gradient-to-br from-[#8c5cff]/20 via-[#6a3dcf]/10 to-[#4a2c8f]/20 rounded-2xl p-8 backdrop-blur-sm border border-[#8c5cff]/30"
                 >
-                  <div className="relative inline-block">
-                    <div className="absolute inset-0 bg-[#8c5cff] rounded-2xl blur-lg opacity-40"></div>
-                    <div className="relative bg-gradient-to-br from-[#8c5cff] to-[#6a3dcf] rounded-2xl p-4 shadow-2xl">
-                      <Target size={32} className="text-white" strokeWidth={1.5} />
-                    </div>
-                  </div>
+                  <img
+                    src="/logos/logo.png"
+                    alt="ASOCHINUF Logo"
+                    className="h-64 w-auto object-contain drop-shadow-2xl"
+                  />
                 </motion.div>
+              </motion.div>
+            </motion.div>
 
-                {/* Content */}
-                <div className="relative z-10">
-                  <h3 className="text-2xl md:text-3xl font-bold text-white mb-4 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-[#8c5cff] group-hover:bg-clip-text transition-all duration-500" style={{ fontWeight: 800 }}>
+            {/* Text Section - Right */}
+            <motion.div
+              initial={isMobile ? { opacity: 1 } : { opacity: 0, x: 100 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1, delay: 0.2 }}
+              className="space-y-12"
+            >
+              {/* Misión */}
+              <motion.div
+                whileHover={{ x: 10 }}
+                transition={{ duration: 0.3 }}
+                className="group relative"
+              >
+                <div className="absolute -left-4 top-0 bottom-0 w-1 bg-gradient-to-b from-[#8c5cff] to-[#6a3dcf] opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div className="pl-4">
+                  <motion.h3
+                    className="text-2xl md:text-3xl font-bold text-white mb-3"
+                    style={{ fontWeight: 800 }}
+                  >
                     {mockData.misionVision.mision.title}
-                  </h3>
-                  <p className="text-gray-300 group-hover:text-gray-200 text-base leading-relaxed transition-colors duration-500">
+                  </motion.h3>
+                  <motion.p
+                    className="text-gray-300 text-base leading-relaxed group-hover:text-gray-200 transition-colors duration-300"
+                  >
                     {mockData.misionVision.mision.description}
-                  </p>
+                  </motion.p>
                 </div>
+              </motion.div>
 
-                {/* Decorative corner accent */}
-                <div className="absolute top-0 right-0 w-24 h-24 border-r-2 border-t-2 border-[#8c5cff]/20 rounded-br-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              </div>
-            </motion.div>
+              {/* Divider */}
+              <motion.div
+                initial={{ width: 0 }}
+                whileInView={{ width: "100%" }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8, delay: 0.3 }}
+                className="h-px bg-gradient-to-r from-[#8c5cff]/30 via-[#8c5cff]/60 to-[#8c5cff]/30"
+              />
 
-            {/* Visión Card */}
-            <motion.div
-              initial={isMobile ? { opacity: 1 } : { opacity: 0, x: 50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="group relative"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-[#6a3dcf]/20 to-[#8c5cff]/10 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-
-              <div className="relative h-full bg-gradient-to-br from-[#1a1c22]/80 via-[#1f2127]/80 to-[#2a2c33]/80 rounded-3xl overflow-hidden border border-[#6a3dcf]/30 hover:border-[#8c5cff]/60 transition-all duration-700 p-8 md:p-10 backdrop-blur-sm flex flex-col justify-between">
-                {/* Animated gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-r from-[#8c5cff]/0 via-[#6a3dcf]/5 to-[#8c5cff]/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-
-                {/* Decorative icon */}
-                <motion.div
-                  className="relative z-10 mb-6"
-                  animate={!isMobile ? { y: [0, -8, 0] } : {}}
-                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-                >
-                  <div className="relative inline-block">
-                    <div className="absolute inset-0 bg-[#6a3dcf] rounded-2xl blur-lg opacity-40"></div>
-                    <div className="relative bg-gradient-to-br from-[#6a3dcf] to-[#4a2c8f] rounded-2xl p-4 shadow-2xl">
-                      <Compass size={32} className="text-white" strokeWidth={1.5} />
-                    </div>
-                  </div>
-                </motion.div>
-
-                {/* Content */}
-                <div className="relative z-10">
-                  <h3 className="text-2xl md:text-3xl font-bold text-white mb-4 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-[#6a3dcf] group-hover:bg-clip-text transition-all duration-500" style={{ fontWeight: 800 }}>
+              {/* Visión */}
+              <motion.div
+                whileHover={{ x: 10 }}
+                transition={{ duration: 0.3 }}
+                className="group relative"
+              >
+                <div className="absolute -left-4 top-0 bottom-0 w-1 bg-gradient-to-b from-[#6a3dcf] to-[#8c5cff] opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div className="pl-4">
+                  <motion.h3
+                    className="text-2xl md:text-3xl font-bold text-white mb-3"
+                    style={{ fontWeight: 800 }}
+                  >
                     {mockData.misionVision.vision.title}
-                  </h3>
-                  <p className="text-gray-300 group-hover:text-gray-200 text-base leading-relaxed transition-colors duration-500">
+                  </motion.h3>
+                  <motion.p
+                    className="text-gray-300 text-base leading-relaxed group-hover:text-gray-200 transition-colors duration-300"
+                  >
                     {mockData.misionVision.vision.description}
-                  </p>
+                  </motion.p>
                 </div>
-
-                {/* Decorative corner accent */}
-                <div className="absolute bottom-0 left-0 w-24 h-24 border-l-2 border-b-2 border-[#6a3dcf]/20 rounded-tr-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              </div>
+              </motion.div>
             </motion.div>
           </div>
-
-          {/* Logo highlight section */}
-          <motion.div
-            initial={isMobile ? { opacity: 1 } : { opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="mt-20 text-center"
-          >
-            <div className="inline-block p-8 rounded-3xl bg-gradient-to-br from-[#8c5cff]/10 via-[#6a3dcf]/5 to-[#4a2c8f]/10 border border-[#8c5cff]/20 hover:border-[#8c5cff]/50 transition-all duration-500">
-              <img
-                src="/logos/logo.png"
-                alt="ASOCHINUF Logo"
-                className="h-24 w-auto object-contain mx-auto drop-shadow-2xl hover:drop-shadow-[0_0_20px_rgba(140,92,255,0.5)] transition-all duration-500"
-              />
-              <p className="mt-6 text-gray-400 text-sm leading-relaxed max-w-md mx-auto">
-                Liderando la excelencia en nutrición deportiva para el fútbol profesional chileno
-              </p>
-            </div>
-          </motion.div>
         </div>
       </section>
 
