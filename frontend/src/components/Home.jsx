@@ -10,6 +10,7 @@ import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import AuthModal from './AuthModal';
+import StarBorder from './StarBorder';
 import { mockData } from '../mock';
 
 // Typewriter Animation Component
@@ -376,81 +377,19 @@ const Home = () => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.8 }}
           >
-            <style>{`
-              @keyframes borderGlow {
-                0% {
-                  background-position: 0% 50%;
-                }
-                50% {
-                  background-position: 100% 50%;
-                }
-                100% {
-                  background-position: 0% 50%;
-                }
-              }
-
-              .cta-button {
-                position: relative;
-                display: inline-flex;
-                align-items: center;
-                gap: 0.5rem;
-                padding: 1.75rem 3rem;
-                font-size: 1.125rem;
-                font-weight: 600;
-                color: white;
-                background: transparent;
-                border: 2px solid transparent;
-                border-radius: 9999px;
-                cursor: pointer;
-                transition: all 0.3s ease;
-                background-image:
-                  linear-gradient(90deg, #000 0%, #000 100%),
-                  linear-gradient(90deg, #8c5cff, #6a3dcf, #8c5cff);
-                background-origin: border-box;
-                background-clip: padding-box, border-box;
-              }
-
-              .cta-button::before {
-                content: '';
-                position: absolute;
-                top: -2px;
-                left: -2px;
-                right: -2px;
-                bottom: -2px;
-                background: linear-gradient(90deg, transparent, #8c5cff, transparent);
-                border-radius: 9999px;
-                opacity: 0;
-                animation: borderGlow 3s ease-in-out infinite;
-                z-index: -1;
-              }
-
-              .cta-button:hover::before {
-                opacity: 1;
-              }
-
-              .cta-button:hover {
-                box-shadow: 0 0 30px rgba(140, 92, 255, 0.5);
-                transform: scale(1.05);
-              }
-
-              .cta-button-content {
-                position: relative;
-                z-index: 1;
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-              }
-            `}</style>
-
-            <button
+            <StarBorder
+              as="button"
               onClick={() => setIsLoginOpen(true)}
-              className="cta-button group"
+              color="#8c5cff"
+              speed="5s"
+              className="flex items-center justify-center gap-2 text-lg font-semibold hover:scale-105 transition-transform duration-300 group"
+              style={{ padding: '1px 0' }}
             >
-              <span className="cta-button-content">
+              <span className="flex items-center gap-2">
                 {mockData.hero.ctaText}
                 <ArrowRight className="group-hover:translate-x-1 transition-transform duration-300" size={20} />
               </span>
-            </button>
+            </StarBorder>
           </motion.div>
         </motion.div>
 
