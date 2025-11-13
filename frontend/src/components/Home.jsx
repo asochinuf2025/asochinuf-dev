@@ -73,18 +73,23 @@ const TypewriterText = ({ text, onDeletingComplete }) => {
 };
 
 // Animated Counter Component
-const AnimatedCounter = ({ from = 0, to, duration = 2, useInView = true }) => {
+const AnimatedCounter = ({ from = 0, to, duration = 2.5 }) => {
   const [count, setCount] = useState(from);
-  const [isInView, setIsInView] = useState(!useInView);
+  const [hasStarted, setHasStarted] = useState(false);
 
   useEffect(() => {
-    if (!isInView) return;
+    if (!hasStarted) return;
 
     let startValue = from;
-    const step = (to - from) / (duration * 60); // 60fps
+    const totalFrames = duration * 60; // 60fps
+    const step = (to - from) / totalFrames;
+    let frameCount = 0;
+
     const interval = setInterval(() => {
-      startValue += step;
-      if (startValue >= to) {
+      frameCount++;
+      startValue = from + (step * frameCount);
+
+      if (frameCount >= totalFrames) {
         setCount(to);
         clearInterval(interval);
       } else {
@@ -93,7 +98,12 @@ const AnimatedCounter = ({ from = 0, to, duration = 2, useInView = true }) => {
     }, 1000 / 60);
 
     return () => clearInterval(interval);
-  }, [from, to, duration, isInView]);
+  }, [hasStarted, from, to, duration]);
+
+  // Start animation immediately when component mounts
+  useEffect(() => {
+    setHasStarted(true);
+  }, []);
 
   return <span>{count.toLocaleString()}</span>;
 };
