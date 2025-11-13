@@ -4,7 +4,12 @@
     "app": {
       "builder": "dockerfile",
       "context": ".",
-      "dockerfile": "Dockerfile"
+      "dockerfile": "Dockerfile",
+      "buildArgs": {
+        "VITE_API_URL": "$VITE_API_URL",
+        "VITE_GOOGLE_CLIENT_ID": "$VITE_GOOGLE_CLIENT_ID",
+        "VITE_MERCADO_PAGO_PUBLIC_KEY": "$VITE_MERCADO_PAGO_PUBLIC_KEY"
+      }
     }
   }
 }

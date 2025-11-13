@@ -17,7 +17,17 @@ RUN yarn install --frozen-lockfile 2>/dev/null || npm install --legacy-peer-deps
 # Copiar código del frontend
 COPY frontend/ .
 
-# Construir el frontend
+# Crear archivo .env con variables de entorno para build time
+# Esto es necesario para que Vite incluya las variables en el bundle
+ARG VITE_API_URL
+ARG VITE_GOOGLE_CLIENT_ID
+ARG VITE_MERCADO_PAGO_PUBLIC_KEY
+
+RUN echo "VITE_API_URL=${VITE_API_URL}" > .env && \
+    echo "VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}" >> .env && \
+    echo "VITE_MERCADO_PAGO_PUBLIC_KEY=${VITE_MERCADO_PAGO_PUBLIC_KEY}" >> .env
+
+# Construir el frontend con variables de entorno
 RUN yarn build 2>/dev/null || npm run build
 
 # ============================================================================
