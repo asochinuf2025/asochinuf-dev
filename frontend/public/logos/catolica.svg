@@ -1,5 +1,0 @@
-<svg width="120" height="60" xmlns="http://www.w3.org/2000/svg">
-  <rect width="120" height="60" fill="#1e3a8a" rx="8"/>
-  <circle cx="60" cy="30" r="15" fill="white"/>
-  <text x="60" y="36" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#1e3a8a" text-anchor="middle">UC</text>
-</svg>

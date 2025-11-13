@@ -4,7 +4,7 @@ import {
   Menu, X, Activity, Utensils, HeartPulse,
   Droplet, Facebook, Instagram, Twitter, Linkedin,
   GraduationCap, Clock, Sparkles, ArrowRight, Star,
-  Users, Award, TrendingUp, Lock
+  Users, Award, TrendingUp, Lock, Compass
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
@@ -182,19 +182,19 @@ const Home = () => {
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.3, ease: 'easeInOut' }}
-              className="md:hidden overflow-hidden"
+              className="md:hidden w-full relative"
             >
               {/* Fondo con efecto glassmorphism */}
-              <div className="absolute inset-0 bg-gradient-to-b from-[#1a1c22]/95 via-[#0f1117]/95 to-[#161821]/95 backdrop-blur-xl border-t border-[#8c5cff]/20" />
+              <div className="absolute inset-0 bg-gradient-to-b from-[#1a1c22]/95 via-[#0f1117]/95 to-[#161821]/95 backdrop-blur-xl border-t border-[#8c5cff]/20 pointer-events-none" />
 
               {/* Efecto de luz */}
-              <div className="absolute top-0 right-0 w-64 h-64 bg-[#8c5cff]/5 rounded-full blur-3xl" />
+              <div className="absolute top-0 right-0 w-64 h-64 bg-[#8c5cff]/5 rounded-full blur-3xl pointer-events-none" />
 
               {/* Contenido */}
-              <nav className="relative flex flex-col space-y-2 p-6 pt-8 pb-8">
+              <nav className="relative flex flex-col space-y-2 p-6 pt-8 pb-8 z-10">
                 {[
                   { name: 'Cursos', icon: GraduationCap },
-                  { name: 'Misión y Visión', icon: Target, id: 'mision-vision' },
+                  { name: 'Misión y Visión', icon: Compass, id: 'mision-vision' },
                   { name: 'Capacitaciones', icon: Sparkles },
                   { name: 'Profesionales', icon: Award },
                   { name: 'Organigrama', icon: Users }
@@ -436,6 +436,222 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Misión y Visión Section - Premium 3D Cards with Flip Effect */}
+      <section id="mision-vision" className="py-32 px-4 bg-gradient-to-b from-[#0a0a0a] via-black to-[#0a0a0a] relative overflow-hidden">
+
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <motion.div
+            animate={{
+              x: [0, 80, 0],
+              y: [0, 50, 0],
+            }}
+            transition={{
+              duration: 20,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+            className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-[#8c5cff]/20 via-[#6a3dcf]/10 to-transparent rounded-full blur-3xl"
+          />
+          <motion.div
+            animate={{
+              x: [0, -60, 0],
+              y: [0, -80, 0],
+            }}
+            transition={{
+              duration: 25,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+            className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tl from-[#6a3dcf]/20 via-[#8c5cff]/10 to-transparent rounded-full blur-3xl"
+          />
+        </div>
+
+        <div className="container mx-auto max-w-7xl relative z-10">
+          {/* Header */}
+          <motion.div
+            initial={isMobile ? { opacity: 1 } : { opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-24"
+          >
+            <h2 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white via-[#8c5cff] to-white bg-clip-text text-transparent" style={{ fontWeight: 900, letterSpacing: '-0.02em' }}>
+              Misión & Visión
+            </h2>
+            <p className="text-gray-400 text-lg max-w-2xl mx-auto leading-relaxed">
+              Los pilares que guían nuestro compromiso con la excelencia en nutrición deportiva
+            </p>
+          </motion.div>
+
+          {/* Layout with Image Left and Text Right */}
+          <div className="space-y-20">
+            {/* Misión - Image Left, Text Right */}
+            <motion.div
+              initial={isMobile ? { opacity: 1 } : { opacity: 0, x: -50, y: 30 }}
+              whileInView={{ opacity: 1, x: 0, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.1 }}
+              className="group relative"
+            >
+              <div className="grid md:grid-cols-3 gap-8 lg:gap-12 items-center">
+                {/* Image Left - Full Body Person */}
+                <motion.div
+                  whileHover={!isMobile ? { scale: 1.05 } : {}}
+                  transition={{ duration: 0.5 }}
+                  className="md:col-span-1 relative"
+                >
+                  {/* Glow Effect */}
+                  <motion.div
+                    animate={{
+                      boxShadow: [
+                        '0 0 20px rgba(140, 92, 255, 0.3)',
+                        '0 0 40px rgba(140, 92, 255, 0.6)',
+                        '0 0 20px rgba(140, 92, 255, 0.3)'
+                      ]
+                    }}
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                      ease: 'easeInOut'
+                    }}
+                    className="absolute -inset-4 bg-gradient-to-br from-[#8c5cff]/30 to-[#6a3dcf]/30 rounded-3xl blur-2xl"
+                  />
+
+                  <img
+                    src="/nutri4.png"
+                    alt="Misión"
+                    className="relative w-full h-80 md:h-96 object-cover rounded-2xl shadow-2xl group-hover:shadow-[0_0_40px_rgba(140,92,255,0.6)] transition-all duration-500 border border-[#8c5cff]/40 group-hover:border-[#8c5cff]/80"
+                  />
+                </motion.div>
+
+                {/* Text Right */}
+                <motion.div
+                  initial={!isMobile ? { opacity: 0, x: 30 } : { opacity: 1 }}
+                  whileInView={!isMobile ? { opacity: 1, x: 0 } : { opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.8, delay: 0.2 }}
+                  className="md:col-span-2 space-y-6"
+                >
+                  {/* Top accent line */}
+                  <motion.div
+                    initial={{ width: 0 }}
+                    whileInView={{ width: 80 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.8 }}
+                    className="h-1.5 bg-gradient-to-r from-[#8c5cff] to-transparent rounded-full"
+                  />
+
+                  <motion.h3
+                    className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-white via-[#8c5cff] to-[#a371ff] bg-clip-text text-transparent group-hover:via-[#a371ff] transition-all duration-500"
+                    style={{ fontWeight: 900, letterSpacing: '-0.02em' }}
+                  >
+                    {mockData.misionVision.mision.title}
+                  </motion.h3>
+
+                  <motion.p
+                    className="text-gray-300 group-hover:text-gray-100 transition-colors duration-500 text-lg leading-relaxed"
+                  >
+                    {mockData.misionVision.mision.description}
+                  </motion.p>
+
+                  {/* Bottom accent line */}
+                  <motion.div
+                    initial={{ width: 0 }}
+                    whileInView={{ width: 100 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.8, delay: 0.3 }}
+                    className="mt-8 h-1 bg-gradient-to-r from-[#8c5cff] via-[#a371ff] to-transparent rounded-full"
+                  />
+                </motion.div>
+              </div>
+            </motion.div>
+
+            {/* Visión - Image Right, Text Left */}
+            <motion.div
+              initial={isMobile ? { opacity: 1 } : { opacity: 0, x: 50, y: 30 }}
+              whileInView={{ opacity: 1, x: 0, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="group relative"
+            >
+              <div className="grid md:grid-cols-3 gap-8 lg:gap-12 items-center">
+                {/* Text Left */}
+                <motion.div
+                  initial={!isMobile ? { opacity: 0, x: -30 } : { opacity: 1 }}
+                  whileInView={!isMobile ? { opacity: 1, x: 0 } : { opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.8, delay: 0.3 }}
+                  className="md:col-span-2 space-y-6"
+                >
+                  {/* Top accent line */}
+                  <motion.div
+                    initial={{ width: 0 }}
+                    whileInView={{ width: 80 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.8, delay: 0.2 }}
+                    className="h-1.5 bg-gradient-to-r from-transparent to-[#8c5cff] rounded-full"
+                  />
+
+                  <motion.h3
+                    className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-[#a371ff] via-[#8c5cff] to-white bg-clip-text text-transparent group-hover:via-[#a371ff] transition-all duration-500"
+                    style={{ fontWeight: 900, letterSpacing: '-0.02em' }}
+                  >
+                    {mockData.misionVision.vision.title}
+                  </motion.h3>
+
+                  <motion.p
+                    className="text-gray-300 group-hover:text-gray-100 transition-colors duration-500 text-lg leading-relaxed"
+                  >
+                    {mockData.misionVision.vision.description}
+                  </motion.p>
+
+                  {/* Bottom accent line */}
+                  <motion.div
+                    initial={{ width: 0 }}
+                    whileInView={{ width: 100 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.8, delay: 0.4 }}
+                    className="mt-8 h-1 bg-gradient-to-r from-transparent via-[#a371ff] to-[#8c5cff] rounded-full"
+                  />
+                </motion.div>
+
+                {/* Image Right - Full Body Person */}
+                <motion.div
+                  whileHover={!isMobile ? { scale: 1.05 } : {}}
+                  transition={{ duration: 0.5 }}
+                  className="md:col-span-1 relative"
+                >
+                  {/* Glow Effect */}
+                  <motion.div
+                    animate={{
+                      boxShadow: [
+                        '0 0 20px rgba(140, 92, 255, 0.3)',
+                        '0 0 40px rgba(140, 92, 255, 0.6)',
+                        '0 0 20px rgba(140, 92, 255, 0.3)'
+                      ]
+                    }}
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                      ease: 'easeInOut',
+                      delay: 0.3
+                    }}
+                    className="absolute -inset-4 bg-gradient-to-br from-[#6a3dcf]/30 to-[#8c5cff]/30 rounded-3xl blur-2xl"
+                  />
+
+                  <img
+                    src="/nutri5.png"
+                    alt="Visión"
+                    className="relative w-full h-80 md:h-96 object-cover rounded-2xl shadow-2xl group-hover:shadow-[0_0_40px_rgba(140,92,255,0.6)] transition-all duration-500 border border-[#6a3dcf]/40 group-hover:border-[#8c5cff]/80"
+                  />
+                </motion.div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
       {/* Cursos Section - Premium Magazine Layout */}
       <section id="cursos" className="py-24 px-4 bg-gradient-to-b from-black to-[#0a0a0a] relative overflow-hidden">
         {/* Background decoration */}
@@ -452,17 +668,6 @@ const Home = () => {
             transition={{ duration: 0.8 }}
             className="text-center mb-20"
           >
-            <motion.div
-              initial={isMobile ? { opacity: 1 } : { scale: 0.9, opacity: 0 }}
-              whileInView={{ scale: 1, opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="inline-block mb-4"
-            >
-              <div className="px-6 py-2 bg-gradient-to-r from-[#8c5cff]/20 to-[#6a3dcf]/20 rounded-full border border-[#8c5cff]/30 backdrop-blur-sm">
-                <span className="text-[#8c5cff] font-semibold text-sm tracking-wider uppercase">Educación Continua</span>
-              </div>
-            </motion.div>
             <h2 className="text-3xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-white via-[#8c5cff] to-white bg-clip-text text-transparent" style={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
               Cursos Especializados
             </h2>
@@ -569,147 +774,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Misión y Visión Section - Clean Layout with Logo */}
-      <section id="mision-vision" className="py-24 px-4 bg-gradient-to-b from-[#0a0a0a] via-black to-[#0a0a0a] relative overflow-hidden">
-        {/* Background decorations - animated gradient */}
-        <div className="absolute inset-0 overflow-hidden">
-          <motion.div
-            animate={{
-              x: [0, 50, 0],
-              y: [0, 30, 0],
-            }}
-            transition={{
-              duration: 15,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-            className="absolute top-0 right-0 w-96 h-96 bg-[#8c5cff]/15 rounded-full blur-3xl"
-          />
-          <motion.div
-            animate={{
-              x: [0, -30, 0],
-              y: [0, -50, 0],
-            }}
-            transition={{
-              duration: 20,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-            className="absolute bottom-0 left-0 w-80 h-80 bg-[#6a3dcf]/15 rounded-full blur-3xl"
-          />
-        </div>
-
-        <div className="container mx-auto max-w-7xl relative z-10">
-          {/* Main content - Logo left, Text right */}
-          <div className="grid md:grid-cols-2 gap-16 items-center">
-            {/* Logo Section - Left */}
-            <motion.div
-              initial={isMobile ? { opacity: 1 } : { opacity: 0, x: -100, scale: 0.8 }}
-              whileInView={{ opacity: 1, x: 0, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 1, delay: 0.1 }}
-              className="flex justify-center items-center md:justify-start"
-            >
-              <motion.div
-                animate={{
-                  y: [0, -15, 0],
-                }}
-                transition={{
-                  duration: 4,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-                className="relative"
-              >
-                <motion.div
-                  animate={{
-                    boxShadow: [
-                      "0 0 20px rgba(140, 92, 255, 0.3)",
-                      "0 0 40px rgba(140, 92, 255, 0.6)",
-                      "0 0 20px rgba(140, 92, 255, 0.3)"
-                    ]
-                  }}
-                  transition={{
-                    duration: 3,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                  className="relative bg-gradient-to-br from-[#8c5cff]/20 via-[#6a3dcf]/10 to-[#4a2c8f]/20 rounded-2xl p-8 backdrop-blur-sm border border-[#8c5cff]/30"
-                >
-                  <img
-                    src="/logos/logo.png"
-                    alt="ASOCHINUF Logo"
-                    className="h-64 w-auto object-contain drop-shadow-2xl"
-                  />
-                </motion.div>
-              </motion.div>
-            </motion.div>
-
-            {/* Text Section - Right */}
-            <motion.div
-              initial={isMobile ? { opacity: 1 } : { opacity: 0, x: 100 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 1, delay: 0.2 }}
-              className="space-y-12"
-            >
-              {/* Misión */}
-              <motion.div
-                whileHover={{ x: 10 }}
-                transition={{ duration: 0.3 }}
-                className="group relative"
-              >
-                <div className="absolute -left-4 top-0 bottom-0 w-1 bg-gradient-to-b from-[#8c5cff] to-[#6a3dcf] opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <div className="pl-4">
-                  <motion.h3
-                    className="text-2xl md:text-3xl font-bold text-white mb-3"
-                    style={{ fontWeight: 800 }}
-                  >
-                    {mockData.misionVision.mision.title}
-                  </motion.h3>
-                  <motion.p
-                    className="text-gray-300 text-base leading-relaxed group-hover:text-gray-200 transition-colors duration-300"
-                  >
-                    {mockData.misionVision.mision.description}
-                  </motion.p>
-                </div>
-              </motion.div>
-
-              {/* Divider */}
-              <motion.div
-                initial={{ width: 0 }}
-                whileInView={{ width: "100%" }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8, delay: 0.3 }}
-                className="h-px bg-gradient-to-r from-[#8c5cff]/30 via-[#8c5cff]/60 to-[#8c5cff]/30"
-              />
-
-              {/* Visión */}
-              <motion.div
-                whileHover={{ x: 10 }}
-                transition={{ duration: 0.3 }}
-                className="group relative"
-              >
-                <div className="absolute -left-4 top-0 bottom-0 w-1 bg-gradient-to-b from-[#6a3dcf] to-[#8c5cff] opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <div className="pl-4">
-                  <motion.h3
-                    className="text-2xl md:text-3xl font-bold text-white mb-3"
-                    style={{ fontWeight: 800 }}
-                  >
-                    {mockData.misionVision.vision.title}
-                  </motion.h3>
-                  <motion.p
-                    className="text-gray-300 text-base leading-relaxed group-hover:text-gray-200 transition-colors duration-300"
-                  >
-                    {mockData.misionVision.vision.description}
-                  </motion.p>
-                </div>
-              </motion.div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
       {/* Capacitaciones Section - Ultra Premium Bento Box Design */}
       <section id="capacitaciones" className="py-24 px-4 bg-gradient-to-b from-black via-[#0a0a0a] to-black relative overflow-hidden">
         {/* Animated background elements */}
@@ -726,17 +790,6 @@ const Home = () => {
             transition={{ duration: 0.8 }}
             className="text-center mb-20"
           >
-            <motion.div
-              initial={isMobile ? { opacity: 1 } : { scale: 0.9, opacity: 0 }}
-              whileInView={{ scale: 1, opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="inline-block mb-4"
-            >
-              <div className="px-6 py-2 bg-gradient-to-r from-[#8c5cff]/20 to-[#6a3dcf]/20 rounded-full border border-[#8c5cff]/30 backdrop-blur-sm">
-                <span className="text-[#8c5cff] font-semibold text-sm tracking-wider uppercase">Formación Profesional</span>
-              </div>
-            </motion.div>
             <h2 className="text-3xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-white via-[#8c5cff] to-white bg-clip-text text-transparent" style={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
               Capacitaciones Especializadas
             </h2>
