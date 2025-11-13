@@ -72,6 +72,32 @@ const TypewriterText = ({ text, onDeletingComplete }) => {
   );
 };
 
+// Animated Counter Component
+const AnimatedCounter = ({ from = 0, to, duration = 2, useInView = true }) => {
+  const [count, setCount] = useState(from);
+  const [isInView, setIsInView] = useState(!useInView);
+
+  useEffect(() => {
+    if (!isInView) return;
+
+    let startValue = from;
+    const step = (to - from) / (duration * 60); // 60fps
+    const interval = setInterval(() => {
+      startValue += step;
+      if (startValue >= to) {
+        setCount(to);
+        clearInterval(interval);
+      } else {
+        setCount(Math.floor(startValue));
+      }
+    }, 1000 / 60);
+
+    return () => clearInterval(interval);
+  }, [from, to, duration, isInView]);
+
+  return <span>{count.toLocaleString()}</span>;
+};
+
 const Home = () => {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -494,12 +520,12 @@ const Home = () => {
               transition={{ duration: 0.8, delay: 0.1 }}
               className="group relative"
             >
-              <div className="grid md:grid-cols-3 gap-8 lg:gap-12 items-center">
+              <div className="grid grid-cols-3 gap-8 lg:gap-12 items-center">
                 {/* Image Left - Full Body Person */}
                 <motion.div
                   whileHover={!isMobile ? { scale: 1.05 } : {}}
                   transition={{ duration: 0.5 }}
-                  className="md:col-span-1 relative"
+                  className="col-span-1 relative"
                 >
                   {/* Glow Effect */}
                   <motion.div
@@ -531,7 +557,7 @@ const Home = () => {
                   whileInView={!isMobile ? { opacity: 1, x: 0 } : { opacity: 1 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.8, delay: 0.2 }}
-                  className="md:col-span-2 space-y-6"
+                  className="col-span-2 space-y-6"
                 >
                   {/* Top accent line */}
                   <motion.div
@@ -575,14 +601,14 @@ const Home = () => {
               transition={{ duration: 0.8, delay: 0.2 }}
               className="group relative"
             >
-              <div className="grid md:grid-cols-3 gap-8 lg:gap-12 items-center">
+              <div className="grid grid-cols-3 gap-8 lg:gap-12 items-center">
                 {/* Text Left */}
                 <motion.div
                   initial={!isMobile ? { opacity: 0, x: -30 } : { opacity: 1 }}
                   whileInView={!isMobile ? { opacity: 1, x: 0 } : { opacity: 1 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.8, delay: 0.3 }}
-                  className="md:col-span-2 space-y-6"
+                  className="col-span-2 space-y-6"
                 >
                   {/* Top accent line */}
                   <motion.div
@@ -620,7 +646,7 @@ const Home = () => {
                 <motion.div
                   whileHover={!isMobile ? { scale: 1.05 } : {}}
                   transition={{ duration: 0.5 }}
-                  className="md:col-span-1 relative"
+                  className="col-span-1 relative"
                 >
                   {/* Glow Effect */}
                   <motion.div
@@ -1305,7 +1331,9 @@ const Home = () => {
               <div className="pt-4 space-y-2">
                 <p className="text-gray-400 text-sm flex items-center gap-2">
                   <span className="w-1.5 h-1.5 bg-[#8c5cff] rounded-full"></span>
-                  contacto@asochinuf.cl
+                  <a href={`mailto:${mockData.footer.contact}`} className="hover:text-[#8c5cff] transition-colors">
+                    {mockData.footer.contact}
+                  </a>
                 </p>
                 <p className="text-gray-400 text-sm flex items-center gap-2">
                   <span className="w-1.5 h-1.5 bg-[#8c5cff] rounded-full"></span>
@@ -1340,12 +1368,16 @@ const Home = () => {
 
               {/* Stats or Info */}
               <div className="grid grid-cols-2 gap-4 pt-4">
-                <div className="bg-gradient-to-br from-[#2a2c33] to-[#1a1c22] rounded-xl p-4 border border-[#8c5cff]/20">
-                  <p className="text-2xl font-bold text-[#8c5cff]">100+</p>
+                <div className="bg-gradient-to-br from-[#2a2c33] to-[#1a1c22] rounded-xl p-4 border border-[#8c5cff]/20 hover:border-[#8c5cff]/50 transition-colors">
+                  <p className="text-2xl font-bold text-[#8c5cff]">
+                    <AnimatedCounter from={0} to={78} duration={2.5} />+
+                  </p>
                   <p className="text-xs text-gray-400 mt-1">Profesionales certificados</p>
                 </div>
-                <div className="bg-gradient-to-br from-[#2a2c33] to-[#1a1c22] rounded-xl p-4 border border-[#8c5cff]/20">
-                  <p className="text-2xl font-bold text-[#8c5cff]">10+</p>
+                <div className="bg-gradient-to-br from-[#2a2c33] to-[#1a1c22] rounded-xl p-4 border border-[#8c5cff]/20 hover:border-[#8c5cff]/50 transition-colors">
+                  <p className="text-2xl font-bold text-[#8c5cff]">
+                    <AnimatedCounter from={0} to={53} duration={2.5} />+
+                  </p>
                   <p className="text-xs text-gray-400 mt-1">Clubes asociados</p>
                 </div>
               </div>

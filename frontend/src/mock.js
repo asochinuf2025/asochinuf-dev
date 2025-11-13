@@ -210,10 +210,11 @@ export const mockData = {
     ],
     social: [
       { name: "Facebook", icon: "facebook", url: "#" },
-      { name: "Instagram", icon: "instagram", url: "#" },
+      { name: "Instagram", icon: "instagram", url: "https://www.instagram.com/asochinuf/" },
       { name: "Twitter", icon: "twitter", url: "#" },
       { name: "LinkedIn", icon: "linkedin", url: "#" }
     ],
+    contact: "asochinuf@gmail.com",
     copyright: "© 2025 ASOCHINUF. Todos los derechos reservados."
   }
 };
