@@ -52,8 +52,17 @@ const GoogleLoginButton = ({ onSuccess, onClose, variant = 'default', className 
     if (!window.google?.accounts?.id) return;
 
     try {
+      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+      console.log('🔐 Google Client ID:', clientId);
+
+      if (!clientId) {
+        console.error('❌ VITE_GOOGLE_CLIENT_ID no está configurado');
+        toast.error('Error de configuración: Cliente ID de Google no encontrado');
+        return;
+      }
+
       window.google.accounts.id.initialize({
-        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+        client_id: clientId,
         callback: handleGoogleResponse,
         auto_select: false,
       });
