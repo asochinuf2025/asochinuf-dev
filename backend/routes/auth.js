@@ -14,6 +14,7 @@ import {
   cambiarContrasena,
   actualizarFoto
 } from '../controllers/authController.js';
+import { loginConGoogle } from '../controllers/googleAuthController.js';
 import { verificarToken, verificarAdmin } from '../middleware/auth.js';
 import uploadFoto from '../middleware/uploadFoto.js';
 
@@ -22,6 +23,7 @@ const router = express.Router();
 // Autenticación básica
 router.post('/registro', registro);
 router.post('/login', login);
+router.post('/google', loginConGoogle);
 router.post('/logout', logout);
 router.get('/me', verificarToken, obtenerPerfil);
 

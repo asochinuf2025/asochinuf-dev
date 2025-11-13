@@ -4,6 +4,7 @@ import { X, Mail, Lock, Eye, EyeOff, ArrowRight, CheckCircle2 } from 'lucide-rea
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
+import GoogleLoginButton from './GoogleLoginButton';
 
 const LoginModal = ({ isOpen, onClose }) => {
   const [formData, setFormData] = useState({
@@ -300,6 +301,20 @@ const LoginModal = ({ isOpen, onClose }) => {
                           {/* Shadow */}
                           <div className="absolute inset-0 rounded-xl shadow-lg shadow-[#8c5cff]/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                         </motion.button>
+                      </motion.div>
+
+                      {/* Separador con Google OAuth */}
+                      <motion.div variants={itemVariants} className="pt-2">
+                        <div className="relative flex items-center gap-3">
+                          <div className="flex-1 h-px bg-gray-600/50" />
+                          <span className="text-xs text-gray-500 uppercase tracking-wider font-medium">O continúa con</span>
+                          <div className="flex-1 h-px bg-gray-600/50" />
+                        </div>
+                      </motion.div>
+
+                      {/* Google Login Button */}
+                      <motion.div variants={itemVariants}>
+                        <GoogleLoginButton onClose={onClose} variant="outline" />
                       </motion.div>
                     </motion.form>
                   ) : (

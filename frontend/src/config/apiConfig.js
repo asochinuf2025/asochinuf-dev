@@ -8,6 +8,7 @@ export const API_ENDPOINTS = {
   AUTH: {
     LOGIN: `${API_URL}/api/auth/login`,
     REGISTRO: `${API_URL}/api/auth/registro`,
+    GOOGLE: `${API_URL}/api/auth/google`,
     ME: `${API_URL}/api/auth/me`,
     SOLICITAR_RECUPERACION: `${API_URL}/api/auth/solicitar-recuperacion`,
     VERIFICAR_TOKEN: (token) => `${API_URL}/api/auth/verificar-token/${token}`,

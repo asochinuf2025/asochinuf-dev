@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { API_ENDPOINTS } from '../config/apiConfig';
+import GoogleLoginButton from './GoogleLoginButton';
 
 const AuthModal = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
@@ -47,7 +48,10 @@ const AuthModal = ({ isOpen, onClose }) => {
         setIsSubmitting(false);
         setShowSuccess(false);
         onClose();
-        navigate('/dashboard');
+        // Pequeño delay para asegurar que el estado de AuthContext está actualizado
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 100);
       }, 1500);
     } catch (error) {
       setError(error.message);
@@ -75,7 +79,10 @@ const AuthModal = ({ isOpen, onClose }) => {
         setIsSubmitting(false);
         setShowSuccess(false);
         onClose();
-        navigate('/dashboard');
+        // Pequeño delay para asegurar que el estado de AuthContext está actualizado
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 100);
       }, 1500);
     } catch (error) {
       setError(error.message);
@@ -385,6 +392,20 @@ const AuthModal = ({ isOpen, onClose }) => {
                               </div>
                               <div className="absolute inset-0 rounded-xl shadow-lg shadow-[#8c5cff]/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                             </motion.button>
+                          </motion.div>
+
+                          {/* Separador con Google OAuth */}
+                          <motion.div variants={itemVariants} className="pt-2">
+                            <div className="relative flex items-center gap-3">
+                              <div className="flex-1 h-px bg-gray-600/50" />
+                              <span className="text-xs text-gray-500 uppercase tracking-wider font-medium">O continúa con</span>
+                              <div className="flex-1 h-px bg-gray-600/50" />
+                            </div>
+                          </motion.div>
+
+                          {/* Google Login Button */}
+                          <motion.div variants={itemVariants}>
+                            <GoogleLoginButton onClose={onClose} variant="outline" />
                           </motion.div>
                         </>
                       )}

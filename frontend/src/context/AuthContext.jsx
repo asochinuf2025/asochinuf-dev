@@ -145,10 +145,16 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const actualizarUsuario = (datosActualizados) => {
+  const actualizarUsuario = (datosActualizados, nuevoToken = null) => {
     const usuarioActualizado = { ...usuario, ...datosActualizados };
     setUsuario(usuarioActualizado);
     localStorage.setItem('asochinuf_usuario', JSON.stringify(usuarioActualizado));
+
+    // Si se proporciona un nuevo token, actualizarlo también
+    if (nuevoToken) {
+      setToken(nuevoToken);
+      localStorage.setItem('asochinuf_token', nuevoToken);
+    }
   };
 
   const value = {
