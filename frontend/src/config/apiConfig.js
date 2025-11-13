@@ -52,6 +52,7 @@ export const API_ENDPOINTS = {
   CUOTAS: {
     GET_ALL: `${API_URL}/api/cuotas`,
     GET_RESUMEN: `${API_URL}/api/cuotas/resumen`,
+    GET_DISPONIBLES: `${API_URL}/api/cuotas/disponibles/todas`,
     GET_ONE: (id) => `${API_URL}/api/cuotas/${id}`,
     GET_PAGOS: (cuotaId) => `${API_URL}/api/cuotas/${cuotaId}/pagos`,
     CREATE: `${API_URL}/api/cuotas`,

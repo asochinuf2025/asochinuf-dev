@@ -31,6 +31,7 @@ const CuotasNotification = ({ isDarkMode, setActiveTab }) => {
 
   const tieneAlerta = resumen && (resumen.esMoroso || resumen.totalPendientes > 0);
   const totalVencidas = resumen?.totalVencidas || 0;
+  const esCliente = usuario?.tipo_perfil === 'cliente';
 
   return (
     <div className="flex items-center gap-2">
@@ -123,8 +124,31 @@ const CuotasNotification = ({ isDarkMode, setActiveTab }) => {
 
               {/* Body */}
               <div className="p-4 space-y-3">
-                {/* Mensaje cuando todo está al día */}
-                {!tieneAlerta && (
+                {/* Mensaje para clientes - Sin notificaciones de cuotas */}
+                {esCliente && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`p-3 rounded-lg border-l-4 border-gray-400 ${
+                      isDarkMode ? 'bg-gray-500/10' : 'bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex items-start gap-2">
+                      <Bell size={18} className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`} />
+                      <div className="flex-1">
+                        <p className={`font-semibold text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-700'}`}>
+                          Sin notificaciones
+                        </p>
+                        <p className={`text-xs mt-1 ${isDarkMode ? 'text-gray-400/80' : 'text-gray-600/80'}`}>
+                          No hay notificaciones disponibles en este momento
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Mensaje cuando todo está al día - Solo para admin/nutricionista */}
+                {!esCliente && !tieneAlerta && (
                   <motion.div
                     initial={{ opacity: 0, y: -5 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -146,7 +170,7 @@ const CuotasNotification = ({ isDarkMode, setActiveTab }) => {
                   </motion.div>
                 )}
 
-                {resumen?.esMoroso && (
+                {!esCliente && resumen?.esMoroso && (
                   <motion.div
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -161,15 +185,15 @@ const CuotasNotification = ({ isDarkMode, setActiveTab }) => {
                           Estás en morosidad
                         </p>
                         <p className={`text-xs mt-1 ${isDarkMode ? 'text-red-300/80' : 'text-red-600/80'}`}>
-                          Tienes {resumen.totalVencidas} cuota{resumen.totalVencidas !== 1 ? 's' : ''} vencida{resumen.totalVencidas !== 1 ? 's' : ''}
+                          Tienes {resumen?.totalVencidas} cuota{resumen?.totalVencidas !== 1 ? 's' : ''} vencida{resumen?.totalVencidas !== 1 ? 's' : ''}
                         </p>
                       </div>
                     </div>
                   </motion.div>
                 )}
 
-                {/* Cuotas Morosas */}
-                {resumen.cuotasMorosas.length > 0 && (
+                {/* Cuotas Morosas - Solo para admin/nutricionista */}
+                {!esCliente && resumen?.cuotasMorosas?.length > 0 && (
                   <div className="space-y-2">
                     <p className={`text-xs font-semibold ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                       Cuotas Vencidas
@@ -199,8 +223,8 @@ const CuotasNotification = ({ isDarkMode, setActiveTab }) => {
                   </div>
                 )}
 
-                {/* Cuotas Pendientes (no vencidas) */}
-                {resumen.totalPendientes > 0 && !resumen.esMoroso && (
+                {/* Cuotas Pendientes (no vencidas) - Solo para admin/nutricionista */}
+                {!esCliente && resumen?.totalPendientes > 0 && !resumen?.esMoroso && (
                   <motion.div
                     initial={{ opacity: 0, y: -5 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -215,15 +239,15 @@ const CuotasNotification = ({ isDarkMode, setActiveTab }) => {
                           Cuotas Pendientes
                         </p>
                         <p className={`text-xs mt-1 ${isDarkMode ? 'text-yellow-300/80' : 'text-yellow-600/80'}`}>
-                          Tienes {resumen.totalPendientes} cuota{resumen.totalPendientes !== 1 ? 's' : ''} pendiente{resumen.totalPendientes !== 1 ? 's' : ''}
+                          Tienes {resumen?.totalPendientes} cuota{resumen?.totalPendientes !== 1 ? 's' : ''} pendiente{resumen?.totalPendientes !== 1 ? 's' : ''}
                         </p>
                       </div>
                     </div>
                   </motion.div>
                 )}
 
-                {/* Próximas a Vencer */}
-                {resumen.proximasAVencer.length > 0 && (
+                {/* Próximas a Vencer - Solo para admin/nutricionista */}
+                {!esCliente && resumen?.proximasAVencer?.length > 0 && (
                   <div className="space-y-2">
                     <p className={`text-xs font-semibold ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                       Próximas a Vencer
@@ -248,8 +272,8 @@ const CuotasNotification = ({ isDarkMode, setActiveTab }) => {
                   </div>
                 )}
 
-                {/* Botón Ver Todas - Solo si hay notificaciones de cuotas */}
-                {(resumen?.esMoroso || resumen?.totalPendientes > 0 || resumen?.proximasAVencer.length > 0) && (
+                {/* Botón Ver Todas - Solo para admin/nutricionista si hay notificaciones de cuotas */}
+                {!esCliente && (resumen?.esMoroso || resumen?.totalPendientes > 0 || resumen?.proximasAVencer?.length > 0) && (
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}

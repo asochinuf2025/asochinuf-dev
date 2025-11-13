@@ -670,3 +670,29 @@ export const repararSecuenciaCuotas = async (req, res) => {
     res.status(500).json({ error: 'Error al reparar las secuencias de cuotas' });
   }
 };
+
+/**
+ * Obtener todas las cuotas disponibles (globales)
+ * Usado para que el admin seleccione cuotas al crear/editar usuarios
+ */
+export const obtenerCuotasDisponibles = async (req, res) => {
+  try {
+    const tipoUsuario = req.usuario.tipo_perfil;
+
+    // Solo admin puede ver todas las cuotas para asignarlas
+    if (tipoUsuario !== 'admin') {
+      return res.status(403).json({ error: 'Solo administradores pueden obtener cuotas disponibles' });
+    }
+
+    const result = await pool.query(
+      `SELECT id, mes, ano, monto, fecha_vencimiento, descripcion
+       FROM t_cuotas_mensuales
+       ORDER BY ano DESC, mes DESC`
+    );
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error en obtenerCuotasDisponibles:', error);
+    res.status(500).json({ error: 'Error al obtener cuotas disponibles' });
+  }
+};

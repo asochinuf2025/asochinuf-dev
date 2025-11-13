@@ -307,7 +307,7 @@ export const obtenerUsuarios = async (req, res) => {
 // Crear usuario (admin crea nutricionista o admin)
 export const crearUsuario = async (req, res) => {
   try {
-    const { email, password, nombre, apellido, tipo_perfil } = req.body;
+    const { email, password, nombre, apellido, tipo_perfil, cuotasSeleccionadas } = req.body;
     const emailNormalizado = email.toLowerCase();
 
     // Validar datos
@@ -345,25 +345,33 @@ export const crearUsuario = async (req, res) => {
 
     const usuario = resultado.rows[0];
 
-    // Si es nutricionista o admin, asignar todas las cuotas globales existentes
+    // Si es nutricionista o admin, asignar cuotas
     if (tipo_perfil === 'nutricionista' || tipo_perfil === 'admin') {
       try {
-        // Obtener todas las cuotas globales
-        const cuotasResult = await pool.query(
-          'SELECT id FROM t_cuotas_mensuales ORDER BY ano DESC, mes DESC'
-        );
+        let cuotasAAsignar = [];
+
+        // Si el admin seleccionó cuotas específicas
+        if (cuotasSeleccionadas && Array.isArray(cuotasSeleccionadas) && cuotasSeleccionadas.length > 0) {
+          cuotasAAsignar = cuotasSeleccionadas;
+        } else {
+          // Si no especificó cuotas, asignar todas las cuotas globales existentes
+          const cuotasResult = await pool.query(
+            'SELECT id FROM t_cuotas_mensuales ORDER BY ano DESC, mes DESC'
+          );
+          cuotasAAsignar = cuotasResult.rows.map(c => c.id);
+        }
 
         // Asignar cada cuota al nuevo usuario
-        for (const cuota of cuotasResult.rows) {
+        for (const cuotaId of cuotasAAsignar) {
           await pool.query(
             `INSERT INTO t_cuotas_usuario (usuario_id, cuota_id, estado)
              VALUES ($1, $2, 'pendiente')
              ON CONFLICT (usuario_id, cuota_id) DO NOTHING`,
-            [usuario.id, cuota.id]
+            [usuario.id, cuotaId]
           );
         }
 
-        console.log(`✅ Asignadas ${cuotasResult.rows.length} cuotas al nuevo usuario ${usuario.id}`);
+        console.log(`✅ Asignadas ${cuotasAAsignar.length} cuotas al nuevo usuario ${usuario.id}`);
       } catch (error) {
         console.error('⚠️ Error asignando cuotas al nuevo usuario:', error);
         // No fallar la creación del usuario si hay error en cuotas
@@ -384,7 +392,7 @@ export const crearUsuario = async (req, res) => {
 export const actualizarUsuario = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, apellido, tipo_perfil, activo, password } = req.body;
+    const { nombre, apellido, tipo_perfil, activo, password, cuotasSeleccionadas } = req.body;
 
     // Validar que id sea válido
     if (!id || isNaN(id)) {
@@ -393,13 +401,16 @@ export const actualizarUsuario = async (req, res) => {
 
     // Verificar que el usuario existe
     const usuarioExiste = await pool.query(
-      'SELECT id FROM t_usuarios WHERE id = $1',
+      'SELECT id, tipo_perfil FROM t_usuarios WHERE id = $1',
       [id]
     );
 
     if (usuarioExiste.rows.length === 0) {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
+
+    const tipoPerfilAnterior = usuarioExiste.rows[0].tipo_perfil;
+    let tipoPerfilNuevo = tipo_perfil !== undefined ? tipo_perfil : tipoPerfilAnterior;
 
     let campos = [];
     let valores = [];
@@ -443,15 +454,63 @@ export const actualizarUsuario = async (req, res) => {
       contador++;
     }
 
-    if (campos.length === 0) {
+    if (campos.length === 0 && !cuotasSeleccionadas) {
       return res.status(400).json({ error: 'No hay campos para actualizar' });
     }
 
-    valores.push(id);
-    const sql = `UPDATE t_usuarios SET ${campos.join(', ')} WHERE id = $${contador} RETURNING id, email, nombre, apellido, tipo_perfil, activo, fecha_registro`;
+    // Actualizar usuario si hay campos
+    let usuarioActualizado = usuarioExiste.rows[0];
+    if (campos.length > 0) {
+      valores.push(id);
+      const sql = `UPDATE t_usuarios SET ${campos.join(', ')} WHERE id = $${contador} RETURNING id, email, nombre, apellido, tipo_perfil, activo, fecha_registro`;
+      const resultado = await pool.query(sql, valores);
+      usuarioActualizado = resultado.rows[0];
+    }
 
-    const resultado = await pool.query(sql, valores);
-    const usuarioActualizado = resultado.rows[0];
+    // Manejar cambio de tipo_perfil y/o asignación de cuotas
+    try {
+      // Si cambió de cliente a nutricionista/admin, o es nutricionista/admin y se especificaron cuotas
+      if ((tipoPerfilAnterior === 'cliente' && (tipoPerfilNuevo === 'nutricionista' || tipoPerfilNuevo === 'admin')) ||
+          (cuotasSeleccionadas && Array.isArray(cuotasSeleccionadas))) {
+
+        // Eliminar todas las cuotas actuales del usuario
+        await pool.query(
+          'DELETE FROM t_cuotas_usuario WHERE usuario_id = $1',
+          [id]
+        );
+
+        // Si es nutricionista o admin, asignar las cuotas seleccionadas
+        if (tipoPerfilNuevo === 'nutricionista' || tipoPerfilNuevo === 'admin') {
+          let cuotasAAsignar = [];
+
+          // Si el admin seleccionó cuotas específicas
+          if (cuotasSeleccionadas && Array.isArray(cuotasSeleccionadas) && cuotasSeleccionadas.length > 0) {
+            cuotasAAsignar = cuotasSeleccionadas;
+          } else {
+            // Si no especificó cuotas, asignar todas las cuotas globales existentes
+            const cuotasResult = await pool.query(
+              'SELECT id FROM t_cuotas_mensuales ORDER BY ano DESC, mes DESC'
+            );
+            cuotasAAsignar = cuotasResult.rows.map(c => c.id);
+          }
+
+          // Asignar cada cuota al usuario
+          for (const cuotaId of cuotasAAsignar) {
+            await pool.query(
+              `INSERT INTO t_cuotas_usuario (usuario_id, cuota_id, estado)
+               VALUES ($1, $2, 'pendiente')
+               ON CONFLICT (usuario_id, cuota_id) DO NOTHING`,
+              [id, cuotaId]
+            );
+          }
+
+          console.log(`✅ Asignadas ${cuotasAAsignar.length} cuotas al usuario ${id}`);
+        }
+      }
+    } catch (error) {
+      console.error('⚠️ Error asignando/desasignando cuotas:', error);
+      // No fallar la actualización del usuario si hay error en cuotas
+    }
 
     res.json({
       mensaje: 'Usuario actualizado exitosamente',

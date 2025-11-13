@@ -23,6 +23,7 @@ const GestionUsuariosSection = ({ containerVariants }) => {
     email: '',
     password: '',
     tipo_perfil: 'cliente',
+    cuotasSeleccionadas: [],
   });
 
   const API_BASE = API_ENDPOINTS.AUTH.LOGIN.substring(0, API_ENDPOINTS.AUTH.LOGIN.lastIndexOf('/'));
@@ -60,6 +61,7 @@ const GestionUsuariosSection = ({ containerVariants }) => {
         email: '',
         password: '',
         tipo_perfil: 'cliente',
+        cuotasSeleccionadas: [],
       });
       setShowModal(false);
       setError('');
@@ -91,6 +93,7 @@ const GestionUsuariosSection = ({ containerVariants }) => {
         email: '',
         password: '',
         tipo_perfil: 'cliente',
+        cuotasSeleccionadas: [],
       });
       setEditingId(null);
       setShowModal(false);
@@ -132,6 +135,7 @@ const GestionUsuariosSection = ({ containerVariants }) => {
       email: usuario.email,
       password: '',
       tipo_perfil: usuario.tipo_perfil,
+      cuotasSeleccionadas: [],
     });
     setEditingId(usuario.id);
     setShowModal(true);
@@ -145,6 +149,7 @@ const GestionUsuariosSection = ({ containerVariants }) => {
       email: '',
       password: '',
       tipo_perfil: 'cliente',
+      cuotasSeleccionadas: [],
     });
     setEditingId(null);
     setShowModal(true);
@@ -158,6 +163,7 @@ const GestionUsuariosSection = ({ containerVariants }) => {
       email: '',
       password: '',
       tipo_perfil: 'cliente',
+      cuotasSeleccionadas: [],
     });
     setEditingId(null);
     setShowModal(false);

@@ -12,7 +12,8 @@ import {
   obtenerEstadisticas,
   obtenerCuotasGlobales,
   obtenerTodosLosUsuarios,
-  repararSecuenciaCuotas
+  repararSecuenciaCuotas,
+  obtenerCuotasDisponibles
 } from '../controllers/cuotasController.js';
 
 const router = express.Router();
@@ -20,11 +21,12 @@ const router = express.Router();
 // Todas las rutas requieren autenticación
 router.use(verificarToken);
 
-// Obtener cuotas del usuario actual (o todas si es admin)
-router.get('/', obtenerCuotas);
-
+// Rutas GET específicas DEBEN ir primero (antes de /:id)
 // Obtener resumen de cuotas para notificaciones
 router.get('/resumen', obtenerResumenCuotas);
+
+// Obtener cuotas disponibles para asignar a usuarios (admin)
+router.get('/disponibles/todas', obtenerCuotasDisponibles);
 
 // Obtener solo cuotas globales (admin) - para mantenedor
 router.get('/globales/todas', obtenerCuotasGlobales);
@@ -34,6 +36,9 @@ router.get('/usuarios/todos', obtenerTodosLosUsuarios);
 
 // Obtener estadísticas generales (admin)
 router.get('/estadisticas/general', obtenerEstadisticas);
+
+// Obtener cuotas del usuario actual (o todas si es admin) - RUTA GENÉRICA
+router.get('/', obtenerCuotas);
 
 // Obtener una cuota por ID
 router.get('/:id', obtenerCuotaById);
