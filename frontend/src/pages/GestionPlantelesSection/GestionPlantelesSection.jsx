@@ -13,7 +13,11 @@ import {
   Users,
   Filter,
   Power,
-  GripVertical
+  GripVertical,
+  Layers,
+  Tag,
+  Award,
+  Link2
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { API_ENDPOINTS } from '../../config/apiConfig';
@@ -212,6 +216,7 @@ const DivisionColumn = ({
 
 const GestionPlantelesSection = ({ containerVariants }) => {
   const { isDarkMode, token, usuario } = useAuth();
+  const [activeTab, setActiveTab] = useState('planteles'); // planteles | categorias | ligas
   const [planteles, setPlanteles] = useState([]);
   const [plantelesCambios, setPlantelesCambios] = useState([]); // Estado local para cambios
   const [haysCambios, setHaysCambios] = useState(false); // Bandera de cambios
@@ -225,6 +230,13 @@ const GestionPlantelesSection = ({ containerVariants }) => {
   const [submitting, setSubmitting] = useState(false);
   const [guardandoCambios, setGuardandoCambios] = useState(false);
   const [dragOverDivision, setDragOverDivision] = useState(null); // Para tracking de qué división se está sobrevolando
+
+  // Estados para Categorías y Ligas
+  const [categorias, setCategorias] = useState([]);
+  const [ligas, setLigas] = useState([]);
+  const [categoriasConConteo, setCategoriasConConteo] = useState([]);
+  const [selectedCategoria, setSelectedCategoria] = useState(null);
+  const [modalType, setModalType] = useState(null); // edit-plantel, edit-categoria, edit-liga, assign-planteles
 
   const [formData, setFormData] = useState({
     nombre: '',
@@ -249,6 +261,8 @@ const GestionPlantelesSection = ({ containerVariants }) => {
   useEffect(() => {
     if (esAdmin) {
       obtenerPlanteles();
+      cargarCategorias();
+      cargarLigas();
     }
   }, [esAdmin]);
 
@@ -317,17 +331,29 @@ const GestionPlantelesSection = ({ containerVariants }) => {
     if (!plantelAEliminar) return;
 
     try {
-      await axios.delete(
-        API_ENDPOINTS.PLANTELES.DELETE(plantelAEliminar.id),
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      toast.success('Plantel eliminado/desactivado exitosamente');
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+
+      // Determinar qué tipo de entidad estamos eliminando
+      if (modalType === 'edit-categoria') {
+        await axios.delete(`${API_ENDPOINTS.LIGAS.BASE}/categorias/${plantelAEliminar.id}`, config);
+        toast.success('Categoría eliminada correctamente');
+        cargarCategorias();
+      } else if (modalType === 'edit-liga') {
+        await axios.delete(`${API_ENDPOINTS.LIGAS.DELETE(plantelAEliminar.id)}`, config);
+        toast.success('Liga eliminada correctamente');
+        cargarLigas();
+      } else {
+        // Es un plantel
+        await axios.delete(API_ENDPOINTS.PLANTELES.DELETE(plantelAEliminar.id), config);
+        toast.success('Plantel eliminado/desactivado exitosamente');
+        obtenerPlanteles();
+      }
+
       setShowConfirmDialog(false);
       setPlantelAEliminar(null);
-      obtenerPlanteles();
     } catch (err) {
-      console.error('Error al eliminar plantel:', err);
-      toast.error(err.response?.data?.error || 'Error al eliminar plantel');
+      console.error('Error al eliminar:', err);
+      toast.error(err.response?.data?.error || 'Error al eliminar');
     }
   };
 
@@ -504,6 +530,193 @@ const GestionPlantelesSection = ({ containerVariants }) => {
     return colors[division] || colors['Tercera División A'];
   };
 
+  // ========== CATEGORÍAS FUNCTIONS ==========
+
+  const cargarCategorias = async () => {
+    try {
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const response = await axios.get(API_ENDPOINTS.LIGAS.BASE + '/categorias/todas', config);
+      setCategorias(response.data);
+      cargarConteoPlantelPorCategoria();
+    } catch (err) {
+      console.error('Error al cargar categorías:', err);
+      toast.error('Error al cargar categorías');
+    }
+  };
+
+  const cargarConteoPlantelPorCategoria = async () => {
+    try {
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const response = await axios.get(API_ENDPOINTS.LIGAS.BASE + '/categorias/conteo/planteles', config);
+      setCategoriasConConteo(response.data);
+    } catch (err) {
+      console.error('Error al cargar conteo:', err);
+    }
+  };
+
+  const handleEditCategoria = (categoria) => {
+    setModalType('edit-categoria');
+    setFormData({
+      id: categoria.id,
+      nombre: categoria.nombre,
+      descripcion: categoria.descripcion,
+      orden: categoria.orden
+    });
+    setShowModal(true);
+  };
+
+  const handleDeleteCategoria = (categoria) => {
+    setPlantelAEliminar(categoria);
+    setShowConfirmDialog(true);
+  };
+
+  const handleSaveCategoria = async (e) => {
+    e.preventDefault();
+    if (!formData.nombre) {
+      toast.error('El nombre es requerido');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      if (formData.id) {
+        await axios.put(`${API_ENDPOINTS.LIGAS.BASE}/categorias/${formData.id}`, formData, config);
+        toast.success('Categoría actualizada correctamente');
+      } else {
+        await axios.post(API_ENDPOINTS.LIGAS.BASE + '/categorias', formData, config);
+        toast.success('Categoría creada correctamente');
+      }
+      cargarCategorias();
+      setShowModal(false);
+      setFormData({ nombre: '', division: 'Primera Division', ciudad: '', region: '', activo: true });
+    } catch (err) {
+      toast.error('Error al guardar categoría');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleAssignPlanteles = (categoria) => {
+    setSelectedCategoria(categoria);
+    setModalType('assign-planteles');
+    setShowModal(true);
+    cargarPlantelesAsignados(categoria.id);
+  };
+
+  const cargarPlantelesAsignados = async (categoriaId) => {
+    try {
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const response = await axios.get(
+        `${API_ENDPOINTS.LIGAS.BASE}/plantel/categoria/${categoriaId}/asignados`,
+        config
+      );
+      setFormData(prev => ({
+        ...prev,
+        plantelesAsignados: response.data.map(p => p.plantel_id)
+      }));
+    } catch (err) {
+      console.error('Error al cargar planteles asignados:', err);
+    }
+  };
+
+  const handleSavePlantelesAsignados = async () => {
+    try {
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const currentResponse = await axios.get(
+        `${API_ENDPOINTS.LIGAS.BASE}/plantel/categoria/${selectedCategoria.id}/asignados`,
+        config
+      );
+      const currentIds = new Set(currentResponse.data.map(p => p.plantel_id));
+      const newIds = new Set(formData.plantelesAsignados || []);
+
+      for (const id of currentIds) {
+        if (!newIds.has(id)) {
+          await axios.delete(
+            `${API_ENDPOINTS.LIGAS.BASE}/plantel/${id}/categoria/${selectedCategoria.id}`,
+            config
+          );
+        }
+      }
+
+      for (const id of newIds) {
+        if (!currentIds.has(id)) {
+          await axios.post(
+            `${API_ENDPOINTS.LIGAS.BASE}/plantel/categoria/asignar`,
+            { plantel_id: id, categoria_id: selectedCategoria.id },
+            config
+          );
+        }
+      }
+
+      toast.success('Asignaciones actualizadas correctamente');
+      setShowModal(false);
+      setFormData({ nombre: '', division: 'Primera Division', ciudad: '', region: '', activo: true });
+      obtenerPlanteles();
+      cargarConteoPlantelPorCategoria();
+    } catch (err) {
+      console.error('Error:', err);
+      toast.error('Error al guardar asignaciones');
+    }
+  };
+
+  // ========== LIGAS FUNCTIONS ==========
+
+  const cargarLigas = async () => {
+    try {
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const response = await axios.get(API_ENDPOINTS.LIGAS.GET_ALL, config);
+      setLigas(response.data);
+    } catch (err) {
+      console.error('Error al cargar ligas:', err);
+      toast.error('Error al cargar ligas');
+    }
+  };
+
+  const handleEditLiga = (liga) => {
+    setModalType('edit-liga');
+    setFormData({
+      id: liga.id,
+      nombre: liga.nombre,
+      categoria_id: liga.categoria_id,
+      descripcion: liga.descripcion,
+      orden: liga.orden
+    });
+    setShowModal(true);
+  };
+
+  const handleDeleteLiga = (liga) => {
+    setPlantelAEliminar(liga);
+    setShowConfirmDialog(true);
+  };
+
+  const handleSaveLiga = async (e) => {
+    e.preventDefault();
+    if (!formData.nombre || !formData.categoria_id) {
+      toast.error('Nombre y categoría son requeridos');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      if (formData.id) {
+        await axios.put(`${API_ENDPOINTS.LIGAS.UPDATE(formData.id)}`, formData, config);
+        toast.success('Liga actualizada correctamente');
+      } else {
+        await axios.post(API_ENDPOINTS.LIGAS.CREATE, formData, config);
+        toast.success('Liga creada correctamente');
+      }
+      cargarLigas();
+      setShowModal(false);
+      setFormData({ nombre: '', division: 'Primera Division', ciudad: '', region: '', activo: true });
+    } catch (err) {
+      toast.error('Error al guardar liga');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   if (!esAdmin) {
     return (
       <motion.div
@@ -568,14 +781,93 @@ const GestionPlantelesSection = ({ containerVariants }) => {
             Administra los planteles deportivos
           </p>
         </div>
-        <button
-          onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-6 py-3 bg-[#8c5cff] text-white rounded-lg hover:bg-[#7a4de6] transition-colors shadow-lg shadow-[#8c5cff]/30"
-        >
-          <Plus size={20} />
-          Nuevo Plantel
-        </button>
+        {activeTab === 'planteles' && (
+          <button
+            onClick={() => setShowModal(true)}
+            className="flex items-center gap-2 px-6 py-3 bg-[#8c5cff] text-white rounded-lg hover:bg-[#7a4de6] transition-colors shadow-lg shadow-[#8c5cff]/30"
+          >
+            <Plus size={20} />
+            Nuevo Plantel
+          </button>
+        )}
       </div>
+
+      {/* Tabs */}
+      <div className={`flex gap-2 border-b ${
+        isDarkMode ? 'border-[#8c5cff]/20' : 'border-purple-200'
+      } pb-1 mb-6`}>
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => {
+            setActiveTab('planteles');
+            setSearchTerm('');
+          }}
+          className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-semibold transition-all ${
+            activeTab === 'planteles'
+              ? isDarkMode
+                ? 'bg-[#8c5cff] text-white'
+                : 'bg-purple-600 text-white'
+              : isDarkMode
+              ? 'text-gray-400 hover:text-white hover:bg-[#8c5cff]/20'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-purple-100'
+          }`}
+        >
+          <Trophy size={18} />
+          Planteles
+        </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => {
+            setActiveTab('categorias');
+            setSearchTerm('');
+          }}
+          className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-semibold transition-all ${
+            activeTab === 'categorias'
+              ? isDarkMode
+                ? 'bg-[#8c5cff] text-white'
+                : 'bg-purple-600 text-white'
+              : isDarkMode
+              ? 'text-gray-400 hover:text-white hover:bg-[#8c5cff]/20'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-purple-100'
+          }`}
+        >
+          <Tag size={18} />
+          Categorías
+        </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => {
+            setActiveTab('ligas');
+            setSearchTerm('');
+          }}
+          className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-semibold transition-all ${
+            activeTab === 'ligas'
+              ? isDarkMode
+                ? 'bg-[#8c5cff] text-white'
+                : 'bg-purple-600 text-white'
+              : isDarkMode
+              ? 'text-gray-400 hover:text-white hover:bg-[#8c5cff]/20'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-purple-100'
+          }`}
+        >
+          <Award size={18} />
+          Ligas
+        </motion.button>
+      </div>
+
+      {/* Content based on active tab */}
+      <AnimatePresence mode="wait">
+        {activeTab === 'planteles' && (
+          <motion.div
+            key="planteles-tab"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+          >
 
       {/* Búsqueda */}
       <div className="mb-6">
@@ -888,6 +1180,590 @@ const GestionPlantelesSection = ({ containerVariants }) => {
         confirmText="Eliminar"
         isDarkMode={isDarkMode}
       />
+          </motion.div>
+        )}
+
+        {activeTab === 'categorias' && (
+          <motion.div
+            key="categorias-tab"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="space-y-4"
+          >
+            {/* Búsqueda y Botón Nueva Categoría */}
+            <div className="flex items-center gap-3">
+              <div className="relative flex-1">
+                <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`} size={20} />
+                <input
+                  type="text"
+                  placeholder="Buscar categoría..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
+                    isDarkMode
+                      ? 'bg-[#1a1c22] border-[#8c5cff]/20 text-white placeholder-gray-500'
+                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
+                  } focus:outline-none focus:ring-2 focus:ring-[#8c5cff]`}
+                />
+              </div>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  setModalType('edit-categoria');
+                  setFormData({});
+                  setShowModal(true);
+                }}
+                className="flex items-center gap-2 px-6 py-3 bg-[#8c5cff] text-white rounded-lg hover:bg-[#7a4de6] transition-colors shadow-lg shadow-[#8c5cff]/30"
+              >
+                <Plus size={20} />
+                Nueva Categoría
+              </motion.button>
+            </div>
+
+            {/* Tabla de Categorías */}
+            <div className={`rounded-lg border overflow-hidden ${
+              isDarkMode ? 'border-[#8c5cff]/20' : 'border-purple-200'
+            }`}>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className={isDarkMode
+                    ? 'bg-[#1a1c22]/50 border-b border-[#8c5cff]/20'
+                    : 'bg-purple-50 border-b border-purple-200'
+                  }>
+                    <th className={`px-4 py-3 text-left font-semibold ${
+                      isDarkMode ? 'text-white' : 'text-gray-900'
+                    }`}>Nombre</th>
+                    <th className={`px-4 py-3 text-left font-semibold ${
+                      isDarkMode ? 'text-white' : 'text-gray-900'
+                    }`}>Descripción</th>
+                    <th className={`px-4 py-3 text-center font-semibold ${
+                      isDarkMode ? 'text-white' : 'text-gray-900'
+                    }`}>Orden</th>
+                    <th className={`px-4 py-3 text-center font-semibold ${
+                      isDarkMode ? 'text-white' : 'text-gray-900'
+                    }`}>Planteles</th>
+                    <th className={`px-4 py-3 text-right font-semibold ${
+                      isDarkMode ? 'text-white' : 'text-gray-900'
+                    }`}>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {categorias
+                    .filter(c => c.nombre.toLowerCase().includes(searchTerm.toLowerCase()))
+                    .map((cat) => (
+                    <motion.tr
+                      key={cat.id}
+                      className={`border-b transition-colors ${
+                        isDarkMode
+                          ? 'border-[#8c5cff]/10 hover:bg-[#1a1c22]/30'
+                          : 'border-purple-100 hover:bg-purple-50/50'
+                      }`}
+                    >
+                      <td className={`px-4 py-3 font-semibold ${
+                        isDarkMode ? 'text-white' : 'text-gray-900'
+                      }`}>{cat.nombre}</td>
+                      <td className={`px-4 py-3 ${
+                        isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                      }`}>{cat.descripcion || '-'}</td>
+                      <td className={`px-4 py-3 text-center ${
+                        isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                      }`}>{cat.orden || '-'}</td>
+                      <td className={`px-4 py-3 text-center font-semibold ${
+                        isDarkMode ? 'text-[#8c5cff]' : 'text-purple-600'
+                      }`}>
+                        {categoriasConConteo.find(cc => cc.id === cat.id)?.planteles_count || 0}
+                      </td>
+                      <td className="px-4 py-3 text-right space-x-2">
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => handleAssignPlanteles(cat)}
+                          className={`inline-flex items-center gap-1 px-3 py-1 rounded-lg text-sm ${
+                            isDarkMode
+                              ? 'text-green-400 hover:bg-green-500/20'
+                              : 'text-green-600 hover:bg-green-100'
+                          }`}
+                          title="Asignar planteles"
+                        >
+                          <Link2 size={14} />
+                        </motion.button>
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => handleEditCategoria(cat)}
+                          className={`inline-flex items-center gap-1 px-3 py-1 rounded-lg text-sm ${
+                            isDarkMode
+                              ? 'text-blue-400 hover:bg-blue-500/20'
+                              : 'text-blue-600 hover:bg-blue-100'
+                          }`}
+                          title="Editar"
+                        >
+                          <Edit2 size={14} />
+                        </motion.button>
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => handleDeleteCategoria(cat)}
+                          className={`inline-flex items-center gap-1 px-3 py-1 rounded-lg text-sm ${
+                            isDarkMode
+                              ? 'text-red-400 hover:bg-red-500/20'
+                              : 'text-red-600 hover:bg-red-100'
+                          }`}
+                          title="Eliminar"
+                        >
+                          <Trash2 size={14} />
+                        </motion.button>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Modal para Categorías */}
+            {showModal && modalType === 'edit-categoria' && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className={`${isDarkMode ? 'bg-[#0d0e12] border-[#8c5cff]/20' : 'bg-white border-gray-200'} border rounded-2xl p-6 w-full max-w-md shadow-2xl`}
+                >
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                      {formData.id ? 'Editar Categoría' : 'Nueva Categoría'}
+                    </h3>
+                    <button
+                      onClick={() => { setShowModal(false); setFormData({ nombre: '', division: 'Primera Division', ciudad: '', region: '', activo: true }); }}
+                      className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-[#1a1c22]' : 'hover:bg-gray-100'}`}
+                    >
+                      <X size={20} />
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleSaveCategoria} className="space-y-4">
+                    <div>
+                      <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        Nombre de categoría *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.nombre || ''}
+                        onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                        placeholder="Ej: Sub-17"
+                        className={`w-full px-4 py-3 rounded-lg border ${
+                          isDarkMode
+                            ? 'bg-[#1a1c22] border-[#8c5cff]/20 text-white'
+                            : 'bg-white border-gray-300 text-gray-900'
+                        } focus:outline-none focus:ring-2 focus:ring-[#8c5cff]`}
+                      />
+                    </div>
+
+                    <div>
+                      <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        Descripción
+                      </label>
+                      <textarea
+                        value={formData.descripcion || ''}
+                        onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
+                        placeholder="Descripción opcional"
+                        rows="3"
+                        className={`w-full px-4 py-3 rounded-lg border ${
+                          isDarkMode
+                            ? 'bg-[#1a1c22] border-[#8c5cff]/20 text-white'
+                            : 'bg-white border-gray-300 text-gray-900'
+                        } focus:outline-none focus:ring-2 focus:ring-[#8c5cff]`}
+                      />
+                    </div>
+
+                    <div>
+                      <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        Orden
+                      </label>
+                      <input
+                        type="number"
+                        value={formData.orden || ''}
+                        onChange={(e) => setFormData({ ...formData, orden: parseInt(e.target.value) || 0 })}
+                        placeholder="0"
+                        className={`w-full px-4 py-3 rounded-lg border ${
+                          isDarkMode
+                            ? 'bg-[#1a1c22] border-[#8c5cff]/20 text-white'
+                            : 'bg-white border-gray-300 text-gray-900'
+                        } focus:outline-none focus:ring-2 focus:ring-[#8c5cff]`}
+                      />
+                    </div>
+
+                    <div className="flex gap-3 pt-4">
+                      <button
+                        type="button"
+                        onClick={() => { setShowModal(false); setFormData({ nombre: '', division: 'Primera Division', ciudad: '', region: '', activo: true }); }}
+                        className={`flex-1 px-4 py-3 rounded-lg font-medium transition-colors ${
+                          isDarkMode
+                            ? 'bg-[#1a1c22] text-gray-300 hover:bg-[#1a1c22]/80'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={submitting}
+                        className="flex-1 px-4 py-3 bg-[#8c5cff] text-white rounded-lg font-medium hover:bg-[#7a4de6] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {submitting ? 'Guardando...' : formData.id ? 'Actualizar' : 'Crear'}
+                      </button>
+                    </div>
+                  </form>
+                </motion.div>
+              </div>
+            )}
+
+            {/* Modal para Asignar Planteles */}
+            {showModal && modalType === 'assign-planteles' && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className={`${isDarkMode ? 'bg-[#0d0e12] border-[#8c5cff]/20' : 'bg-white border-gray-200'} border rounded-2xl p-6 w-full max-w-md shadow-2xl`}
+                >
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                      Asignar Planteles
+                    </h3>
+                    <button
+                      onClick={() => { setShowModal(false); setFormData({ nombre: '', division: 'Primera Division', ciudad: '', region: '', activo: true }); }}
+                      className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-[#1a1c22]' : 'hover:bg-gray-100'}`}
+                    >
+                      <X size={20} />
+                    </button>
+                  </div>
+
+                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                    {planteles.map(plantel => (
+                      <label key={plantel.id} className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={(formData.plantelesAsignados || []).includes(plantel.id)}
+                          onChange={(e) => {
+                            const newIds = e.target.checked
+                              ? [...(formData.plantelesAsignados || []), plantel.id]
+                              : (formData.plantelesAsignados || []).filter(id => id !== plantel.id);
+                            setFormData({ ...formData, plantelesAsignados: newIds });
+                          }}
+                          className="w-4 h-4 rounded border-gray-300 text-[#8c5cff] focus:ring-[#8c5cff]"
+                        />
+                        <span className={isDarkMode ? 'text-white' : 'text-gray-900'}>
+                          {plantel.nombre}
+                        </span>
+                      </label>
+                    ))}
+                    <div className="flex gap-3 pt-4 border-t" style={{borderColor: isDarkMode ? '#8c5cff30' : '#e5e7eb'}}>
+                      <button
+                        onClick={() => { setShowModal(false); setFormData({ nombre: '', division: 'Primera Division', ciudad: '', region: '', activo: true }); }}
+                        className={`flex-1 px-4 py-3 rounded-lg font-medium transition-colors ${
+                          isDarkMode
+                            ? 'bg-[#1a1c22] text-gray-300 hover:bg-[#1a1c22]/80'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        onClick={handleSavePlantelesAsignados}
+                        className="flex-1 px-4 py-3 bg-[#8c5cff] text-white rounded-lg font-medium hover:bg-[#7a4de6] transition-colors"
+                      >
+                        Guardar
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
+            )}
+          </motion.div>
+        )}
+
+        {activeTab === 'ligas' && (
+          <motion.div
+            key="ligas-tab"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="space-y-4"
+          >
+            {/* Filtro por categoría */}
+            <div className={`p-4 rounded-lg border ${
+              isDarkMode
+                ? 'bg-[#1a1c22]/50 border-[#8c5cff]/20'
+                : 'bg-white/50 border-purple-200'
+            }`}>
+              <label className={`block text-sm font-semibold mb-2 ${
+                isDarkMode ? 'text-white' : 'text-gray-900'
+              }`}>Filtrar por categoría:</label>
+              <select
+                value={selectedCategoria?.id || ''}
+                onChange={(e) => {
+                  const cat = categorias.find(c => c.id === parseInt(e.target.value));
+                  setSelectedCategoria(cat || null);
+                }}
+                className={`w-full px-4 py-2 rounded-lg border ${
+                  isDarkMode
+                    ? 'bg-[#1a1c22] border-[#8c5cff]/30 text-white'
+                    : 'bg-white border-purple-300 text-gray-900'
+                } focus:outline-none focus:ring-2 focus:ring-[#8c5cff]`}
+              >
+                <option value="">Mostrar todas las ligas</option>
+                {categorias.map(cat => (
+                  <option key={cat.id} value={cat.id}>{cat.nombre}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Búsqueda y Botón Nueva Liga */}
+            <div className="flex items-center gap-3">
+              <div className="relative flex-1">
+                <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`} size={20} />
+                <input
+                  type="text"
+                  placeholder="Buscar liga..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
+                    isDarkMode
+                      ? 'bg-[#1a1c22] border-[#8c5cff]/20 text-white placeholder-gray-500'
+                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
+                  } focus:outline-none focus:ring-2 focus:ring-[#8c5cff]`}
+                />
+              </div>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  setModalType('edit-liga');
+                  setFormData({});
+                  setShowModal(true);
+                }}
+                className="flex items-center gap-2 px-6 py-3 bg-[#8c5cff] text-white rounded-lg hover:bg-[#7a4de6] transition-colors shadow-lg shadow-[#8c5cff]/30"
+              >
+                <Plus size={20} />
+                Nueva Liga
+              </motion.button>
+            </div>
+
+            {/* Tabla de Ligas */}
+            <div className={`rounded-lg border overflow-hidden ${
+              isDarkMode ? 'border-[#8c5cff]/20' : 'border-purple-200'
+            }`}>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className={isDarkMode
+                    ? 'bg-[#1a1c22]/50 border-b border-[#8c5cff]/20'
+                    : 'bg-purple-50 border-b border-purple-200'
+                  }>
+                    <th className={`px-4 py-3 text-left font-semibold ${
+                      isDarkMode ? 'text-white' : 'text-gray-900'
+                    }`}>Nombre</th>
+                    <th className={`px-4 py-3 text-left font-semibold ${
+                      isDarkMode ? 'text-white' : 'text-gray-900'
+                    }`}>Categoría</th>
+                    <th className={`px-4 py-3 text-center font-semibold ${
+                      isDarkMode ? 'text-white' : 'text-gray-900'
+                    }`}>Orden</th>
+                    <th className={`px-4 py-3 text-center font-semibold ${
+                      isDarkMode ? 'text-white' : 'text-gray-900'
+                    }`}>Sesiones</th>
+                    <th className={`px-4 py-3 text-right font-semibold ${
+                      isDarkMode ? 'text-white' : 'text-gray-900'
+                    }`}>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ligas
+                    .filter(l =>
+                      l.nombre.toLowerCase().includes(searchTerm.toLowerCase()) &&
+                      (!selectedCategoria || l.categoria_id === selectedCategoria.id)
+                    )
+                    .map((liga) => (
+                    <motion.tr
+                      key={liga.id}
+                      className={`border-b transition-colors ${
+                        isDarkMode
+                          ? 'border-[#8c5cff]/10 hover:bg-[#1a1c22]/30'
+                          : 'border-purple-100 hover:bg-purple-50/50'
+                      }`}
+                    >
+                      <td className={`px-4 py-3 font-semibold ${
+                        isDarkMode ? 'text-white' : 'text-gray-900'
+                      }`}>{liga.nombre}</td>
+                      <td className={`px-4 py-3 ${
+                        isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                      }`}>{categorias.find(c => c.id === liga.categoria_id)?.nombre || '-'}</td>
+                      <td className={`px-4 py-3 text-center ${
+                        isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                      }`}>{liga.orden || '-'}</td>
+                      <td className={`px-4 py-3 text-center font-semibold ${
+                        isDarkMode ? 'text-[#8c5cff]' : 'text-purple-600'
+                      }`}>
+                        0
+                      </td>
+                      <td className="px-4 py-3 text-right space-x-2">
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => handleEditLiga(liga)}
+                          className={`inline-flex items-center gap-1 px-3 py-1 rounded-lg text-sm ${
+                            isDarkMode
+                              ? 'text-blue-400 hover:bg-blue-500/20'
+                              : 'text-blue-600 hover:bg-blue-100'
+                          }`}
+                          title="Editar"
+                        >
+                          <Edit2 size={14} />
+                        </motion.button>
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => handleDeleteLiga(liga)}
+                          className={`inline-flex items-center gap-1 px-3 py-1 rounded-lg text-sm ${
+                            isDarkMode
+                              ? 'text-red-400 hover:bg-red-500/20'
+                              : 'text-red-600 hover:bg-red-100'
+                          }`}
+                          title="Eliminar"
+                        >
+                          <Trash2 size={14} />
+                        </motion.button>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Modal para Ligas */}
+            {showModal && modalType === 'edit-liga' && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className={`${isDarkMode ? 'bg-[#0d0e12] border-[#8c5cff]/20' : 'bg-white border-gray-200'} border rounded-2xl p-6 w-full max-w-md shadow-2xl`}
+                >
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                      {formData.id ? 'Editar Liga' : 'Nueva Liga'}
+                    </h3>
+                    <button
+                      onClick={() => { setShowModal(false); setFormData({ nombre: '', division: 'Primera Division', ciudad: '', region: '', activo: true }); }}
+                      className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-[#1a1c22]' : 'hover:bg-gray-100'}`}
+                    >
+                      <X size={20} />
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleSaveLiga} className="space-y-4">
+                    <div>
+                      <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        Nombre de liga *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.nombre || ''}
+                        onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                        placeholder="Ej: Liga Profesional"
+                        className={`w-full px-4 py-3 rounded-lg border ${
+                          isDarkMode
+                            ? 'bg-[#1a1c22] border-[#8c5cff]/20 text-white'
+                            : 'bg-white border-gray-300 text-gray-900'
+                        } focus:outline-none focus:ring-2 focus:ring-[#8c5cff]`}
+                      />
+                    </div>
+
+                    <div>
+                      <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        Categoría *
+                      </label>
+                      <select
+                        required
+                        value={formData.categoria_id || ''}
+                        onChange={(e) => setFormData({ ...formData, categoria_id: parseInt(e.target.value) })}
+                        className={`w-full px-4 py-3 rounded-lg border ${
+                          isDarkMode
+                            ? 'bg-[#1a1c22] border-[#8c5cff]/20 text-white'
+                            : 'bg-white border-gray-300 text-gray-900'
+                        } focus:outline-none focus:ring-2 focus:ring-[#8c5cff]`}
+                      >
+                        <option value="">Seleccionar categoría</option>
+                        {categorias.map(cat => (
+                          <option key={cat.id} value={cat.id}>{cat.nombre}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        Descripción
+                      </label>
+                      <textarea
+                        value={formData.descripcion || ''}
+                        onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
+                        placeholder="Descripción opcional"
+                        rows="2"
+                        className={`w-full px-4 py-3 rounded-lg border ${
+                          isDarkMode
+                            ? 'bg-[#1a1c22] border-[#8c5cff]/20 text-white'
+                            : 'bg-white border-gray-300 text-gray-900'
+                        } focus:outline-none focus:ring-2 focus:ring-[#8c5cff]`}
+                      />
+                    </div>
+
+                    <div>
+                      <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        Orden
+                      </label>
+                      <input
+                        type="number"
+                        value={formData.orden || ''}
+                        onChange={(e) => setFormData({ ...formData, orden: parseInt(e.target.value) || 0 })}
+                        placeholder="0"
+                        className={`w-full px-4 py-3 rounded-lg border ${
+                          isDarkMode
+                            ? 'bg-[#1a1c22] border-[#8c5cff]/20 text-white'
+                            : 'bg-white border-gray-300 text-gray-900'
+                        } focus:outline-none focus:ring-2 focus:ring-[#8c5cff]`}
+                      />
+                    </div>
+
+                    <div className="flex gap-3 pt-4">
+                      <button
+                        type="button"
+                        onClick={() => { setShowModal(false); setFormData({ nombre: '', division: 'Primera Division', ciudad: '', region: '', activo: true }); }}
+                        className={`flex-1 px-4 py-3 rounded-lg font-medium transition-colors ${
+                          isDarkMode
+                            ? 'bg-[#1a1c22] text-gray-300 hover:bg-[#1a1c22]/80'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={submitting}
+                        className="flex-1 px-4 py-3 bg-[#8c5cff] text-white rounded-lg font-medium hover:bg-[#7a4de6] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {submitting ? 'Guardando...' : formData.id ? 'Actualizar' : 'Crear'}
+                      </button>
+                    </div>
+                  </form>
+                </motion.div>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };

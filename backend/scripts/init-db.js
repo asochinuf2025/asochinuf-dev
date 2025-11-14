@@ -165,7 +165,7 @@ const inicializarBD = async () => {
     await pool.query(`
       CREATE TABLE t_categorias (
         id SERIAL PRIMARY KEY,
-        nombre VARCHAR(50) NOT NULL UNIQUE,
+        nombre VARCHAR(100) NOT NULL UNIQUE,
         descripcion VARCHAR(255),
         orden INTEGER,
         activo BOOLEAN DEFAULT true,
@@ -174,20 +174,14 @@ const inicializarBD = async () => {
     `);
     console.log('✓ Tabla t_categorias creada');
 
-    // Insertar categorías predefinidas
+    // Insertar categorías predefinidas (nuevas divisiones)
     const categorias = [
-      { nombre: 'Sub-12', descripcion: 'Categoría Sub-12', orden: 1 },
-      { nombre: 'Sub-13', descripcion: 'Categoría Sub-13', orden: 2 },
-      { nombre: 'Sub-14', descripcion: 'Categoría Sub-14', orden: 3 },
-      { nombre: 'Sub-15', descripcion: 'Categoría Sub-15', orden: 4 },
-      { nombre: 'Sub-16', descripcion: 'Categoría Sub-16', orden: 5 },
-      { nombre: 'Sub-17', descripcion: 'Categoría Sub-17', orden: 6 },
-      { nombre: 'Sub-18', descripcion: 'Categoría Sub-18', orden: 7 },
-      { nombre: 'Sub-19', descripcion: 'Categoría Sub-19', orden: 8 },
-      { nombre: 'Sub-20', descripcion: 'Categoría Sub-20', orden: 9 },
-      { nombre: 'Sub-21', descripcion: 'Categoría Sub-21', orden: 10 },
-      { nombre: 'Sub-23', descripcion: 'Categoría Sub-23', orden: 11 },
-      { nombre: 'Adulta', descripcion: 'Categoría Adulta', orden: 12 }
+      { nombre: 'Liga Masculina Adulta', descripcion: 'Categoría masculina adulta profesional', orden: 1 },
+      { nombre: 'Futbol Formativo Masculino', descripcion: 'Categoría formativa masculina', orden: 2 },
+      { nombre: 'Campeonato Infantil', descripcion: 'Categoría infantil masculina', orden: 3 },
+      { nombre: 'Liga Femenina', descripcion: 'Categoría femenina', orden: 4 },
+      { nombre: 'Futsal', descripcion: 'Categoría futsal', orden: 5 },
+      { nombre: 'Futbol Playa', descripcion: 'Categoría futbol playa', orden: 6 }
     ];
 
     for (const cat of categorias) {
@@ -203,6 +197,103 @@ const inicializarBD = async () => {
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_categorias_orden ON t_categorias(orden);`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_categorias_activo ON t_categorias(activo);`);
     console.log('✓ Índices en t_categorias creados\\n');
+
+    // ========== TABLA t_ligas (nueva) ==========
+    console.log('Creando tabla t_ligas...');
+
+    await pool.query(`DROP TABLE IF EXISTS t_ligas CASCADE;`);
+
+    await pool.query(`
+      CREATE TABLE t_ligas (
+        id SERIAL PRIMARY KEY,
+        nombre VARCHAR(100) NOT NULL,
+        categoria_id INTEGER NOT NULL,
+        descripcion VARCHAR(255),
+        orden INTEGER,
+        activo BOOLEAN DEFAULT true,
+        fecha_creacion TIMESTAMP DEFAULT NOW(),
+        FOREIGN KEY (categoria_id) REFERENCES t_categorias(id) ON DELETE CASCADE,
+        UNIQUE(nombre, categoria_id)
+      );
+    `);
+    console.log('✓ Tabla t_ligas creada');
+
+    // Insertar ligas según especificación
+    const ligas = [
+      // Liga Masculina Adulta (categoria_id = 1)
+      { nombre: 'Primera A', categoria_id: 1, orden: 1 },
+      { nombre: 'Primera B', categoria_id: 1, orden: 2 },
+      { nombre: 'Segunda Profesional', categoria_id: 1, orden: 3 },
+      { nombre: 'Tercera A', categoria_id: 1, orden: 4 },
+      { nombre: 'Tercera B', categoria_id: 1, orden: 5 },
+
+      // Futbol Formativo Masculino (categoria_id = 2)
+      { nombre: 'Sub21', categoria_id: 2, orden: 1 },
+      { nombre: 'Sub18', categoria_id: 2, orden: 2 },
+      { nombre: 'Sub16', categoria_id: 2, orden: 3 },
+      { nombre: 'Sub15', categoria_id: 2, orden: 4 },
+
+      // Campeonato Infantil (categoria_id = 3)
+      { nombre: 'Sub14', categoria_id: 3, orden: 1 },
+      { nombre: 'Sub13', categoria_id: 3, orden: 2 },
+      { nombre: 'Sub12', categoria_id: 3, orden: 3 },
+      { nombre: 'Sub11', categoria_id: 3, orden: 4 },
+
+      // Liga Femenina (categoria_id = 4)
+      { nombre: 'Campeonato Primera División', categoria_id: 4, orden: 1 },
+      { nombre: 'Liga Ascenso', categoria_id: 4, orden: 2 },
+      { nombre: 'Femenino Juvenil', categoria_id: 4, orden: 3 },
+
+      // Futsal (categoria_id = 5)
+      { nombre: 'Campeonato Primera', categoria_id: 5, orden: 1 },
+      { nombre: 'Campeonato Ascenso', categoria_id: 5, orden: 2 },
+      { nombre: 'Campeonato Futsal Femenino', categoria_id: 5, orden: 3 },
+      { nombre: 'Campeonato Futsal Sub20', categoria_id: 5, orden: 4 },
+      { nombre: 'Campeonato Futsal Sub17', categoria_id: 5, orden: 5 },
+      { nombre: 'Campeonato Futsal Nacional', categoria_id: 5, orden: 6 },
+
+      // Futbol Playa (categoria_id = 6)
+      { nombre: 'División Principal', categoria_id: 6, orden: 1 }
+    ];
+
+    for (const liga of ligas) {
+      await pool.query(
+        `INSERT INTO t_ligas (nombre, categoria_id, orden, activo)
+         VALUES ($1, $2, $3, true)
+         ON CONFLICT (nombre, categoria_id) DO NOTHING`,
+        [liga.nombre, liga.categoria_id, liga.orden]
+      );
+    }
+
+    // Índices para t_ligas
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_ligas_categoria_id ON t_ligas(categoria_id);`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_ligas_orden ON t_ligas(orden);`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_ligas_activo ON t_ligas(activo);`);
+    console.log('✓ Índices en t_ligas creados\\n');
+
+    // ========== TABLA t_plantel_categoria (nueva) ==========
+    console.log('Creando tabla t_plantel_categoria...');
+
+    await pool.query(`DROP TABLE IF EXISTS t_plantel_categoria CASCADE;`);
+
+    await pool.query(`
+      CREATE TABLE t_plantel_categoria (
+        id SERIAL PRIMARY KEY,
+        plantel_id INTEGER NOT NULL,
+        categoria_id INTEGER NOT NULL,
+        activo BOOLEAN DEFAULT true,
+        fecha_creacion TIMESTAMP DEFAULT NOW(),
+        FOREIGN KEY (plantel_id) REFERENCES t_planteles(id) ON DELETE CASCADE,
+        FOREIGN KEY (categoria_id) REFERENCES t_categorias(id) ON DELETE CASCADE,
+        UNIQUE(plantel_id, categoria_id)
+      );
+    `);
+    console.log('✓ Tabla t_plantel_categoria creada');
+
+    // Índices para t_plantel_categoria
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_plantel_categoria_plantel_id ON t_plantel_categoria(plantel_id);`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_plantel_categoria_categoria_id ON t_plantel_categoria(categoria_id);`);
+    console.log('✓ Índices en t_plantel_categoria creados\\n');
 
     // ========== TABLA t_planteles ==========
     console.log('Creando tabla t_planteles...');
@@ -320,20 +411,21 @@ const inicializarBD = async () => {
     // ========== TABLA t_sesion_mediciones ==========
     console.log('Creando tabla t_sesion_mediciones...');
 
-    // Eliminar tabla existente si existe (depende de t_planteles y t_categorias)
+    // Eliminar tabla existente si existe (depende de t_planteles, t_categorias y t_ligas)
     await pool.query(`DROP TABLE IF EXISTS t_sesion_mediciones CASCADE;`);
 
     await pool.query(`
       CREATE TABLE t_sesion_mediciones (
         id SERIAL PRIMARY KEY,
-        plantel_id INTEGER REFERENCES t_planteles(id) ON DELETE RESTRICT,
-        categoria_id INTEGER REFERENCES t_categorias(id) ON DELETE RESTRICT,
+        plantel_id INTEGER NOT NULL REFERENCES t_planteles(id) ON DELETE RESTRICT,
+        categoria_id INTEGER NOT NULL REFERENCES t_categorias(id) ON DELETE RESTRICT,
+        liga_id INTEGER NOT NULL REFERENCES t_ligas(id) ON DELETE RESTRICT,
         fecha_sesion DATE NOT NULL,
         nutricionista_id INTEGER REFERENCES t_usuarios(id) ON DELETE SET NULL,
         archivo_hash VARCHAR(64) NOT NULL,
         cantidad_registros INTEGER NOT NULL,
         fecha_carga TIMESTAMP DEFAULT NOW(),
-        UNIQUE(plantel_id, categoria_id, fecha_sesion, archivo_hash)
+        UNIQUE(plantel_id, categoria_id, liga_id, fecha_sesion, archivo_hash)
       );
     `);
     console.log('✓ Tabla t_sesion_mediciones creada');
@@ -341,6 +433,7 @@ const inicializarBD = async () => {
     // Índices para t_sesion_mediciones
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_sesion_plantel ON t_sesion_mediciones(plantel_id);`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_sesion_categoria ON t_sesion_mediciones(categoria_id);`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_sesion_liga ON t_sesion_mediciones(liga_id);`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_sesion_fecha ON t_sesion_mediciones(fecha_sesion);`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_sesion_nutricionista ON t_sesion_mediciones(nutricionista_id);`);
     console.log('✓ Índices en t_sesion_mediciones creados\\n');
@@ -587,8 +680,11 @@ const inicializarBD = async () => {
     console.log('  • t_nutricionistas (relación usuario-nutricionista)');
     console.log('  • t_cursos (cursos disponibles)');
     console.log('  • t_inscripciones (inscripciones a cursos)');
+    console.log('  • t_categorias (divisiones: Liga Masculina, Femenina, Futsal, etc)');
+    console.log('  • t_ligas (ligas dentro de cada categoría)');
     console.log('  • t_planteles (equipos/planteles)');
-    console.log('  • t_sesion_mediciones (sesiones de mediciones)');
+    console.log('  • t_plantel_categoria (relación plantel-categoría)');
+    console.log('  • t_sesion_mediciones (sesiones de mediciones con liga_id)');
     console.log('  • t_informe_antropometrico (mediciones detalladas)');
     console.log('  • t_excel_uploads (control de cargas Excel)');
     console.log('  • t_recovery_tokens (tokens de recuperación)');

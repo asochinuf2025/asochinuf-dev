@@ -48,6 +48,15 @@ export const API_ENDPOINTS = {
     GET_ACTIVAS: `${API_URL}/api/categorias/activas`,
     GET_ONE: (id) => `${API_URL}/api/categorias/${id}`,
   },
+  // Ligas
+  LIGAS: {
+    BASE: `${API_URL}/api/ligas`,
+    GET_ALL: `${API_URL}/api/ligas`,
+    GET_POR_CATEGORIA: (categoriaId) => `${API_URL}/api/ligas/categoria/${categoriaId}`,
+    CREATE: `${API_URL}/api/ligas`,
+    UPDATE: (id) => `${API_URL}/api/ligas/${id}`,
+    DELETE: (id) => `${API_URL}/api/ligas/${id}`,
+  },
   // Cuotas
   CUOTAS: {
     GET_ALL: `${API_URL}/api/cuotas`,

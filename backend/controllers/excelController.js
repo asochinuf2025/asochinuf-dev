@@ -16,20 +16,24 @@ export const uploadExcelFile = async (req, res) => {
 
     const usuarioId = req.usuario.id;
     const tipoPerf = req.usuario.tipo_perfil;
-    const { plantel_id, categoria_id } = req.body;
+    const { plantel_id, categoria_id, liga_id } = req.body;
 
     // Verificar que sea nutricionista o admin
     if (tipoPerf !== 'nutricionista' && tipoPerf !== 'admin') {
       return res.status(403).json({ error: 'No tienes permiso para cargar archivos Excel' });
     }
 
-    // Verificar que se hayan seleccionado plantel y categoría
+    // Verificar que se hayan seleccionado plantel, categoría y liga
     if (!plantel_id) {
       return res.status(400).json({ error: 'Debe seleccionar un plantel antes de cargar el archivo' });
     }
 
     if (!categoria_id) {
       return res.status(400).json({ error: 'Debe seleccionar una categoría antes de cargar el archivo' });
+    }
+
+    if (!liga_id) {
+      return res.status(400).json({ error: 'Debe seleccionar una liga antes de cargar el archivo' });
     }
 
     // Verificar que el plantel existe y está activo
@@ -56,17 +60,31 @@ export const uploadExcelFile = async (req, res) => {
       return res.status(400).json({ error: 'La categoría seleccionada no existe o está inactiva' });
     }
 
+    // Verificar que la liga existe, está activa y pertenece a la categoría
+    const ligaResult = await pool.query(
+      `SELECT l.id, l.nombre
+       FROM t_ligas l
+       WHERE l.id = $1 AND l.categoria_id = $2 AND l.activo = true`,
+      [liga_id, categoria_id]
+    );
+
+    if (ligaResult.rows.length === 0) {
+      return res.status(400).json({ error: 'La liga seleccionada no existe, está inactiva o no pertenece a la categoría' });
+    }
+
     const plantelId = plantelResult.rows[0].id;
     const plantelNombre = plantelResult.rows[0].nombre;
     const categoriaId = categoriaResult.rows[0].id;
     const categoriaNombre = categoriaResult.rows[0].nombre;
+    const ligaId = ligaResult.rows[0].id;
+    const ligaNombre = ligaResult.rows[0].nombre;
 
     // 1. Generar hash del archivo ANTES de procesar (para detectar duplicados rápidamente)
     const fileHash = generateFileHash(req.file.buffer);
 
     // 2. Verificar si el archivo ya existe por hash (validación rápida ANTES de parsear)
     const existingFileResult = await pool.query(
-      'SELECT eu.id, eu.nombre_archivo, sm.fecha_sesion, p.nombre as plantel, c.nombre as categoria FROM t_excel_uploads eu INNER JOIN t_sesion_mediciones sm ON eu.sesion_id = sm.id INNER JOIN t_planteles p ON sm.plantel_id = p.id INNER JOIN t_categorias c ON sm.categoria_id = c.id WHERE eu.hash_archivo = $1',
+      'SELECT eu.id, eu.nombre_archivo, sm.fecha_sesion, p.nombre as plantel, c.nombre as categoria, l.nombre as liga FROM t_excel_uploads eu INNER JOIN t_sesion_mediciones sm ON eu.sesion_id = sm.id INNER JOIN t_planteles p ON sm.plantel_id = p.id INNER JOIN t_categorias c ON sm.categoria_id = c.id INNER JOIN t_ligas l ON sm.liga_id = l.id WHERE eu.hash_archivo = $1',
       [fileHash]
     );
 
@@ -79,7 +97,8 @@ export const uploadExcelFile = async (req, res) => {
           archivo: existing.nombre_archivo,
           fecha_sesion: existing.fecha_sesion,
           plantel: existing.plantel,
-          categoria: existing.categoria
+          categoria: existing.categoria,
+          liga: existing.liga
         }
       });
     }
@@ -105,10 +124,10 @@ export const uploadExcelFile = async (req, res) => {
     // 3. Crear sesión de mediciones
     const sessionResult = await pool.query(
       `INSERT INTO t_sesion_mediciones
-       (plantel_id, categoria_id, fecha_sesion, nutricionista_id, archivo_hash, cantidad_registros)
-       VALUES ($1, $2, $3, $4, $5, $6)
+       (plantel_id, categoria_id, liga_id, fecha_sesion, nutricionista_id, archivo_hash, cantidad_registros)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING id`,
-      [plantelId, categoriaId, fecha_sesion, usuarioId, fileHash, cantidad_registros]
+      [plantelId, categoriaId, ligaId, fecha_sesion, usuarioId, fileHash, cantidad_registros]
     );
 
     const sesionId = sessionResult.rows[0].id;
@@ -234,6 +253,7 @@ export const uploadExcelFile = async (req, res) => {
       sesionId,
       plantel: plantelNombre,
       categoria: categoriaNombre,
+      liga: ligaNombre,
       fecha_sesion,
       registrosInsertados,
       registrosDuplicados,

@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, File, CheckCircle, AlertCircle, X, Loader } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
 import { API_ENDPOINTS } from '../../config/apiConfig';
 
 const CargarExcelSection = ({ containerVariants, onUploadSuccess }) => {
-  const { isDarkMode, token } = useAuth();
+  const { isDarkMode, token, usuario } = useAuth();
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -15,10 +15,13 @@ const CargarExcelSection = ({ containerVariants, onUploadSuccess }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [selectedPlantelId, setSelectedPlantelId] = useState('');
   const [selectedCategoriaId, setSelectedCategoriaId] = useState('');
+  const [selectedLigaId, setSelectedLigaId] = useState('');
   const [planteles, setPlanteles] = useState([]);
   const [categorias, setCategorias] = useState([]);
+  const [ligas, setLigas] = useState([]);
   const [loadingPlanteles, setLoadingPlanteles] = useState(false);
   const [loadingCategorias, setLoadingCategorias] = useState(false);
+  const [loadingLigas, setLoadingLigas] = useState(false);
 
   const cargarPlanteles = useCallback(async () => {
     if (!token) return;
@@ -35,27 +38,71 @@ const CargarExcelSection = ({ containerVariants, onUploadSuccess }) => {
     }
   }, [token]);
 
-  const cargarCategorias = useCallback(async () => {
-    if (!token) return;
+  const cargarCategoriasDelPlantel = useCallback(async (plantelId) => {
+    if (!token || !plantelId) {
+      setCategorias([]);
+      setLigas([]);
+      return;
+    }
     try {
       setLoadingCategorias(true);
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      const response = await axios.get(API_ENDPOINTS.CATEGORIAS.GET_ACTIVAS, config);
+      const response = await axios.get(
+        `${API_ENDPOINTS.LIGAS.BASE}/plantel/${plantelId}/categorias`,
+        config
+      );
       setCategorias(response.data);
+      setSelectedCategoriaId('');
+      setLigas([]);
+      setSelectedLigaId('');
     } catch (err) {
-      console.error('Error al cargar categorías:', err);
+      console.error('Error al cargar categorías del plantel:', err);
       setCategorias([]);
+      setLigas([]);
     } finally {
       setLoadingCategorias(false);
+    }
+  }, [token]);
+
+  const cargarLigasDelPlantelCategoria = useCallback(async (plantelId, categoriaId) => {
+    if (!token || !plantelId || !categoriaId) {
+      setLigas([]);
+      return;
+    }
+    try {
+      setLoadingLigas(true);
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const response = await axios.get(
+        `${API_ENDPOINTS.LIGAS.BASE}/plantel/${plantelId}/categoria/${categoriaId}/ligas`,
+        config
+      );
+      setLigas(response.data);
+      setSelectedLigaId('');
+    } catch (err) {
+      console.error('Error al cargar ligas:', err);
+      setLigas([]);
+    } finally {
+      setLoadingLigas(false);
     }
   }, [token]);
 
   useEffect(() => {
     if (token) {
       cargarPlanteles();
-      cargarCategorias();
     }
-  }, [token, cargarPlanteles, cargarCategorias]);
+  }, [token, cargarPlanteles]);
+
+  useEffect(() => {
+    if (selectedPlantelId) {
+      cargarCategoriasDelPlantel(selectedPlantelId);
+    }
+  }, [selectedPlantelId, cargarCategoriasDelPlantel]);
+
+  useEffect(() => {
+    if (selectedPlantelId && selectedCategoriaId) {
+      cargarLigasDelPlantelCategoria(selectedPlantelId, selectedCategoriaId);
+    }
+  }, [selectedPlantelId, selectedCategoriaId, cargarLigasDelPlantelCategoria]);
 
   const handleDragEnter = (e) => {
     e.preventDefault();
@@ -119,6 +166,11 @@ const CargarExcelSection = ({ containerVariants, onUploadSuccess }) => {
       return;
     }
 
+    if (!selectedLigaId) {
+      setError('Selecciona una liga antes de cargar el archivo');
+      return;
+    }
+
     setIsUploading(true);
     setError('');
     setUploadResult(null);
@@ -128,6 +180,7 @@ const CargarExcelSection = ({ containerVariants, onUploadSuccess }) => {
     formData.append('file', selectedFile);
     formData.append('plantel_id', selectedPlantelId);
     formData.append('categoria_id', selectedCategoriaId);
+    formData.append('liga_id', selectedLigaId);
 
     const xhr = new XMLHttpRequest();
 
@@ -170,6 +223,7 @@ const CargarExcelSection = ({ containerVariants, onUploadSuccess }) => {
             setUploadProgress(0);
             setSelectedPlantelId('');
             setSelectedCategoriaId('');
+            setSelectedLigaId('');
           }, 5000);
         } catch (err) {
           setError('Error al procesar la respuesta del servidor');
@@ -223,8 +277,8 @@ const CargarExcelSection = ({ containerVariants, onUploadSuccess }) => {
       exit="exit"
       className="space-y-6"
     >
-      {/* Selector de Plantel y Categoría */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      {/* Selector de Plantel, Categoría y Liga */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         {/* Plantel Selector */}
         <div>
           <label
@@ -284,6 +338,38 @@ const CargarExcelSection = ({ containerVariants, onUploadSuccess }) => {
             {categorias.map((categoria) => (
               <option key={categoria.id} value={categoria.id}>
                 {categoria.nombre}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Liga Selector */}
+        <div>
+          <label
+            htmlFor="liga-select"
+            className={`block text-sm font-medium mb-2 ${
+              isDarkMode ? 'text-gray-300' : 'text-gray-700'
+            }`}
+          >
+            Liga <span className="text-red-500">*</span>
+          </label>
+          <select
+            id="liga-select"
+            value={selectedLigaId}
+            onChange={(e) => setSelectedLigaId(e.target.value)}
+            disabled={loadingLigas || isUploading || !selectedCategoriaId}
+            className={`w-full px-4 py-3 rounded-lg border transition-all ${
+              isDarkMode
+                ? 'bg-[#1a1c22] border-[#8c5cff]/20 text-white focus:border-[#8c5cff] hover:border-[#8c5cff]/40'
+                : 'bg-white border-gray-300 text-gray-900 focus:border-purple-500 hover:border-purple-300'
+            } disabled:opacity-50 disabled:cursor-not-allowed`}
+          >
+            <option value="">
+              {loadingLigas ? 'Cargando ligas...' : 'Selecciona una liga'}
+            </option>
+            {ligas.map((liga) => (
+              <option key={liga.id} value={liga.id}>
+                {liga.nombre}
               </option>
             ))}
           </select>
@@ -486,7 +572,7 @@ const CargarExcelSection = ({ containerVariants, onUploadSuccess }) => {
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         onClick={handleUpload}
-        disabled={!selectedFile || !selectedPlantelId || !selectedCategoriaId || isUploading}
+        disabled={!selectedFile || !selectedPlantelId || !selectedCategoriaId || !selectedLigaId || isUploading}
         className={`w-full py-4 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 ${
           isDarkMode
             ? 'bg-[#8c5cff] text-white hover:bg-[#7a4de6]'
@@ -520,7 +606,7 @@ const CargarExcelSection = ({ containerVariants, onUploadSuccess }) => {
           <li>• El archivo debe contener la fecha de sesión en la celda D3</li>
           <li>• Los encabezados deben estar en la fila 5</li>
           <li>• Los datos de los pacientes comienzan en la fila 6</li>
-          <li>• Debe seleccionar el plantel y categoría antes de cargar</li>
+          <li>• Debe seleccionar el plantel, categoría y liga antes de cargar</li>
           <li>• El sistema detecta y previene archivos duplicados</li>
         </ul>
       </div>

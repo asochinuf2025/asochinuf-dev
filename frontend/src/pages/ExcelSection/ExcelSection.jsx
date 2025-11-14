@@ -17,10 +17,13 @@ const ExcelSection = ({ containerVariants }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [selectedPlantelId, setSelectedPlantelId] = useState('');
   const [selectedCategoriaId, setSelectedCategoriaId] = useState('');
+  const [selectedLigaId, setSelectedLigaId] = useState('');
   const [planteles, setPlanteles] = useState([]);
   const [categorias, setCategorias] = useState([]);
+  const [ligas, setLigas] = useState([]);
   const [loadingPlanteles, setLoadingPlanteles] = useState(false);
   const [loadingCategorias, setLoadingCategorias] = useState(false);
+  const [loadingLigas, setLoadingLigas] = useState(false);
   const [selectedPlantel, setSelectedPlantel] = useState('todos');
 
   // Funciones memoizadas para cargar datos
@@ -55,29 +58,77 @@ const ExcelSection = ({ containerVariants }) => {
     }
   }, [token]);
 
-  const cargarCategorias = useCallback(async () => {
-    if (!token) return;
+  const cargarCategoriasDelPlantel = useCallback(async (plantelId) => {
+    if (!token || !plantelId) {
+      setCategorias([]);
+      setLigas([]);
+      return;
+    }
     try {
       setLoadingCategorias(true);
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      const response = await axios.get(API_ENDPOINTS.CATEGORIAS.GET_ACTIVAS, config);
+      // Cargar categorías específicas del plantel
+      const response = await axios.get(
+        `${API_ENDPOINTS.LIGAS.BASE}/plantel/${plantelId}/categorias`,
+        config
+      );
       setCategorias(response.data);
+      setSelectedCategoriaId('');
+      setLigas([]);
+      setSelectedLigaId('');
     } catch (err) {
-      console.error('Error al cargar categorías:', err);
+      console.error('Error al cargar categorías del plantel:', err);
       setCategorias([]);
+      setLigas([]);
     } finally {
       setLoadingCategorias(false);
     }
   }, [token]);
 
-  // Cargar historial de cargas, planteles y categorías
+  const cargarLigasDelPlantelCategoria = useCallback(async (plantelId, categoriaId) => {
+    if (!token || !plantelId || !categoriaId) {
+      setLigas([]);
+      return;
+    }
+    try {
+      setLoadingLigas(true);
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      // Cargar ligas específicas de la combinación plantel-categoría
+      const response = await axios.get(
+        `${API_ENDPOINTS.LIGAS.BASE}/plantel/${plantelId}/categoria/${categoriaId}/ligas`,
+        config
+      );
+      setLigas(response.data);
+      setSelectedLigaId('');
+    } catch (err) {
+      console.error('Error al cargar ligas:', err);
+      setLigas([]);
+    } finally {
+      setLoadingLigas(false);
+    }
+  }, [token]);
+
+  // Cargar historial de cargas y planteles al montar
   useEffect(() => {
     if (token) {
       cargarHistorial();
       cargarPlanteles();
-      cargarCategorias();
     }
-  }, [token, cargarHistorial, cargarPlanteles, cargarCategorias]);
+  }, [token, cargarHistorial, cargarPlanteles]);
+
+  // Cargar categorías cuando se selecciona un plantel
+  useEffect(() => {
+    if (selectedPlantelId) {
+      cargarCategoriasDelPlantel(selectedPlantelId);
+    }
+  }, [selectedPlantelId, cargarCategoriasDelPlantel]);
+
+  // Cargar ligas cuando se selecciona una categoría
+  useEffect(() => {
+    if (selectedPlantelId && selectedCategoriaId) {
+      cargarLigasDelPlantelCategoria(selectedPlantelId, selectedCategoriaId);
+    }
+  }, [selectedPlantelId, selectedCategoriaId, cargarLigasDelPlantelCategoria]);
 
   // Validar que sea nutricionista o admin
   if (usuario?.tipo_perfil !== 'nutricionista' && usuario?.tipo_perfil !== 'admin') {
@@ -172,6 +223,11 @@ const ExcelSection = ({ containerVariants }) => {
       return;
     }
 
+    if (!selectedLigaId) {
+      setError('Selecciona una liga antes de cargar el archivo');
+      return;
+    }
+
     return new Promise((resolve) => {
       setIsUploading(true);
       setError('');
@@ -182,6 +238,7 @@ const ExcelSection = ({ containerVariants }) => {
       formData.append('file', selectedFile);
       formData.append('plantel_id', selectedPlantelId);
       formData.append('categoria_id', selectedCategoriaId);
+      formData.append('liga_id', selectedLigaId);
 
       const xhr = new XMLHttpRequest();
 
@@ -233,6 +290,7 @@ const ExcelSection = ({ containerVariants }) => {
               // Limpiar los selects después de una carga exitosa
               setSelectedPlantelId('');
               setSelectedCategoriaId('');
+              setSelectedLigaId('');
             }, 5000);
           } catch (err) {
             setError('Error al procesar la respuesta del servidor');
@@ -331,7 +389,7 @@ const ExcelSection = ({ containerVariants }) => {
             <div className="flex-1">
               <h4 className="font-semibold">Carga exitosa</h4>
               <p className="text-sm mt-1">
-                Plantel: <strong>{uploadResult.plantel}</strong> • Registros insertados:{' '}
+                Plantel: <strong>{uploadResult.plantel}</strong> • Liga: <strong>{uploadResult.liga}</strong> • Registros insertados:{' '}
                 <strong>{uploadResult.registrosInsertados}</strong>
                 {uploadResult.registrosDuplicados > 0 && (
                   <>
@@ -345,15 +403,15 @@ const ExcelSection = ({ containerVariants }) => {
         )}
       </AnimatePresence>
 
-      {/* Selector de Plantel y Categoría */}
+      {/* Selector de Plantel, Categoría y Liga */}
       <div className={`p-6 rounded-2xl ${isDarkMode ? 'bg-[#1a1c22]/50 border border-[#8c5cff]/20' : 'bg-white/50 border border-purple-200'} mb-6`}>
         <label className={`block text-sm font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-          1. Selecciona el Plantel y Categoría *
+          1. Selecciona Plantel, Categoría y Liga *
         </label>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* Selector de Plantel */}
-          <div>
+          <div className="min-w-0">
             <label className={`block text-xs font-medium mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
               Plantel
             </label>
@@ -393,25 +451,19 @@ const ExcelSection = ({ containerVariants }) => {
             <label className={`block text-xs font-medium mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
               Categoría
             </label>
-            {loadingCategorias ? (
-              <div className="flex items-center gap-2 text-gray-400">
-                <Loader className="animate-spin" size={20} />
-                <span className="text-sm">Cargando categorías...</span>
-              </div>
-            ) : categorias.length === 0 ? (
-              <div className={`p-4 rounded-lg ${isDarkMode ? 'bg-yellow-500/10 border border-yellow-500/20' : 'bg-yellow-50 border border-yellow-200'}`}>
-                <p className={`text-sm ${isDarkMode ? 'text-yellow-400' : 'text-yellow-700'}`}>
-                  No hay categorías disponibles.
-                </p>
-              </div>
-            ) : (
+            <div className="relative">
               <select
+                disabled={!selectedPlantelId || loadingCategorias}
                 value={selectedCategoriaId}
                 onChange={(e) => setSelectedCategoriaId(e.target.value)}
-                className={`w-full px-4 py-3 rounded-lg border ${
-                  isDarkMode
-                    ? 'bg-[#1a1c22] border-[#8c5cff]/30 text-white'
-                    : 'bg-white border-purple-300 text-gray-900'
+                className={`w-full px-4 py-3 rounded-lg border transition-all ${
+                  !selectedPlantelId || loadingCategorias
+                    ? isDarkMode
+                      ? 'bg-[#1a1c22]/50 border-[#8c5cff]/10 text-gray-600 cursor-not-allowed opacity-60'
+                      : 'bg-gray-100 border-gray-300 text-gray-500 cursor-not-allowed opacity-60'
+                    : isDarkMode
+                    ? 'bg-[#1a1c22] border-[#8c5cff]/30 text-white hover:border-[#8c5cff]/50 cursor-pointer'
+                    : 'bg-white border-purple-300 text-gray-900 hover:border-purple-500 cursor-pointer'
                 } focus:outline-none focus:ring-2 focus:ring-[#8c5cff]`}
               >
                 <option value="">Seleccionar categoría...</option>
@@ -421,7 +473,47 @@ const ExcelSection = ({ containerVariants }) => {
                   </option>
                 ))}
               </select>
-            )}
+              {loadingCategorias && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <Loader className="animate-spin text-[#8c5cff]" size={16} />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Selector de Liga */}
+          <div>
+            <label className={`block text-xs font-medium mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              Liga
+            </label>
+            <div className="relative">
+              <select
+                disabled={!selectedCategoriaId || loadingLigas}
+                value={selectedLigaId}
+                onChange={(e) => setSelectedLigaId(e.target.value)}
+                className={`w-full px-4 py-3 rounded-lg border transition-all ${
+                  !selectedCategoriaId || loadingLigas
+                    ? isDarkMode
+                      ? 'bg-[#1a1c22]/50 border-[#8c5cff]/10 text-gray-600 cursor-not-allowed opacity-60'
+                      : 'bg-gray-100 border-gray-300 text-gray-500 cursor-not-allowed opacity-60'
+                    : isDarkMode
+                    ? 'bg-[#1a1c22] border-[#8c5cff]/30 text-white hover:border-[#8c5cff]/50 cursor-pointer'
+                    : 'bg-white border-purple-300 text-gray-900 hover:border-purple-500 cursor-pointer'
+                } focus:outline-none focus:ring-2 focus:ring-[#8c5cff]`}
+              >
+                <option value="">Seleccionar liga...</option>
+                {ligas.map((liga) => (
+                  <option key={liga.id} value={liga.id}>
+                    {liga.nombre}
+                  </option>
+                ))}
+              </select>
+              {loadingLigas && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <Loader className="animate-spin text-[#8c5cff]" size={16} />
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -518,7 +610,7 @@ const ExcelSection = ({ containerVariants }) => {
       )}
 
       {/* Upload Button */}
-      {selectedFile && selectedPlantelId && selectedCategoriaId && (
+      {selectedFile && selectedPlantelId && selectedCategoriaId && selectedLigaId && (
         <motion.button
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
