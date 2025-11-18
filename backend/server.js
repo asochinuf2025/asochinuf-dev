@@ -34,6 +34,25 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Middleware para configurar caché de archivos estáticos
+const cacheMiddleware = (req, res, next) => {
+  // Assets con hash (JS, CSS) - caché largo porque tienen hash en el nombre
+  if (req.path.match(/\.(js|css)$/)) {
+    res.set('Cache-Control', 'public, max-age=31536000, immutable');
+  }
+  // Imágenes y otros assets estáticos - caché largo
+  else if (req.path.match(/\.(png|jpg|jpeg|gif|webp|svg|ico)$/)) {
+    res.set('Cache-Control', 'public, max-age=31536000, immutable');
+  }
+  // HTML (index.html) - caché corto para permitir actualizaciones
+  else if (req.path === '/' || req.path.endsWith('.html')) {
+    res.set('Cache-Control', 'public, max-age=3600, must-revalidate');
+  }
+  next();
+};
+
+app.use(cacheMiddleware);
+
 // Servir archivos estáticos del frontend compilado (SPA)
 const publicPath = path.join(__dirname, 'public');
 app.use(express.static(publicPath));

@@ -20,13 +20,13 @@ export const mockData = {
   sponsors: [
     { id: 1, name: "Universidad de Chile", logo: "/logos/u-chile.png" },
     { id: 2, name: "Colo-Colo", logo: "/logos/colo-colo.png" },
-    { id: 3, name: "Universidad Católica", logo: "/logos/catolica.png" },
-    { id: 4, name: "ANFP", logo: "/logos/anfp.png" },
+    { id: 3, name: "Universidad Católica", logo: "/logos/catolica.webp" },
+    { id: 4, name: "ANFP", logo: "/logos/anfp.webp" },
     { id: 5, name: "Unión Española", logo: "/logos/union-espanola.png" },
     { id: 6, name: "Palestino", logo: "/logos/palestino.png" },
     { id: 7, name: "Cobreloa", logo: "/logos/cobreloa.png" },
-    { id: 8, name: "Everton", logo: "/logos/everton.png" },
-    { id: 9, name: "Audax Italiano", logo: "/logos/audax.png" },
+    { id: 8, name: "Everton", logo: "/logos/everton.webp" },
+    { id: 9, name: "Audax Italiano", logo: "/logos/audax.webp" },
     { id: 10, name: "Huachipato", logo: "/logos/huachipato.png" }
   ],
 
