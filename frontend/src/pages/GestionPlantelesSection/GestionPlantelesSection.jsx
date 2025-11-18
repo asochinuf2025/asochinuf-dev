@@ -793,7 +793,7 @@ const GestionPlantelesSection = ({ containerVariants }) => {
       </div>
 
       {/* Tabs */}
-      <div className={`flex gap-2 border-b ${
+      <div className={`flex gap-1 md:gap-2 border-b overflow-x-auto ${
         isDarkMode ? 'border-[#8c5cff]/20' : 'border-purple-200'
       } pb-1 mb-6`}>
         <motion.button
@@ -803,7 +803,7 @@ const GestionPlantelesSection = ({ containerVariants }) => {
             setActiveTab('planteles');
             setSearchTerm('');
           }}
-          className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-semibold transition-all ${
+          className={`flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 rounded-t-lg font-semibold text-xs md:text-sm flex-shrink-0 transition-all ${
             activeTab === 'planteles'
               ? isDarkMode
                 ? 'bg-[#8c5cff] text-white'
@@ -813,8 +813,8 @@ const GestionPlantelesSection = ({ containerVariants }) => {
               : 'text-gray-600 hover:text-gray-900 hover:bg-purple-100'
           }`}
         >
-          <Trophy size={18} />
-          Planteles
+          <Trophy size={16} className="md:block hidden" />
+          <span className="whitespace-nowrap">Planteles</span>
         </motion.button>
         <motion.button
           whileHover={{ scale: 1.02 }}
@@ -823,7 +823,7 @@ const GestionPlantelesSection = ({ containerVariants }) => {
             setActiveTab('categorias');
             setSearchTerm('');
           }}
-          className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-semibold transition-all ${
+          className={`flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 rounded-t-lg font-semibold text-xs md:text-sm flex-shrink-0 transition-all ${
             activeTab === 'categorias'
               ? isDarkMode
                 ? 'bg-[#8c5cff] text-white'
@@ -833,8 +833,8 @@ const GestionPlantelesSection = ({ containerVariants }) => {
               : 'text-gray-600 hover:text-gray-900 hover:bg-purple-100'
           }`}
         >
-          <Tag size={18} />
-          Categorías
+          <Tag size={16} className="md:block hidden" />
+          <span className="whitespace-nowrap">Categorías</span>
         </motion.button>
         <motion.button
           whileHover={{ scale: 1.02 }}
@@ -843,7 +843,7 @@ const GestionPlantelesSection = ({ containerVariants }) => {
             setActiveTab('ligas');
             setSearchTerm('');
           }}
-          className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-semibold transition-all ${
+          className={`flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 rounded-t-lg font-semibold text-xs md:text-sm flex-shrink-0 transition-all ${
             activeTab === 'ligas'
               ? isDarkMode
                 ? 'bg-[#8c5cff] text-white'
@@ -853,8 +853,8 @@ const GestionPlantelesSection = ({ containerVariants }) => {
               : 'text-gray-600 hover:text-gray-900 hover:bg-purple-100'
           }`}
         >
-          <Award size={18} />
-          Ligas
+          <Award size={16} className="md:block hidden" />
+          <span className="whitespace-nowrap">Ligas</span>
         </motion.button>
       </div>
 

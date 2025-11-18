@@ -296,9 +296,13 @@ export const getUploadHistory = async (req, res) => {
         sm.cantidad_registros,
         eu.nombre_archivo,
         p.nombre as plantel,
+        l.nombre as liga,
+        c.nombre as categoria,
         u.nombre || ' ' || u.apellido as nutricionista_nombre
       FROM t_sesion_mediciones sm
       JOIN t_planteles p ON sm.plantel_id = p.id
+      JOIN t_categorias c ON sm.categoria_id = c.id
+      LEFT JOIN t_ligas l ON sm.liga_id = l.id
       JOIN t_usuarios u ON sm.nutricionista_id = u.id
       LEFT JOIN t_excel_uploads eu ON sm.id = eu.sesion_id
     `;

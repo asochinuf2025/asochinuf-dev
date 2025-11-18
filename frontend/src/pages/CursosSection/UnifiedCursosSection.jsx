@@ -42,14 +42,14 @@ const UnifiedCursosSection = ({ containerVariants }) => {
       </div>
 
       {/* Tabs */}
-      <div className={`flex gap-2 border-b ${
+      <div className={`flex gap-1 md:gap-2 border-b overflow-x-auto ${
         isDarkMode ? 'border-[#8c5cff]/20' : 'border-purple-200'
       } pb-1 mb-6`}>
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => setActiveTab('cursos')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-semibold transition-all ${
+          className={`flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 rounded-t-lg font-semibold text-xs md:text-sm flex-shrink-0 transition-all ${
             activeTab === 'cursos'
               ? isDarkMode
                 ? 'bg-[#8c5cff] text-white'
@@ -59,15 +59,15 @@ const UnifiedCursosSection = ({ containerVariants }) => {
               : 'text-gray-600 hover:text-gray-900 hover:bg-purple-100'
           }`}
         >
-          <GraduationCap size={18} />
-          Cursos Disponibles
+          <GraduationCap size={16} className="md:block hidden" />
+          <span className="whitespace-nowrap">Cursos</span>
         </motion.button>
 
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => setActiveTab('mis-cursos')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-semibold transition-all ${
+          className={`flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 rounded-t-lg font-semibold text-xs md:text-sm flex-shrink-0 transition-all ${
             activeTab === 'mis-cursos'
               ? isDarkMode
                 ? 'bg-[#8c5cff] text-white'
@@ -77,8 +77,8 @@ const UnifiedCursosSection = ({ containerVariants }) => {
               : 'text-gray-600 hover:text-gray-900 hover:bg-purple-100'
           }`}
         >
-          <CheckCircle size={18} />
-          Mis Cursos
+          <CheckCircle size={16} className="md:block hidden" />
+          <span className="whitespace-nowrap">Mis Cursos</span>
         </motion.button>
 
         {isAdmin && (
@@ -86,7 +86,7 @@ const UnifiedCursosSection = ({ containerVariants }) => {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => setActiveTab('gestion')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-semibold transition-all ${
+            className={`flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 rounded-t-lg font-semibold text-xs md:text-sm flex-shrink-0 transition-all ${
               activeTab === 'gestion'
                 ? isDarkMode
                   ? 'bg-[#8c5cff] text-white'
@@ -96,8 +96,8 @@ const UnifiedCursosSection = ({ containerVariants }) => {
                 : 'text-gray-600 hover:text-gray-900 hover:bg-purple-100'
             }`}
           >
-            <BookOpen size={18} />
-            Mantenedor de Cursos
+            <BookOpen size={16} className="md:block hidden" />
+            <span className="whitespace-nowrap">Mantenedor</span>
           </motion.button>
         )}
       </div>

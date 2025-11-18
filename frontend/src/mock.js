@@ -97,21 +97,105 @@ export const mockData = {
       name: "Gabriella Riveri",
       role: "Nutricionista Deportiva",
       quote: "Ser un buen deportista requiere de muchas horas de entrenamiento, constancia y dedicación, pero lograr sostener tu rendimiento al máximo los 90 min de juego y evitar lesiones, no es solo talento, se requiere una adecuada nutrición e hidratación en conjunto. No dejes nada al azar",
-      photo: "/nutri1.PNG"
+      photo: "/fotos_profesionales/gabriellariveri.jpg"
     },
     {
       id: 2,
-      name: "Felipe González",
+      name: "Consuelo Rivera",
       role: "Nutricionista Deportiva",
-      quote: "Ciencia y nutrición estratégica para llevar el fútbol al siguiente nivel",
-      photo: "/nutri2.PNG"
+      quote: "Ser un buen deportista requiere de muchas horas de entrenamiento, constancia y dedicación, pero lograr sostener tu rendimiento al máximo los 90 min de juego y evitar lesiones, no es solo talento, se requiere una adecuada nutrición e hidratación en conjunto. No dejes nada al azar",
+      photo: "/fotos_profesionales/consuelorivera.jpg"
     },
     {
       id: 3,
-      name: "Cristián Muñoz",
+      name: "Catalina Carabias",
+      role: "Nutricionista de Rendimiento Deportivo",
+      quote: "Una mala alimentación puede convertir a un gran jugador en uno mediocre, pero una buena alimentación potenciará su rendimiento y recuperación al máximo",
+      photo: "/fotos_profesionales/catalinacarabias.jpg"
+    },
+    {
+      id: 4,
+      name: "Romina Nuñez",
       role: "Nutricionista Deportiva",
-      quote: "El movimiento y una adecuada alimentación son los responsables de una salud óptima y una mejor calidad de vida",
-      photo: "/nutri3.PNG"
+      quote: "La unica forma de hacer un gran trabajo, es amar lo que haces",
+      photo: "/fotos_profesionales/rominanunez.jpg"
+    },
+    {
+      id: 5,
+      name: "Florencia Vargas",
+      role: "Nutricionista Deportiva",
+      quote: "La nutrición correcta transforma el esfuerzo en éxito",
+      photo: "/fotos_profesionales/florenciavargas.jpg"
+    },
+    {
+      id: 6,
+      name: "Pablo Espejo",
+      role: "Nutricionista Deportivo",
+      quote: "Comer es una necesidad, pero para el rendimiento comer es una estrategia.",
+      photo: "/fotos_profesionales/pabloespejo.jpg"
+    },
+    {
+      id: 7,
+      name: "Cristian Püschel",
+      role: "Nutricionista de Rendimiento Deportivo",
+      quote: "Debemos estar en un constante ciclo de Aprender y educar",
+      photo: "/fotos_profesionales/cristianpuschel.jpg"
+    },
+    {
+      id: 8,
+      name: "Nicolás Pérez",
+      role: "Nutricionista Deportivo",
+      quote: "La nutrición adecuada es fundamental para que un jugador pueda alcanzar su máximo potencial y mantener su peak de rendimiento",
+      photo: "/fotos_profesionales/nicolasperez.jpg"
+    },
+    {
+      id: 9,
+      name: "Sofía Arancibia",
+      role: "Nutricionista Deportiva",
+      quote: "Rendimiento y alimentación van de la mano, la ciencia avanza y tu nutrición también debe hacerlo",
+      photo: "/fotos_profesionales/sofiaarancibia.jpg"
+    },
+    {
+      id: 10,
+      name: "Diego Gómez",
+      role: "Nutricionista Deportivo",
+      quote: "La nutrición adecuada es el cimiento sobre el cual tu entrenamiento edifica la grandeza atlética",
+      photo: "/fotos_profesionales/diegogomez.jpg"
+    },
+    {
+      id: 11,
+      name: "Leonel Núñez",
+      role: "Nutricionista Deportivo",
+      quote: "El que come bien tiene salud y el que tiene salud cumple sus sueños",
+      photo: "/fotos_profesionales/leonelnunez.jpg"
+    },
+    {
+      id: 12,
+      name: "Paola Meriño",
+      role: "Nutricionista Deportiva",
+      quote: "El que come bien tiene salud y el que tiene salud cumple sus sueños",
+      photo: "/fotos_profesionales/paolamerino.jpg"
+    },
+    {
+      id: 13,
+      name: "Cristian Fuentes",
+      role: "Nutricionista de Alto Rendimiento",
+      quote: "Mejorar la nutrición y composición corporal de un deportista es un arte, hacer que 30 humanos tengan la misma visión de su nutrición es como ir a la luna a pie",
+      photo: "/fotos_profesionales/cristianfuentes.jpg"
+    },
+    {
+      id: 14,
+      name: "Sebastián Piña",
+      role: "Nutricionista Deportivo",
+      quote: "Alimentamos el juego, potenciamos el fútbol",
+      photo: "/fotos_profesionales/sebastianpina.jpg"
+    },
+    {
+      id: 15,
+      name: "Estefanía Gómez",
+      role: "Nutricionista Deportiva",
+      quote: "Un deportista entrena bien, un atleta entrena y se alimenta bien",
+      photo: "/fotos_profesionales/estefaniagomez.jpg"
     }
   ],
 

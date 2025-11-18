@@ -213,14 +213,14 @@ const CuotasSection = ({ containerVariants }) => {
         <>
           {/* Tabs para Admin */}
           {isAdmin && (
-            <div className={`flex gap-2 border-b ${
+            <div className={`flex gap-1 md:gap-2 border-b overflow-x-auto ${
               isDarkMode ? 'border-[#8c5cff]/20' : 'border-purple-200'
             } pb-1 mb-6`}>
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setActiveTab('mis-cuotas')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-semibold transition-all ${
+                className={`flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 rounded-t-lg font-semibold text-xs md:text-sm flex-shrink-0 transition-all ${
                   activeTab === 'mis-cuotas'
                     ? isDarkMode
                       ? 'bg-[#8c5cff] text-white'
@@ -230,15 +230,15 @@ const CuotasSection = ({ containerVariants }) => {
                     : 'text-gray-600 hover:text-gray-900 hover:bg-purple-100'
                 }`}
               >
-                <Wallet size={18} />
-                Mis Cuotas
+                <Wallet size={16} className="md:block hidden" />
+                <span className="whitespace-nowrap">Mis Cuotas</span>
               </motion.button>
 
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setActiveTab('estado-usuarios')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-semibold transition-all ${
+                className={`flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 rounded-t-lg font-semibold text-xs md:text-sm flex-shrink-0 transition-all ${
                   activeTab === 'estado-usuarios'
                     ? isDarkMode
                       ? 'bg-[#8c5cff] text-white'
@@ -248,15 +248,15 @@ const CuotasSection = ({ containerVariants }) => {
                     : 'text-gray-600 hover:text-gray-900 hover:bg-purple-100'
                 }`}
               >
-                <Users size={18} />
-                Estado de Cuotas - Todos los Usuarios
+                <Users size={16} className="md:block hidden" />
+                <span className="whitespace-nowrap">Estado</span>
               </motion.button>
 
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setActiveTab('mantenedor')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-semibold transition-all ${
+                className={`flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 rounded-t-lg font-semibold text-xs md:text-sm flex-shrink-0 transition-all ${
                   activeTab === 'mantenedor'
                     ? isDarkMode
                       ? 'bg-[#8c5cff] text-white'
@@ -266,8 +266,8 @@ const CuotasSection = ({ containerVariants }) => {
                     : 'text-gray-600 hover:text-gray-900 hover:bg-purple-100'
                 }`}
               >
-                <Settings size={18} />
-                Mantenedor de Cuotas
+                <Settings size={16} className="md:block hidden" />
+                <span className="whitespace-nowrap">Mantenedor</span>
               </motion.button>
             </div>
           )}

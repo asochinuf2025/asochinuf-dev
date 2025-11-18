@@ -231,6 +231,11 @@ const HistorialExcelSection = ({ containerVariants, refreshTrigger }) => {
                   <th className={`px-6 py-4 text-left font-semibold ${
                     isDarkMode ? 'text-white' : 'text-gray-900'
                   }`}>
+                    Liga
+                  </th>
+                  <th className={`px-6 py-4 text-left font-semibold ${
+                    isDarkMode ? 'text-white' : 'text-gray-900'
+                  }`}>
                     Categoría
                   </th>
                   <th className={`px-6 py-4 text-left font-semibold ${
@@ -274,6 +279,11 @@ const HistorialExcelSection = ({ containerVariants, refreshTrigger }) => {
                       isDarkMode ? 'text-white' : 'text-gray-900'
                     }`}>
                       {item.plantel}
+                    </td>
+                    <td className={`px-6 py-4 ${
+                      isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                    }`}>
+                      {item.liga || 'N/A'}
                     </td>
                     <td className={`px-6 py-4 ${
                       isDarkMode ? 'text-gray-400' : 'text-gray-600'

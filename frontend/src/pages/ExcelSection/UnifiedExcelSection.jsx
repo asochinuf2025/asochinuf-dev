@@ -87,14 +87,14 @@ const UnifiedExcelSection = ({ containerVariants }) => {
       </div>
 
       {/* Tabs */}
-      <div className={`flex gap-2 border-b ${
+      <div className={`flex gap-1 md:gap-2 border-b overflow-x-auto ${
         isDarkMode ? 'border-[#8c5cff]/20' : 'border-purple-200'
       } pb-1 mb-6`}>
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => setActiveTab('cargar')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-semibold transition-all ${
+          className={`flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 rounded-t-lg font-semibold text-xs md:text-sm flex-shrink-0 transition-all ${
             activeTab === 'cargar'
               ? isDarkMode
                 ? 'bg-[#8c5cff] text-white'
@@ -104,15 +104,15 @@ const UnifiedExcelSection = ({ containerVariants }) => {
               : 'text-gray-600 hover:text-gray-900 hover:bg-purple-100'
           }`}
         >
-          <Upload size={18} />
-          Cargar Excel
+          <Upload size={16} className="md:block hidden" />
+          <span className="whitespace-nowrap">Cargar</span>
         </motion.button>
 
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => setActiveTab('historial')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-semibold transition-all ${
+          className={`flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 rounded-t-lg font-semibold text-xs md:text-sm flex-shrink-0 transition-all ${
             activeTab === 'historial'
               ? isDarkMode
                 ? 'bg-[#8c5cff] text-white'
@@ -122,8 +122,8 @@ const UnifiedExcelSection = ({ containerVariants }) => {
               : 'text-gray-600 hover:text-gray-900 hover:bg-purple-100'
           }`}
         >
-          <History size={18} />
-          Historial de Cargas
+          <History size={16} className="md:block hidden" />
+          <span className="whitespace-nowrap">Historial</span>
         </motion.button>
       </div>
 

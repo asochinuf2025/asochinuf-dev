@@ -171,7 +171,7 @@ const AuthModal = ({ isOpen, onClose }) => {
             onClick={onClose}
           />
 
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 overflow-y-auto max-h-screen">
             <motion.div
               initial={{ opacity: 0, scale: 0.85, y: 40 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -205,13 +205,13 @@ const AuthModal = ({ isOpen, onClose }) => {
                 <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#6a3dcf]/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 opacity-50" />
 
                 {/* Contenido */}
-                <div className="relative p-8 md:p-10">
+                <div className="relative p-4 sm:p-6 md:p-8 max-h-[90vh] overflow-y-auto">
                   {/* Botón cerrar */}
                   <motion.button
                     whileHover={{ scale: 1.1, rotate: 90 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={onClose}
-                    className="absolute top-6 right-6 text-gray-400 hover:text-white transition-colors duration-200 z-10 p-2 hover:bg-white/10 rounded-full"
+                    className="sticky top-0 float-right text-gray-400 hover:text-white transition-colors duration-200 z-20 p-2 hover:bg-white/10 rounded-full mb-2"
                   >
                     <X size={24} />
                   </motion.button>
@@ -221,7 +221,7 @@ const AuthModal = ({ isOpen, onClose }) => {
                     variants={containerVariants}
                     initial="hidden"
                     animate="visible"
-                    className="text-center mb-8"
+                    className="text-center mb-4 sm:mb-6"
                   >
                     <motion.div
                       variants={itemVariants}
@@ -236,7 +236,7 @@ const AuthModal = ({ isOpen, onClose }) => {
 
                     <motion.h2
                       variants={itemVariants}
-                      className="text-4xl font-bold bg-gradient-to-r from-white via-[#8c5cff] to-white bg-clip-text text-transparent mb-3"
+                      className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-white via-[#8c5cff] to-white bg-clip-text text-transparent mb-2 sm:mb-3"
                     >
                       {authMode === 'login' && '¡Bienvenido!'}
                       {authMode === 'registro' && 'Crear Cuenta'}
@@ -275,13 +275,13 @@ const AuthModal = ({ isOpen, onClose }) => {
                       variants={containerVariants}
                       initial="hidden"
                       animate="visible"
-                      className="space-y-5"
+                      className="space-y-3 sm:space-y-4"
                     >
                       {/* LOGIN MODE */}
                       {authMode === 'login' && (
                         <>
                           <motion.div variants={itemVariants}>
-                            <Label className="text-sm font-semibold text-gray-300 mb-3 block uppercase tracking-wide">
+                            <Label className="text-xs sm:text-sm font-semibold text-gray-300 mb-2 sm:mb-3 block uppercase tracking-wide">
                               Correo Electrónico
                             </Label>
                             <motion.div
@@ -314,7 +314,7 @@ const AuthModal = ({ isOpen, onClose }) => {
                           </motion.div>
 
                           <motion.div variants={itemVariants}>
-                            <Label className="text-sm font-semibold text-gray-300 mb-3 block uppercase tracking-wide">
+                            <Label className="text-xs sm:text-sm font-semibold text-gray-300 mb-2 sm:mb-3 block uppercase tracking-wide">
                               Contraseña
                             </Label>
                             <motion.div
@@ -357,13 +357,13 @@ const AuthModal = ({ isOpen, onClose }) => {
                             </motion.div>
                           </motion.div>
 
-                          <motion.div variants={itemVariants} className="pt-4">
+                          <motion.div variants={itemVariants} className="pt-2 sm:pt-4">
                             <motion.button
                               type="submit"
                               disabled={isSubmitting || !formData.email || !formData.password}
                               whileHover={{ scale: 1.02 }}
                               whileTap={{ scale: 0.98 }}
-                              className="w-full relative overflow-hidden group py-3 px-6 rounded-xl font-semibold text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="w-full relative overflow-hidden group py-2 sm:py-3 px-4 sm:px-6 rounded-lg sm:rounded-xl font-semibold text-sm sm:text-base text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               <div className="absolute inset-0 bg-gradient-to-r from-[#8c5cff] via-[#a371ff] to-[#8c5cff] opacity-100 group-hover:opacity-110 transition-opacity duration-300" />
                               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-gradient-to-r from-transparent via-white to-transparent translate-x-full group-hover:translate-x-0 transition-all duration-700" style={{ filter: 'blur(20px)' }} />
@@ -414,7 +414,7 @@ const AuthModal = ({ isOpen, onClose }) => {
                       {authMode === 'registro' && (
                         <>
                           <motion.div variants={itemVariants}>
-                            <Label className="text-sm font-semibold text-gray-300 mb-3 block uppercase tracking-wide">
+                            <Label className="text-xs sm:text-sm font-semibold text-gray-300 mb-2 sm:mb-3 block uppercase tracking-wide">
                               Nombre
                             </Label>
                             <motion.div className="relative" animate={focusedField === 'nombre' ? { scale: 1.02 } : { scale: 1 }}>
@@ -442,7 +442,7 @@ const AuthModal = ({ isOpen, onClose }) => {
                           </motion.div>
 
                           <motion.div variants={itemVariants}>
-                            <Label className="text-sm font-semibold text-gray-300 mb-3 block uppercase tracking-wide">
+                            <Label className="text-xs sm:text-sm font-semibold text-gray-300 mb-2 sm:mb-3 block uppercase tracking-wide">
                               Apellido
                             </Label>
                             <motion.div className="relative" animate={focusedField === 'apellido' ? { scale: 1.02 } : { scale: 1 }}>
@@ -470,7 +470,7 @@ const AuthModal = ({ isOpen, onClose }) => {
                           </motion.div>
 
                           <motion.div variants={itemVariants}>
-                            <Label className="text-sm font-semibold text-gray-300 mb-3 block uppercase tracking-wide">
+                            <Label className="text-xs sm:text-sm font-semibold text-gray-300 mb-2 sm:mb-3 block uppercase tracking-wide">
                               Correo Electrónico
                             </Label>
                             <motion.div className="relative" animate={focusedField === 'email' ? { scale: 1.02 } : { scale: 1 }}>
@@ -498,7 +498,7 @@ const AuthModal = ({ isOpen, onClose }) => {
                           </motion.div>
 
                           <motion.div variants={itemVariants}>
-                            <Label className="text-sm font-semibold text-gray-300 mb-3 block uppercase tracking-wide">
+                            <Label className="text-xs sm:text-sm font-semibold text-gray-300 mb-2 sm:mb-3 block uppercase tracking-wide">
                               Contraseña
                             </Label>
                             <motion.div className="relative" animate={focusedField === 'password' ? { scale: 1.02 } : { scale: 1 }}>
@@ -537,7 +537,7 @@ const AuthModal = ({ isOpen, onClose }) => {
                           </motion.div>
 
                           <motion.div variants={itemVariants}>
-                            <Label className="text-sm font-semibold text-gray-300 mb-3 block uppercase tracking-wide">
+                            <Label className="text-xs sm:text-sm font-semibold text-gray-300 mb-2 sm:mb-3 block uppercase tracking-wide">
                               Confirmar Contraseña
                             </Label>
                             <motion.div className="relative" animate={focusedField === 'confirmarPassword' ? { scale: 1.02 } : { scale: 1 }}>
@@ -575,13 +575,13 @@ const AuthModal = ({ isOpen, onClose }) => {
                             </motion.div>
                           </motion.div>
 
-                          <motion.div variants={itemVariants} className="pt-4">
+                          <motion.div variants={itemVariants} className="pt-2 sm:pt-4">
                             <motion.button
                               type="submit"
                               disabled={isSubmitting || !formData.email || !formData.password || !formData.nombre || !formData.apellido}
                               whileHover={{ scale: 1.02 }}
                               whileTap={{ scale: 0.98 }}
-                              className="w-full relative overflow-hidden group py-3 px-6 rounded-xl font-semibold text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="w-full relative overflow-hidden group py-2 sm:py-3 px-4 sm:px-6 rounded-lg sm:rounded-xl font-semibold text-sm sm:text-base text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               <div className="absolute inset-0 bg-gradient-to-r from-[#8c5cff] via-[#a371ff] to-[#8c5cff] opacity-100 group-hover:opacity-110 transition-opacity duration-300" />
                               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-gradient-to-r from-transparent via-white to-transparent translate-x-full group-hover:translate-x-0 transition-all duration-700" style={{ filter: 'blur(20px)' }} />
@@ -618,7 +618,7 @@ const AuthModal = ({ isOpen, onClose }) => {
                       {authMode === 'olvido' && (
                         <>
                           <motion.div variants={itemVariants}>
-                            <Label className="text-sm font-semibold text-gray-300 mb-3 block uppercase tracking-wide">
+                            <Label className="text-xs sm:text-sm font-semibold text-gray-300 mb-2 sm:mb-3 block uppercase tracking-wide">
                               Correo Electrónico
                             </Label>
                             <motion.div className="relative" animate={focusedField === 'email' ? { scale: 1.02 } : { scale: 1 }}>
@@ -645,13 +645,13 @@ const AuthModal = ({ isOpen, onClose }) => {
                             </motion.div>
                           </motion.div>
 
-                          <motion.div variants={itemVariants} className="pt-4">
+                          <motion.div variants={itemVariants} className="pt-2 sm:pt-4">
                             <motion.button
                               type="submit"
                               disabled={isSubmitting || !formData.email}
                               whileHover={{ scale: 1.02 }}
                               whileTap={{ scale: 0.98 }}
-                              className="w-full relative overflow-hidden group py-3 px-6 rounded-xl font-semibold text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="w-full relative overflow-hidden group py-2 sm:py-3 px-4 sm:px-6 rounded-lg sm:rounded-xl font-semibold text-sm sm:text-base text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               <div className="absolute inset-0 bg-gradient-to-r from-[#8c5cff] via-[#a371ff] to-[#8c5cff] opacity-100 group-hover:opacity-110 transition-opacity duration-300" />
                               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-gradient-to-r from-transparent via-white to-transparent translate-x-full group-hover:translate-x-0 transition-all duration-700" style={{ filter: 'blur(20px)' }} />
@@ -713,7 +713,7 @@ const AuthModal = ({ isOpen, onClose }) => {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: 0.8 }}
-                      className="text-center text-gray-500 text-sm mt-8"
+                      className="text-center text-gray-500 text-xs sm:text-sm mt-4 sm:mt-8"
                     >
                       {authMode === 'login' ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?'}{' '}
                       <motion.button
@@ -732,7 +732,7 @@ const AuthModal = ({ isOpen, onClose }) => {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: 0.9 }}
-                      className="text-center text-gray-500 text-sm mt-4"
+                      className="text-center text-gray-500 text-xs sm:text-sm mt-2 sm:mt-4"
                     >
                       ¿Olvidaste tu contraseña?{' '}
                       <motion.button
@@ -751,7 +751,7 @@ const AuthModal = ({ isOpen, onClose }) => {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: 0.8 }}
-                      className="text-center text-gray-500 text-sm mt-8"
+                      className="text-center text-gray-500 text-xs sm:text-sm mt-4 sm:mt-8"
                     >
                       <motion.button
                         type="button"

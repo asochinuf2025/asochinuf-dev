@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
 import { API_ENDPOINTS } from '../../config/apiConfig';
 
+// v2 - Actualización de tabla de historial
 const ExcelSection = ({ containerVariants }) => {
   const { isDarkMode, token, usuario } = useAuth();
   const [isDragging, setIsDragging] = useState(false);
@@ -26,7 +27,7 @@ const ExcelSection = ({ containerVariants }) => {
   const [loadingLigas, setLoadingLigas] = useState(false);
   const [selectedPlantel, setSelectedPlantel] = useState('todos');
 
-  // Funciones memoizadas para cargar datos
+  // Funciones memoizadas para cargar datos - v3
   const cargarHistorial = useCallback(async () => {
     if (!token) return;
     try {
@@ -689,7 +690,7 @@ const ExcelSection = ({ containerVariants }) => {
       <div>
         <div className="flex items-center justify-between mb-4">
           <h3 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-            Historial de Cargas
+            Historial de Cargas - v4
           </h3>
         </div>
 
@@ -751,6 +752,12 @@ const ExcelSection = ({ containerVariants }) => {
                     Plantel
                   </th>
                   <th className={`px-4 py-3 text-left font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                    Liga
+                  </th>
+                  <th className={`px-4 py-3 text-left font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                    Categoría
+                  </th>
+                  <th className={`px-4 py-3 text-left font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                     Archivo
                   </th>
                   <th className={`px-4 py-3 text-left font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
@@ -780,6 +787,12 @@ const ExcelSection = ({ containerVariants }) => {
                     >
                       <td className={`px-4 py-3 font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                         {item.plantel}
+                      </td>
+                      <td className={`px-4 py-3 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                        {item.liga}
+                      </td>
+                      <td className={`px-4 py-3 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                        {item.categoria}
                       </td>
                       <td className={`px-4 py-3 text-xs truncate ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                         {item.nombre_archivo}

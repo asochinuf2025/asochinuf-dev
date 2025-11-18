@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Badge } from './ui/badge';
 import AuthModal from './AuthModal';
 import StarBorder from './StarBorder';
+import InfiniteTestimonials from './InfiniteTestimonials';
 import { mockData } from '../mock';
 
 // Typewriter Animation Component
@@ -915,14 +916,14 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Profesionales/Testimonios Section */}
+      {/* Profesionales/Testimonios Section - Infinite Scroll */}
       <section id="profesionales" className="py-24 px-4 bg-gradient-to-b from-[#0a0a0a] to-black">
-        <div className="container mx-auto max-w-6xl">
+        <div className="container mx-auto max-w-full mb-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-16"
+            className="text-center"
           >
             <h2 className="text-4xl md:text-5xl font-bold mb-4 text-[#8c5cff]" style={{ fontWeight: 700, letterSpacing: '-0.02em' }}>
               Qué Piensan Nuestros Profesionales
@@ -931,99 +932,10 @@ const Home = () => {
               Historias de éxito de nutricionistas que transformaron su carrera
             </p>
           </motion.div>
+        </div>
 
-          <div className="flex flex-col gap-12">
-            {mockData.testimonios.map((testimonio, index) => (
-              <motion.div
-                key={testimonio.id}
-                initial={isMobile ? { opacity: 1 } : { opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={isMobile ? {} : { duration: 0.7, delay: 0.2 }}
-                className="group"
-              >
-                <div className={`relative bg-gradient-to-br from-[#2a2c33] to-[#1a1c22] rounded-2xl overflow-hidden border border-[#8c5cff]/20 hover:border-[#8c5cff]/60 transition-all duration-500 hover:shadow-2xl hover:shadow-[#8c5cff]/30 ${
-                  index % 2 === 0 ? '' : 'md:flex-row-reverse'
-                }`}>
-                  {/* Decorative gradient overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#8c5cff]/5 via-transparent to-[#8c5cff]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-
-                  <div className="relative flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-8 p-8 md:p-10">
-                    {/* Photo Section */}
-                    <motion.div
-                      className={`relative flex-shrink-0 ${index % 2 === 0 ? 'md:order-1' : 'md:order-2'}`}
-                      whileHover={!isMobile ? { scale: 1.05 } : {}}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <div className="relative w-48 h-48 md:w-56 md:h-56">
-                        {/* Glow effect behind image */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-[#8c5cff]/30 to-[#6a3dcf]/30 rounded-2xl blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 scale-110"></div>
-
-                        {/* Image with transparent background */}
-                        <div className="relative z-10 w-full h-full">
-                          <img
-                            src={testimonio.photo}
-                            alt={testimonio.name}
-                            className="w-full h-full object-contain drop-shadow-2xl filter group-hover:brightness-110 transition-all duration-500"
-                          />
-                        </div>
-
-                        {/* Accent border decoration */}
-                        <div className="absolute -bottom-2 -right-2 w-20 h-20 border-4 border-[#8c5cff] rounded-tl-3xl opacity-30 group-hover:opacity-60 transition-opacity duration-500"></div>
-                        <div className="absolute -top-2 -left-2 w-20 h-20 border-4 border-[#8c5cff] rounded-br-3xl opacity-30 group-hover:opacity-60 transition-opacity duration-500"></div>
-                      </div>
-                    </motion.div>
-
-                    {/* Content Section */}
-                    <div className={`flex-1 flex flex-col justify-center ${index % 2 === 0 ? 'md:order-2 md:pl-4' : 'md:order-1 md:pr-4'} ${index % 2 === 0 ? 'md:text-left' : 'md:text-right'} text-center`}>
-                      {/* Name */}
-                      <motion.h3
-                        className="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-white via-[#8c5cff] to-white bg-clip-text text-transparent group-hover:from-[#8c5cff] group-hover:via-white group-hover:to-[#8c5cff] transition-all duration-500"
-                        style={{ fontWeight: 800, letterSpacing: '-0.01em' }}
-                      >
-                        {testimonio.name}
-                      </motion.h3>
-
-                      {/* Role */}
-                      <p className="text-[#8c5cff] font-semibold text-lg mb-4 tracking-wide">
-                        {testimonio.role}
-                      </p>
-
-                      {/* Stars */}
-                      <div className={`flex gap-1 mb-6 ${index % 2 === 0 ? 'md:justify-start' : 'md:justify-end'} justify-center`}>
-                        {[...Array(5)].map((_, i) => (
-                          <motion.div
-                            key={i}
-                            initial={{ opacity: 0, scale: 0 }}
-                            whileInView={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: i * 0.1, duration: 0.3 }}
-                          >
-                            <Star size={18} className="text-[#8c5cff] fill-[#8c5cff]" />
-                          </motion.div>
-                        ))}
-                      </div>
-
-                      {/* Quote */}
-                      <div className="relative">
-                        {/* Opening quote mark */}
-                        <div className={`absolute -top-4 ${index % 2 === 0 ? '-left-2 md:-left-4' : '-right-2 md:-right-4 md:left-auto left-0'} text-[#8c5cff]/30 text-6xl font-serif leading-none`}>"</div>
-
-                        <p className="text-gray-300 text-lg md:text-xl leading-relaxed relative z-10 italic font-light">
-                          {testimonio.quote}
-                        </p>
-
-                        {/* Closing quote mark */}
-                        <div className={`absolute -bottom-8 ${index % 2 === 0 ? 'right-0 md:right-4' : 'left-0 md:left-4'} text-[#8c5cff]/30 text-6xl font-serif leading-none`}>"</div>
-                      </div>
-
-                      {/* Decorative line */}
-                      <div className={`mt-8 h-1 bg-gradient-to-r from-transparent via-[#8c5cff] to-transparent ${index % 2 === 0 ? 'md:mr-auto' : 'md:ml-auto'} w-3/4 mx-auto md:mx-0 opacity-30 group-hover:opacity-60 transition-opacity duration-500`}></div>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+        <div className="w-full">
+          <InfiniteTestimonials testimonios={mockData.testimonios} />
         </div>
       </section>
 

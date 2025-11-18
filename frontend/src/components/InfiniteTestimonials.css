@@ -1,0 +1,68 @@
+.scroll-animation-container {
+  overflow: hidden;
+  width: 100%;
+  perspective: 1000px;
+}
+
+.scroll-animation-left {
+  animation: scrollLeft 35s linear infinite;
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.scroll-animation-right {
+  animation: scrollRight 35s linear infinite;
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@keyframes scrollLeft {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(calc(-100% / 1.5));
+  }
+}
+
+@keyframes scrollRight {
+  0% {
+    transform: translateX(calc(-100% / 1.5));
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 640px) {
+  .scroll-animation-container {
+    perspective: 1000px;
+  }
+
+  .scroll-animation-left,
+  .scroll-animation-right {
+    animation: scrollLeft 25s linear infinite !important;
+    will-change: transform;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .scroll-animation-right {
+    animation: scrollRight 25s linear infinite !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-animation-left,
+  .scroll-animation-right {
+    animation: none;
+  }
+}
