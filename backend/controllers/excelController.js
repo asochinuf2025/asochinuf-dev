@@ -122,12 +122,18 @@ export const uploadExcelFile = async (req, res) => {
     const { fecha_sesion, measurements, cantidad_registros } = parsedData;
 
     // 3. Crear sesión de mediciones
+    // Primero, obtener el máximo ID actual para evitar conflictos de secuencia
+    const maxIdResult = await pool.query(
+      'SELECT COALESCE(MAX(id), 0) as max_id FROM t_sesion_mediciones'
+    );
+    const nextSessionId = maxIdResult.rows[0].max_id + 1;
+
     const sessionResult = await pool.query(
       `INSERT INTO t_sesion_mediciones
-       (plantel_id, categoria_id, liga_id, fecha_sesion, nutricionista_id, archivo_hash, cantidad_registros)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       (id, plantel_id, categoria_id, liga_id, fecha_sesion, nutricionista_id, archivo_hash, cantidad_registros)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING id`,
-      [plantelId, categoriaId, ligaId, fecha_sesion, usuarioId, fileHash, cantidad_registros]
+      [nextSessionId, plantelId, categoriaId, ligaId, fecha_sesion, usuarioId, fileHash, cantidad_registros]
     );
 
     const sesionId = sessionResult.rows[0].id;
