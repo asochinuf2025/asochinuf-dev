@@ -21,19 +21,33 @@ export default defineConfig({
     sourcemap: false,
     rollupOptions: {
       output: {
-        manualChunks: {
-          // Core React libraries
-          'vendor-core': ['react', 'react-dom', 'react-router-dom'],
-          // Animation library
-          'vendor-animation': ['framer-motion'],
-          // Charts library (lazy loaded, but separate chunk)
-          'vendor-charts': ['recharts'],
-          // Drag and drop (lazy loaded, admin only)
-          'vendor-dnd': ['@dnd-kit/core', '@dnd-kit/sortable', '@dnd-kit/utilities'],
-          // UI components
-          'vendor-ui': ['sonner'],
-          // Utilities
-          'vendor-utils': ['axios', 'lucide-react'],
+        manualChunks: (id) => {
+          // Vendor libraries - split by function
+          if (id.includes('node_modules')) {
+            if (id.includes('react') && !id.includes('react-router')) {
+              return 'vendor-react';
+            }
+            if (id.includes('react-router')) {
+              return 'vendor-router';
+            }
+            if (id.includes('framer-motion')) {
+              return 'vendor-animation'; // Lazy loaded anyway
+            }
+            if (id.includes('recharts')) {
+              return 'vendor-charts'; // Lazy loaded anyway
+            }
+            if (id.includes('@dnd-kit')) {
+              return 'vendor-dnd'; // Admin only
+            }
+            if (id.includes('axios')) {
+              return 'vendor-http';
+            }
+            if (id.includes('lucide')) {
+              return 'vendor-icons';
+            }
+            // Default for other node_modules
+            return 'vendor-other';
+          }
         },
       },
     },

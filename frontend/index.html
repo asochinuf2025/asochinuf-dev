@@ -32,16 +32,31 @@
     <!-- Sitemap and robots.txt references -->
     <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
 
-    <!-- Google Fonts - Premium Typography -->
+    <!-- Google Fonts - Premium Typography (async loading for better performance) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-    <!-- Mercado Pago SDK -->
-    <script src="https://sdk.mercadopago.com/js/v2"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap"></noscript>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/index.jsx"></script>
+
+    <!-- Load Mercado Pago SDK asynchronously after page render -->
+    <script>
+      // Delay Mercado Pago SDK loading to after initial render
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', loadMercadoPagoSDK);
+      } else {
+        setTimeout(loadMercadoPagoSDK, 100);
+      }
+
+      function loadMercadoPagoSDK() {
+        const script = document.createElement('script');
+        script.src = 'https://sdk.mercadopago.com/js/v2';
+        script.async = true;
+        document.body.appendChild(script);
+      }
+    </script>
   </body>
 </html>
