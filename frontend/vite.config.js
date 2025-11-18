@@ -22,9 +22,22 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom'],
+          // Core React libraries
+          'vendor-core': ['react', 'react-dom', 'react-router-dom'],
+          // Animation library
+          'vendor-animation': ['framer-motion'],
+          // Charts library (lazy loaded, but separate chunk)
+          'vendor-charts': ['recharts'],
+          // Drag and drop (lazy loaded, admin only)
+          'vendor-dnd': ['@dnd-kit/core', '@dnd-kit/sortable', '@dnd-kit/utilities'],
+          // UI components
+          'vendor-ui': ['sonner'],
+          // Utilities
+          'vendor-utils': ['axios', 'lucide-react'],
         },
       },
     },
+    // Increase chunk size warning threshold since we have large sections
+    chunkSizeWarningLimit: 600,
   },
 })

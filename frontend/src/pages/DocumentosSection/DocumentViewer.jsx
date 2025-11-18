@@ -4,10 +4,9 @@ import { X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
 import { API_ENDPOINTS } from '../../config/apiConfig';
-import * as pdfjsLib from 'pdfjs-dist';
 
-// Set up PDF.js worker - use local worker file
-pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
+// pdfjs-dist will be loaded dynamically when needed
+let pdfjsLib = null;
 
 const DocumentViewer = ({ documento, isOpen, onClose, onDeleted, esAdmin }) => {
   const { isDarkMode, token } = useAuth();
@@ -60,6 +59,12 @@ const DocumentViewer = ({ documento, isOpen, onClose, onDeleted, esAdmin }) => {
       setCurrentPage(1);
       setTotalPages(0);
       setZoom(100);
+
+      // Lazy load pdfjs-dist only when PDF viewer is opened
+      if (!pdfjsLib) {
+        pdfjsLib = await import('pdfjs-dist');
+        pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
+      }
 
       // Descargar el PDF
       const response = await axios.get(`${API_ENDPOINTS.DOCUMENTOS.GET_ONE(documento.id)}?preview=true`, {

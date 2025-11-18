@@ -79,7 +79,9 @@
       "Bash(move:*)",
       "Bash(cmd /c:*)",
       "Bash(yarn remove:*)",
-      "Bash(yarn build)"
+      "Bash(yarn build)",
+      "Bash(for file in \"c:\\MisProyectosReact\\asochinuf-dev\\frontend\\src\\pages\"/*/*.jsx)",
+      "Bash(done)"
     ],
     "deny": [],
     "ask": []

@@ -1,16 +1,25 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
-import DashboardSection from '../pages/DashboardSection/DashboardSection';
-import UnifiedCursosSection from '../pages/CursosSection/UnifiedCursosSection';
-import DatosSection from '../pages/DatosSection/DatosSection';
-import UnifiedExcelSection from '../pages/ExcelSection/UnifiedExcelSection';
-import ConfiguracionSection from '../pages/ConfiguracionSection/ConfiguracionSection';
-import GestionUsuariosSection from '../pages/GestionUsuariosSection/GestionUsuariosSection';
-import GestionPlantelesSection from '../pages/GestionPlantelesSection/GestionPlantelesSection';
-import MiPerfil from '../pages/PerfilSection/MiPerfil';
-import CuotasSection from '../pages/CuotasSection/CuotasSection';
-import DocumentosSection from '../pages/DocumentosSection/DocumentosSection';
+
+// Lazy load all dashboard sections for better performance
+const DashboardSection = lazy(() => import('../pages/DashboardSection/DashboardSection'));
+const UnifiedCursosSection = lazy(() => import('../pages/CursosSection/UnifiedCursosSection'));
+const DatosSection = lazy(() => import('../pages/DatosSection/DatosSection'));
+const UnifiedExcelSection = lazy(() => import('../pages/ExcelSection/UnifiedExcelSection'));
+const ConfiguracionSection = lazy(() => import('../pages/ConfiguracionSection/ConfiguracionSection'));
+const GestionUsuariosSection = lazy(() => import('../pages/GestionUsuariosSection/GestionUsuariosSection'));
+const GestionPlantelesSection = lazy(() => import('../pages/GestionPlantelesSection/GestionPlantelesSection'));
+const MiPerfil = lazy(() => import('../pages/PerfilSection/MiPerfil'));
+const CuotasSection = lazy(() => import('../pages/CuotasSection/CuotasSection'));
+const DocumentosSection = lazy(() => import('../pages/DocumentosSection/DocumentosSection'));
+
+// Loading fallback component
+const SectionLoadingFallback = () => (
+  <div style={{ padding: '20px', textAlign: 'center' }}>
+    Cargando sección...
+  </div>
+);
 
 const MainContent = ({ activeTab }) => {
   const { isDarkMode } = useAuth();
@@ -37,16 +46,56 @@ const MainContent = ({ activeTab }) => {
   return (
     <main className={`flex-1 overflow-y-auto p-4 md:p-10 pt-6 md:pt-12 pb-32 md:pb-12 ${isDarkMode ? '' : 'bg-gradient-to-b from-[#fafafa] to-[#f5f5f7]'}`}>
       <AnimatePresence mode="wait">
-        {activeTab === 'inicio' && <DashboardSection containerVariants={containerVariants} itemVariants={itemVariants} />}
-        {activeTab === 'cursos' && <UnifiedCursosSection containerVariants={containerVariants} />}
-        {activeTab === 'datos' && <DatosSection containerVariants={containerVariants} />}
-        {activeTab === 'excel' && <UnifiedExcelSection containerVariants={containerVariants} />}
-        {activeTab === 'cuotas' && <CuotasSection containerVariants={containerVariants} />}
-        {activeTab === 'documentos' && <DocumentosSection containerVariants={containerVariants} itemVariants={itemVariants} />}
-        {activeTab === 'perfil' && <MiPerfil />}
-        {activeTab === 'configuracion' && <ConfiguracionSection containerVariants={containerVariants} />}
-        {activeTab === 'gestionplanteles' && <GestionPlantelesSection containerVariants={containerVariants} />}
-        {activeTab === 'gestion' && <GestionUsuariosSection containerVariants={containerVariants} />}
+        {activeTab === 'inicio' && (
+          <Suspense fallback={<SectionLoadingFallback />}>
+            <DashboardSection containerVariants={containerVariants} itemVariants={itemVariants} />
+          </Suspense>
+        )}
+        {activeTab === 'cursos' && (
+          <Suspense fallback={<SectionLoadingFallback />}>
+            <UnifiedCursosSection containerVariants={containerVariants} />
+          </Suspense>
+        )}
+        {activeTab === 'datos' && (
+          <Suspense fallback={<SectionLoadingFallback />}>
+            <DatosSection containerVariants={containerVariants} />
+          </Suspense>
+        )}
+        {activeTab === 'excel' && (
+          <Suspense fallback={<SectionLoadingFallback />}>
+            <UnifiedExcelSection containerVariants={containerVariants} />
+          </Suspense>
+        )}
+        {activeTab === 'cuotas' && (
+          <Suspense fallback={<SectionLoadingFallback />}>
+            <CuotasSection containerVariants={containerVariants} />
+          </Suspense>
+        )}
+        {activeTab === 'documentos' && (
+          <Suspense fallback={<SectionLoadingFallback />}>
+            <DocumentosSection containerVariants={containerVariants} itemVariants={itemVariants} />
+          </Suspense>
+        )}
+        {activeTab === 'perfil' && (
+          <Suspense fallback={<SectionLoadingFallback />}>
+            <MiPerfil />
+          </Suspense>
+        )}
+        {activeTab === 'configuracion' && (
+          <Suspense fallback={<SectionLoadingFallback />}>
+            <ConfiguracionSection containerVariants={containerVariants} />
+          </Suspense>
+        )}
+        {activeTab === 'gestionplanteles' && (
+          <Suspense fallback={<SectionLoadingFallback />}>
+            <GestionPlantelesSection containerVariants={containerVariants} />
+          </Suspense>
+        )}
+        {activeTab === 'gestion' && (
+          <Suspense fallback={<SectionLoadingFallback />}>
+            <GestionUsuariosSection containerVariants={containerVariants} />
+          </Suspense>
+        )}
       </AnimatePresence>
     </main>
   );
