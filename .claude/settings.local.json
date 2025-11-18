@@ -77,7 +77,9 @@
       "Bash(cmd /c \"taskkill /PID 13032 /F\")",
       "Bash(start-sleep:*)",
       "Bash(move:*)",
-      "Bash(cmd /c:*)"
+      "Bash(cmd /c:*)",
+      "Bash(yarn remove:*)",
+      "Bash(yarn build)"
     ],
     "deny": [],
     "ask": []
