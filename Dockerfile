@@ -11,8 +11,8 @@ WORKDIR /app/frontend
 # Copiar frontend dependencies
 COPY frontend/package*.json frontend/yarn.lock* ./
 
-# Instalar dependencias con fallback
-RUN yarn install --frozen-lockfile 2>/dev/null || npm install --legacy-peer-deps
+# Instalar dependencias - prefer yarn, fallback to npm
+RUN if [ -f yarn.lock ]; then yarn install --frozen-lockfile; else npm install --legacy-peer-deps; fi
 
 # Copiar código del frontend
 COPY frontend/ .
@@ -27,8 +27,8 @@ RUN echo "VITE_API_URL=${VITE_API_URL}" > .env && \
     echo "VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}" >> .env && \
     echo "VITE_MERCADO_PAGO_PUBLIC_KEY=${VITE_MERCADO_PAGO_PUBLIC_KEY}" >> .env
 
-# Construir el frontend con variables de entorno
-RUN yarn build 2>/dev/null || npm run build
+# Construir el frontend con variables de entorno - show errors if build fails
+RUN if [ -f yarn.lock ]; then yarn build; else npm run build; fi
 
 # ============================================================================
 # STAGE 2: Production - Node.js + Express
