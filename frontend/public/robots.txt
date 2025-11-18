@@ -1,0 +1,17 @@
+# Allow all robots
+User-agent: *
+Allow: /
+
+# Specific rules for search engines
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# Disallow crawling of private/admin areas if needed
+# Disallow: /admin/
+# Disallow: /private/
+
+# Sitemap location (update with your actual sitemap URL)
+Sitemap: https://asochinuf.cl/sitemap.xml
