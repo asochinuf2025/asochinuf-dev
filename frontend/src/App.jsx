@@ -21,20 +21,20 @@ function App() {
     <div className="App">
       <BrowserRouter>
         <AuthProvider>
-          <Suspense fallback={<LoadingFallback />}>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/restablecer-contrasena" element={<ResetPassword />} />
-              <Route
-                path="/dashboard"
-                element={
+          <Routes>
+            <Route path="/" element={<Suspense fallback={<LoadingFallback />}><Home /></Suspense>} />
+            <Route path="/restablecer-contrasena" element={<Suspense fallback={<LoadingFallback />}><ResetPassword /></Suspense>} />
+            <Route
+              path="/dashboard"
+              element={
+                <Suspense fallback={<LoadingFallback />}>
                   <ProtectedRoute>
                     <Inicio />
                   </ProtectedRoute>
-                }
-              />
-            </Routes>
-          </Suspense>
+                </Suspense>
+              }
+            />
+          </Routes>
         </AuthProvider>
       </BrowserRouter>
     </div>
