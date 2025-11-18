@@ -1,0 +1,22 @@
+        </div>
+
+        {/* Ghost Cursor Effect - Gelatinous Mouse Tracking */}
+        <GhostCursor
+          color="#8c5cff"
+          brightness={1.2}
+          trailLength={50}
+          inertia={0.5}
+          grainIntensity={0.05}
+          bloomStrength={0.15}
+          bloomRadius={1.2}
+          bloomThreshold={0.02}
+          fadeDelayMs={1000}
+          fadeDurationMs={1500}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            pointerEvents: 'none'
+          }}
+        />
+
+        <div className="container mx-auto max-w-7xl relative z-10">

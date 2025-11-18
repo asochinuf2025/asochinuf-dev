@@ -12,66 +12,9 @@ import { Badge } from './ui/badge';
 import AuthModal from './AuthModal';
 import StarBorder from './StarBorder';
 import InfiniteTestimonials from './InfiniteTestimonials';
+import GhostCursor from './GhostCursor';
+import RotatingText from './RotatingText';
 import { mockData } from '../mock';
-
-// Typewriter Animation Component
-const TypewriterText = ({ text, onDeletingComplete }) => {
-  const [displayedText, setDisplayedText] = useState('');
-  const [phase, setPhase] = useState('typing'); // typing, pause, deleting
-  const typingSpeed = 50; // ms per character
-  const deletingSpeed = 25; // ms per character
-  const pauseDuration = 2500; // ms to pause after typing complete
-
-  useEffect(() => {
-    let timeout;
-
-    if (phase === 'typing') {
-      if (displayedText.length < text.length) {
-        timeout = setTimeout(() => {
-          setDisplayedText(text.slice(0, displayedText.length + 1));
-        }, typingSpeed);
-      } else {
-        // Text is fully typed, move to pause phase
-        timeout = setTimeout(() => {
-          setPhase('deleting');
-        }, pauseDuration);
-      }
-    } else if (phase === 'deleting') {
-      if (displayedText.length > 0) {
-        timeout = setTimeout(() => {
-          setDisplayedText(displayedText.slice(0, -1));
-        }, deletingSpeed);
-      } else {
-        // Text is fully deleted, signal completion
-        if (onDeletingComplete) {
-          onDeletingComplete();
-        }
-        setPhase('typing');
-      }
-    }
-
-    return () => clearTimeout(timeout);
-  }, [displayedText, phase, text, pauseDuration, onDeletingComplete]);
-
-  // Reset when text changes
-  useEffect(() => {
-    setDisplayedText('');
-    setPhase('typing');
-  }, [text]);
-
-  return (
-    <span>
-      {displayedText}
-      {displayedText.length > 0 && phase === 'typing' && (
-        <motion.span
-          animate={{ opacity: [1, 0] }}
-          transition={{ duration: 0.5, repeat: Infinity }}
-          className="inline-block w-0.5 h-6 md:h-7 ml-1 bg-[#8c5cff] align-middle"
-        />
-      )}
-    </span>
-  );
-};
 
 // Animated Counter Component
 const AnimatedCounter = ({ from = 0, to, duration = 2.5 }) => {
@@ -112,7 +55,6 @@ const AnimatedCounter = ({ from = 0, to, duration = 2.5 }) => {
 const Home = () => {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [currentTextIndex, setCurrentTextIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const [showMemberDescription, setShowMemberDescription] = useState(null);
   const { scrollYProgress } = useScroll();
@@ -395,18 +337,20 @@ const Home = () => {
             {mockData.hero.subtitle}
           </motion.p>
 
-          {/* Typewriter animation */}
-          <div className="h-16 md:h-20 mb-8 flex items-center justify-center">
-            <motion.p
-              className="text-lg md:text-xl text-[#8c5cff] font-medium min-h-8"
-            >
-              <TypewriterText
-                text={mockData.hero.rotatingTexts[currentTextIndex]}
-                onDeletingComplete={() => {
-                  setCurrentTextIndex((prev) => (prev + 1) % mockData.hero.rotatingTexts.length);
-                }}
-              />
-            </motion.p>
+          {/* Rotating text animation */}
+          <div className="mb-8 flex items-center justify-center">
+            <RotatingText
+              texts={mockData.hero.rotatingTexts}
+              mainClassName="relative px-6 sm:px-8 md:px-10 text-white overflow-hidden py-3 sm:py-4 md:py-5 justify-center rounded-lg font-semibold text-xl sm:text-2xl md:text-3xl bg-clip-text text-transparent bg-gradient-to-r from-[#8c5cff] to-[#a371ff]"
+              staggerFrom="last"
+              initial={{ y: "100%", opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: "-120%", opacity: 0 }}
+              staggerDuration={0.025}
+              splitLevelClassName="overflow-hidden pb-0.5 sm:pb-1 md:pb-1"
+              transition={{ type: "spring", damping: 30, stiffness: 400 }}
+              rotationInterval={2500}
+            />
           </div>
 
           <motion.div
@@ -415,18 +359,24 @@ const Home = () => {
             transition={{ duration: 0.5, delay: 0.8 }}
             className="flex items-center justify-center"
           >
-            <StarBorder
-              as="button"
+            <motion.button
               onClick={() => setIsLoginOpen(true)}
-              color="#8c5cff"
-              speed="5s"
-              className="text-lg font-semibold hover:scale-105 transition-all duration-300 group"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="relative group px-8 py-4 md:px-10 md:py-5 rounded-xl font-bold text-white text-lg md:text-xl overflow-hidden"
             >
-              <span className="flex items-center gap-2">
+              {/* Animated gradient background */}
+              <div className="absolute inset-0 bg-gradient-to-r from-[#8c5cff] via-[#a371ff] to-[#6a3dcf] transition-all duration-300 group-hover:shadow-2xl group-hover:shadow-[#8c5cff]/60"></div>
+
+              {/* Glow effect on hover */}
+              <div className="absolute -inset-1 bg-gradient-to-r from-[#8c5cff]/50 via-[#a371ff]/30 to-[#6a3dcf]/50 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10"></div>
+
+              {/* Content */}
+              <span className="relative flex items-center gap-3 justify-center">
                 {mockData.hero.ctaText}
-                <ArrowRight className="group-hover:translate-x-1 transition-transform duration-300" size={20} />
+                <ArrowRight className="group-hover:translate-x-1 transition-transform duration-300" size={22} />
               </span>
-            </StarBorder>
+            </motion.button>
           </motion.div>
         </motion.div>
 
@@ -504,72 +454,44 @@ const Home = () => {
           />
         </div>
 
-        <div className="container mx-auto max-w-7xl relative z-10">
-          {/* Header */}
-          <motion.div
-            initial={isMobile ? { opacity: 1 } : { opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="text-center mb-24"
-          >
-            <h2 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white via-[#8c5cff] to-white bg-clip-text text-transparent" style={{ fontWeight: 900, letterSpacing: '-0.02em' }}>
-              Misión & Visión
-            </h2>
-            <p className="text-gray-400 text-lg max-w-2xl mx-auto leading-relaxed">
-              Los pilares que guían nuestro compromiso con la excelencia en nutrición deportiva
-            </p>
-          </motion.div>
+        {/* Ghost Cursor Effect - Gelatinous Mouse Tracking */}
+        <GhostCursor
+          color="#8c5cff"
+          brightness={1.2}
+          trailLength={50}
+          inertia={0.5}
+          grainIntensity={0.05}
+          bloomStrength={0.15}
+          bloomRadius={1.2}
+          bloomThreshold={0.02}
+          fadeDelayMs={1000}
+          fadeDurationMs={1500}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            pointerEvents: 'none'
+          }}
+        />
 
+        <div className="container mx-auto max-w-7xl relative z-10">
           {/* Layout with Image Left and Text Right */}
           <div className="space-y-20">
-            {/* Misión - Image Left, Text Right */}
+            {/* Misión - Text Only */}
             <motion.div
-              initial={isMobile ? { opacity: 1 } : { opacity: 0, x: -50, y: 30 }}
-              whileInView={{ opacity: 1, x: 0, y: 0 }}
+              initial={isMobile ? { opacity: 1 } : { opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.1 }}
-              className="group relative"
+              className="group relative text-center max-w-3xl mx-auto"
             >
-              <div className="grid grid-cols-3 gap-8 lg:gap-12 items-center">
-                {/* Image Left - Full Body Person */}
-                <motion.div
-                  whileHover={!isMobile ? { scale: 1.05 } : {}}
-                  transition={{ duration: 0.5 }}
-                  className="col-span-1 relative"
-                >
-                  {/* Glow Effect */}
-                  <motion.div
-                    animate={{
-                      boxShadow: [
-                        '0 0 20px rgba(140, 92, 255, 0.3)',
-                        '0 0 40px rgba(140, 92, 255, 0.6)',
-                        '0 0 20px rgba(140, 92, 255, 0.3)'
-                      ]
-                    }}
-                    transition={{
-                      duration: 3,
-                      repeat: Infinity,
-                      ease: 'easeInOut'
-                    }}
-                    className="absolute -inset-4 bg-gradient-to-br from-[#8c5cff]/30 to-[#6a3dcf]/30 rounded-3xl blur-2xl"
-                  />
-
-                  <img
-                    src="/nutri4.png"
-                    alt="Misión"
-                    className="relative w-full h-80 md:h-96 object-cover rounded-2xl shadow-2xl group-hover:shadow-[0_0_40px_rgba(140,92,255,0.6)] transition-all duration-500 border border-[#8c5cff]/40 group-hover:border-[#8c5cff]/80"
-                  />
-                </motion.div>
-
-                {/* Text Right */}
-                <motion.div
-                  initial={!isMobile ? { opacity: 0, x: 30 } : { opacity: 1 }}
-                  whileInView={!isMobile ? { opacity: 1, x: 0 } : { opacity: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.8, delay: 0.2 }}
-                  className="col-span-2 space-y-6"
-                >
+              {/* Text */}
+              <motion.div
+                initial={!isMobile ? { opacity: 0 } : { opacity: 1 }}
+                whileInView={!isMobile ? { opacity: 1 } : { opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+                className="space-y-6"
+              >
                   {/* Top accent line */}
                   <motion.div
                     initial={{ width: 0 }}
@@ -600,27 +522,25 @@ const Home = () => {
                     transition={{ duration: 0.8, delay: 0.3 }}
                     className="mt-8 h-1 bg-gradient-to-r from-[#8c5cff] via-[#a371ff] to-transparent rounded-full"
                   />
-                </motion.div>
-              </div>
+              </motion.div>
             </motion.div>
 
-            {/* Visión - Image Right, Text Left */}
+            {/* Visión - Text Only */}
             <motion.div
-              initial={isMobile ? { opacity: 1 } : { opacity: 0, x: 50, y: 30 }}
-              whileInView={{ opacity: 1, x: 0, y: 0 }}
+              initial={isMobile ? { opacity: 1 } : { opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="group relative"
+              className="group relative text-center max-w-3xl mx-auto"
             >
-              <div className="grid grid-cols-3 gap-8 lg:gap-12 items-center">
-                {/* Text Left */}
-                <motion.div
-                  initial={!isMobile ? { opacity: 0, x: -30 } : { opacity: 1 }}
-                  whileInView={!isMobile ? { opacity: 1, x: 0 } : { opacity: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.8, delay: 0.3 }}
-                  className="col-span-2 space-y-6"
-                >
+              {/* Text */}
+              <motion.div
+                initial={!isMobile ? { opacity: 0 } : { opacity: 1 }}
+                whileInView={!isMobile ? { opacity: 1 } : { opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8, delay: 0.3 }}
+                className="space-y-6"
+              >
                   {/* Top accent line */}
                   <motion.div
                     initial={{ width: 0 }}
@@ -651,39 +571,7 @@ const Home = () => {
                     transition={{ duration: 0.8, delay: 0.4 }}
                     className="mt-8 h-1 bg-gradient-to-r from-transparent via-[#a371ff] to-[#8c5cff] rounded-full"
                   />
-                </motion.div>
-
-                {/* Image Right - Full Body Person */}
-                <motion.div
-                  whileHover={!isMobile ? { scale: 1.05 } : {}}
-                  transition={{ duration: 0.5 }}
-                  className="col-span-1 relative"
-                >
-                  {/* Glow Effect */}
-                  <motion.div
-                    animate={{
-                      boxShadow: [
-                        '0 0 20px rgba(140, 92, 255, 0.3)',
-                        '0 0 40px rgba(140, 92, 255, 0.6)',
-                        '0 0 20px rgba(140, 92, 255, 0.3)'
-                      ]
-                    }}
-                    transition={{
-                      duration: 3,
-                      repeat: Infinity,
-                      ease: 'easeInOut',
-                      delay: 0.3
-                    }}
-                    className="absolute -inset-4 bg-gradient-to-br from-[#6a3dcf]/30 to-[#8c5cff]/30 rounded-3xl blur-2xl"
-                  />
-
-                  <img
-                    src="/nutri5.png"
-                    alt="Visión"
-                    className="relative w-full h-80 md:h-96 object-cover rounded-2xl shadow-2xl group-hover:shadow-[0_0_40px_rgba(140,92,255,0.6)] transition-all duration-500 border border-[#6a3dcf]/40 group-hover:border-[#8c5cff]/80"
-                  />
-                </motion.div>
-              </div>
+              </motion.div>
             </motion.div>
           </div>
         </div>
@@ -811,6 +699,29 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Profesionales/Testimonios Section - Infinite Scroll */}
+      <section id="profesionales" className="py-24 px-4 bg-gradient-to-b from-[#0a0a0a] to-black">
+        <div className="container mx-auto max-w-full mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center"
+          >
+            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-[#8c5cff]" style={{ fontWeight: 700, letterSpacing: '-0.02em' }}>
+              Qué Piensan Nuestros Profesionales
+            </h2>
+            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+              Historias de éxito de nutricionistas que transformaron su carrera
+            </p>
+          </motion.div>
+        </div>
+
+        <div className="w-full">
+          <InfiniteTestimonials testimonios={mockData.testimonios} />
+        </div>
+      </section>
+
       {/* Capacitaciones Section - Ultra Premium Bento Box Design */}
       <section id="capacitaciones" className="py-24 px-4 bg-gradient-to-b from-black via-[#0a0a0a] to-black relative overflow-hidden">
         {/* Animated background elements */}
@@ -913,29 +824,6 @@ const Home = () => {
               );
             })}
           </div>
-        </div>
-      </section>
-
-      {/* Profesionales/Testimonios Section - Infinite Scroll */}
-      <section id="profesionales" className="py-24 px-4 bg-gradient-to-b from-[#0a0a0a] to-black">
-        <div className="container mx-auto max-w-full mb-16">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center"
-          >
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-[#8c5cff]" style={{ fontWeight: 700, letterSpacing: '-0.02em' }}>
-              Qué Piensan Nuestros Profesionales
-            </h2>
-            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-              Historias de éxito de nutricionistas que transformaron su carrera
-            </p>
-          </motion.div>
-        </div>
-
-        <div className="w-full">
-          <InfiniteTestimonials testimonios={mockData.testimonios} />
         </div>
       </section>
 
