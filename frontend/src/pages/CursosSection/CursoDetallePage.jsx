@@ -497,46 +497,36 @@ const CursoDetallePage = ({ curso: cursoProp, onBack, containerVariants }) => {
           </div>
 
           {/* Right Column - Sidebar - Responsive */}
-          <div className="lg:col-span-1 order-1 lg:order-2">
-            <motion.div
-              className={`sticky top-32 p-6 rounded-lg ${
-                isDarkMode ? 'bg-[#1a1c22] border border-[#8c5cff]/20' : 'bg-white border border-purple-200 shadow-lg'
-              }`}
-            >
-              {/* Precio */}
-              <div className="mb-6">
-                {tieneDescuento && (
-                  <p className={`text-sm line-through mb-2 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-                    {formatearPrecio(curso.precio, curso.moneda)}
-                  </p>
-                )}
-                <p className={`text-3xl font-bold ${isDarkMode ? 'text-[#8c5cff]' : 'text-purple-600'}`}>
-                  {formatearPrecio(precioFinal, curso.moneda)}
-                </p>
-              </div>
-
-              {/* Instructor */}
-              {curso.nombre_instructor && (
-                <div className={`mb-6 pb-6 border-b ${isDarkMode ? 'border-[#8c5cff]/20' : 'border-purple-200'}`}>
-                  <p className={`text-sm mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Instructor</p>
-                  <p className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                    {curso.nombre_instructor}
+          {!tieneAcceso && (
+            <div className="lg:col-span-1 order-1 lg:order-2">
+              <motion.div
+                className={`sticky top-32 p-6 rounded-lg ${
+                  isDarkMode ? 'bg-[#1a1c22] border border-[#8c5cff]/20' : 'bg-white border border-purple-200 shadow-lg'
+                }`}
+              >
+                {/* Precio */}
+                <div className="mb-6">
+                  {tieneDescuento && (
+                    <p className={`text-sm line-through mb-2 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                      {formatearPrecio(curso.precio, curso.moneda)}
+                    </p>
+                  )}
+                  <p className={`text-3xl font-bold ${isDarkMode ? 'text-[#8c5cff]' : 'text-purple-600'}`}>
+                    {formatearPrecio(precioFinal, curso.moneda)}
                   </p>
                 </div>
-              )}
 
-              {/* CTA Button */}
-              {tieneAcceso ? (
-                <motion.button
-                  initial={{ scale: 0.95, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  className="w-full bg-green-500/20 text-green-500 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 hover:bg-green-500/30 transition-colors"
-                  disabled
-                >
-                  <CheckCircle size={20} />
-                  Tienes acceso
-                </motion.button>
-              ) : (
+                {/* Instructor */}
+                {curso.nombre_instructor && (
+                  <div className={`mb-6 pb-6 border-b ${isDarkMode ? 'border-[#8c5cff]/20' : 'border-purple-200'}`}>
+                    <p className={`text-sm mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Instructor</p>
+                    <p className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                      {curso.nombre_instructor}
+                    </p>
+                  </div>
+                )}
+
+                {/* CTA Button */}
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
@@ -564,25 +554,25 @@ const CursoDetallePage = ({ curso: cursoProp, onBack, containerVariants }) => {
                     </>
                   )}
                 </motion.button>
-              )}
 
-              {/* Info adicional */}
-              <div className={`mt-6 pt-6 space-y-3 border-t ${isDarkMode ? 'border-[#8c5cff]/20' : 'border-purple-200'}`}>
-                <div className="flex items-center gap-2 text-sm">
-                  <CheckCircle size={16} className="text-[#8c5cff]" />
-                  <span className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Acceso de por vida</span>
+                {/* Info adicional */}
+                <div className={`mt-6 pt-6 space-y-3 border-t ${isDarkMode ? 'border-[#8c5cff]/20' : 'border-purple-200'}`}>
+                  <div className="flex items-center gap-2 text-sm">
+                    <CheckCircle size={16} className="text-[#8c5cff]" />
+                    <span className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Acceso de por vida</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <CheckCircle size={16} className="text-[#8c5cff]" />
+                    <span className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Certificado de finalización</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <CheckCircle size={16} className="text-[#8c5cff]" />
+                    <span className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Contenido descargable</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <CheckCircle size={16} className="text-[#8c5cff]" />
-                  <span className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Certificado de finalización</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <CheckCircle size={16} className="text-[#8c5cff]" />
-                  <span className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Contenido descargable</span>
-                </div>
-              </div>
-            </motion.div>
-          </div>
+              </motion.div>
+            </div>
+          )}
         </div>
       </div>
     </motion.div>
