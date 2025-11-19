@@ -420,8 +420,8 @@ export const otorgarAccesoCurso = async (req, res) => {
     // Crear acceso (o actualizar si existe)
     const accesoResult = await pool.query(
       `INSERT INTO t_acceso_cursos (
-        usuario_id, id_curso, tipo_acceso, precio_pagado, referencia_pago
-      ) VALUES ($1, $2, $3, $4, $5)
+        usuario_id, id_curso, tipo_acceso, precio_pagado, referencia_pago, estado
+      ) VALUES ($1, $2, $3, $4, $5, 'activo')
       ON CONFLICT (usuario_id, id_curso)
       DO UPDATE SET
         tipo_acceso = $3,
