@@ -722,10 +722,11 @@ const CursoDetallePage = ({ curso: cursoProp, onBack, containerVariants }) => {
                 {/* Área de reproducción/contenido */}
                 <div className={`mb-6 relative ${
                   isDarkMode ? 'bg-[#1a1c22]' : 'bg-gray-100'
-                } rounded-xl overflow-hidden flex items-center justify-center`} style={{ aspectRatio: '16/9' }}>
-                  {leccionSeleccionada.tipo === 'video' ? (
-                    leccionSeleccionada.url ? (
-                      <>
+                } rounded-xl overflow-visible flex items-center justify-center`} style={{ aspectRatio: '16/9' }}>
+                  {/* Contenedor del iframe con overflow-hidden */}
+                  <div className="absolute inset-0 rounded-xl overflow-hidden">
+                    {leccionSeleccionada.tipo === 'video' ? (
+                      leccionSeleccionada.url ? (
                         <iframe
                           ref={iframeRef}
                           src={convertirAEmbedUrl(leccionSeleccionada.url)}
@@ -734,23 +735,16 @@ const CursoDetallePage = ({ curso: cursoProp, onBack, containerVariants }) => {
                           allowFullScreen
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                         />
-                        <button
-                          onClick={handleFullscreen}
-                          className={`absolute top-4 right-4 p-2 rounded-lg bg-black/50 hover:bg-black/70 text-white transition-colors z-10`}
-                          title={isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'}
-                        >
-                          {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
-                        </button>
-                      </>
-                    ) : (
-                      <div className="text-center">
-                        <Video size={48} className={isDarkMode ? 'text-gray-600 mx-auto mb-2' : 'text-gray-400 mx-auto mb-2'} />
-                        <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Video no disponible</p>
-                      </div>
-                    )
-                  ) : leccionSeleccionada.tipo === 'pdf' ? (
-                    leccionSeleccionada.url ? (
-                      <>
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <div className="text-center">
+                            <Video size={48} className={isDarkMode ? 'text-gray-600 mx-auto mb-2' : 'text-gray-400 mx-auto mb-2'} />
+                            <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Video no disponible</p>
+                          </div>
+                        </div>
+                      )
+                    ) : leccionSeleccionada.tipo === 'pdf' ? (
+                      leccionSeleccionada.url ? (
                         <iframe
                           ref={iframeRef}
                           src={convertirAEmbedUrl(leccionSeleccionada.url)}
@@ -758,25 +752,33 @@ const CursoDetallePage = ({ curso: cursoProp, onBack, containerVariants }) => {
                           className="w-full h-full"
                           allow="fullscreen"
                         />
-                        <button
-                          onClick={handleFullscreen}
-                          className={`absolute top-4 right-4 p-2 rounded-lg bg-black/50 hover:bg-black/70 text-white transition-colors z-10`}
-                          title={isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'}
-                        >
-                          {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
-                        </button>
-                      </>
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <div className="text-center">
+                            <FileIcon size={48} className={isDarkMode ? 'text-gray-600 mx-auto mb-2' : 'text-gray-400 mx-auto mb-2'} />
+                            <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>PDF no disponible</p>
+                          </div>
+                        </div>
+                      )
                     ) : (
-                      <div className="text-center">
-                        <FileIcon size={48} className={isDarkMode ? 'text-gray-600 mx-auto mb-2' : 'text-gray-400 mx-auto mb-2'} />
-                        <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>PDF no disponible</p>
+                      <div className="w-full h-full flex items-center justify-center">
+                        <div className="text-center">
+                          <FileText size={48} className={isDarkMode ? 'text-gray-600 mx-auto mb-2' : 'text-gray-400 mx-auto mb-2'} />
+                          <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Contenido cargándose...</p>
+                        </div>
                       </div>
-                    )
-                  ) : (
-                    <div className="text-center">
-                      <FileText size={48} className={isDarkMode ? 'text-gray-600 mx-auto mb-2' : 'text-gray-400 mx-auto mb-2'} />
-                      <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Contenido cargándose...</p>
-                    </div>
+                    )}
+                  </div>
+
+                  {/* Botón flotante (outside overflow-hidden) */}
+                  {(leccionSeleccionada.tipo === 'video' || leccionSeleccionada.tipo === 'pdf') && leccionSeleccionada.url && (
+                    <button
+                      onClick={handleFullscreen}
+                      className={`absolute top-4 right-4 p-2.5 rounded-lg bg-black/70 hover:bg-black/90 text-white transition-colors z-50 shadow-lg`}
+                      title={isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'}
+                    >
+                      {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
+                    </button>
                   )}
                 </div>
 
