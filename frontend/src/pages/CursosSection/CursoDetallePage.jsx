@@ -37,11 +37,13 @@ const CursoDetallePage = ({ curso: cursoProp, onBack, containerVariants }) => {
 
       // Obtener detalles del curso CON TOKEN para verificar acceso
       const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+      console.log(`🔐 Enviando token: ${token ? 'Sí' : 'No'}, Usuario autenticado: ${!!token}`);
+
       const detallesResponse = await axios.get(`${API_URL}/api/detalles-cursos/${cursoProp.id_curso}`, config);
       setDetalles(detallesResponse.data);
       setTieneAcceso(detallesResponse.data.accesoInfo.tieneAcceso);
 
-      console.log(`✓ Curso cargado - tieneAcceso: ${detallesResponse.data.accesoInfo.tieneAcceso}`);
+      console.log(`✓ Curso cargado - tieneAcceso: ${detallesResponse.data.accesoInfo.tieneAcceso}`, detallesResponse.data.accesoInfo);
 
       // Expandir primera sección por defecto
       if (detallesResponse.data.secciones.length > 0) {

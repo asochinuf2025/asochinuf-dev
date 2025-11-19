@@ -36,6 +36,12 @@ export const obtenerDetallesCurso = async (req, res) => {
         [usuarioId, idCurso, 'activo']
       );
       tieneAcceso = accesoResult.rows.length > 0;
+      console.log(`📋 Verificación de acceso - Usuario: ${usuarioId}, Curso: ${idCurso}, Acceso encontrado: ${tieneAcceso}, Registros: ${accesoResult.rows.length}`);
+      if (accesoResult.rows.length > 0) {
+        console.log(`✅ Detalles de acceso:`, accesoResult.rows[0]);
+      }
+    } else {
+      console.log(`⚠️ No hay usuarioId en la solicitud`);
     }
 
     // Obtener secciones y lecciones organizadas
