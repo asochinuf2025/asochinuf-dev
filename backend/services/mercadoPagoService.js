@@ -5,25 +5,27 @@ const MP_ACCESS_TOKEN = process.env.MERCADO_PAGO_ACCESS_TOKEN;
 const MP_API_URL = 'https://api.mercadopago.com';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
-// En Railway, extraer la URL del backend desde FRONTEND_URL
-// FRONTEND_URL es https://asochinuf.cl
-// Necesitamos construir la URL del backend
+// Obtener URL del backend para webhook
+// En Railway, el backend y frontend están en dominios diferentes
+// El frontend es: https://asochinuf.cl (o tu dominio)
+// El backend es: https://asochinuf.up.railway.app (o tu dominio)
 const getBackendUrl = () => {
-  // En producción (Railway), FRONTEND_URL es el dominio del frontend
-  // El backend está en un dominio diferente que debe estar en una variable de entorno
-  // Por ahora, usar FRONTEND_URL reemplazando el dominio
-
-  // Opción 1: Si está configurada una variable de backend, usarla
+  // Opción 1: Si BACKEND_DOMAIN está configurada en Railway, usarla
+  // Configura en Railway: BACKEND_DOMAIN=https://asochinuf.up.railway.app
   if (process.env.BACKEND_DOMAIN) {
     return process.env.BACKEND_DOMAIN;
   }
 
-  // Opción 2: En desarrollo, usar localhost
+  // Opción 2: En desarrollo local (localhost), usar localhost:5001
   if (FRONTEND_URL.includes('localhost') || FRONTEND_URL.includes('127.0.0.1')) {
     return 'http://localhost:5001';
   }
 
-  // Opción 3: En producción, si no hay BACKEND_DOMAIN, no incluir webhook
+  // Opción 3: En producción sin BACKEND_DOMAIN, no usar webhook
+  // Los pagos funcionarán con auto_return + verificación manual en frontend
+  console.warn('⚠️ BACKEND_DOMAIN no configurada. Los webhooks estarán deshabilitados.');
+  console.warn('   Para habilitar webhooks en Railway, configura:');
+  console.warn('   BACKEND_DOMAIN=https://asochinuf.up.railway.app');
   return null;
 };
 
