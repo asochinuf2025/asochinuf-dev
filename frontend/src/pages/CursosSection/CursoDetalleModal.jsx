@@ -75,7 +75,11 @@ const CursoDetalleModal = ({ curso, isOpen, onClose, isDarkMode }) => {
       );
 
       if (response.data?.data) {
-        const checkoutUrl = response.data.data.sandbox_init_point || response.data.data.init_point;
+        // En producción usar init_point, en desarrollo sandbox_init_point
+        const isProduction = process.env.NODE_ENV === 'production';
+        const checkoutUrl = isProduction
+          ? response.data.data.init_point
+          : (response.data.data.sandbox_init_point || response.data.data.init_point);
 
         if (!checkoutUrl) {
           toast.error('No se pudo obtener la URL de pago');
