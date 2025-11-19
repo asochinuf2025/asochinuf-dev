@@ -746,7 +746,7 @@ const GestionDetallesCursosSection = ({ containerVariants }) => {
                         isDarkMode
                           ? 'bg-[#2a2c33] border-[#8c5cff]/20 text-white'
                           : 'bg-white border-gray-200 text-gray-900'
-                        focus:outline-none focus:border-[#8c5cff]`}
+                      } focus:outline-none focus:border-[#8c5cff]`}
                     />
                   </div>
 
