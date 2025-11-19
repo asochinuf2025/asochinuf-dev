@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
-import { API_ENDPOINTS, BASE as API_URL } from '../config/apiConfig';
+import { API_ENDPOINTS, BASE as API_URL } from '../../config/apiConfig';
 import { toast } from 'sonner';
 
 const CursoDetallePage = ({ curso: cursoProp, onBack, containerVariants }) => {
