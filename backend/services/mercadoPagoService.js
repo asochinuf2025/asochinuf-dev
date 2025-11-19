@@ -5,7 +5,34 @@ const MP_ACCESS_TOKEN = process.env.MERCADO_PAGO_ACCESS_TOKEN;
 const MP_API_URL = 'https://api.mercadopago.com';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
+// En Railway, extraer la URL del backend desde FRONTEND_URL
+// FRONTEND_URL es https://asochinuf.cl
+// Necesitamos construir la URL del backend
+const getBackendUrl = () => {
+  // En producción (Railway), FRONTEND_URL es el dominio del frontend
+  // El backend está en un dominio diferente que debe estar en una variable de entorno
+  // Por ahora, usar FRONTEND_URL reemplazando el dominio
+
+  // Opción 1: Si está configurada una variable de backend, usarla
+  if (process.env.BACKEND_DOMAIN) {
+    return process.env.BACKEND_DOMAIN;
+  }
+
+  // Opción 2: En desarrollo, usar localhost
+  if (FRONTEND_URL.includes('localhost') || FRONTEND_URL.includes('127.0.0.1')) {
+    return 'http://localhost:5001';
+  }
+
+  // Opción 3: En producción, si no hay BACKEND_DOMAIN, no incluir webhook
+  return null;
+};
+
+const BACKEND_URL = getBackendUrl();
+const WEBHOOK_URL = BACKEND_URL ? `${BACKEND_URL}/api/payments/webhook` : null;
+
 console.log('📱 FRONTEND_URL:', FRONTEND_URL);
+console.log('🖥️ BACKEND_URL:', BACKEND_URL);
+console.log('🔔 WEBHOOK_URL:', WEBHOOK_URL);
 
 const mpClient = axios.create({
   baseURL: MP_API_URL,
@@ -57,6 +84,12 @@ export const crearPreferenciaCurso = async (curso, usuario, montoFinal) => {
     // Siempre habilitar auto_return para redirigir al usuario después del pago
     // La verificación de acceso se hace en el frontend cuando el usuario regresa
     preference.auto_return = 'approved';
+
+    // Agregar webhook si está disponible (BACKEND_DOMAIN configurado en Railway)
+    if (WEBHOOK_URL) {
+      preference.notification_url = WEBHOOK_URL;
+      console.log('✅ Webhook configurado:', WEBHOOK_URL);
+    }
 
     console.log('📤 Enviando preferencia de curso a Mercado Pago:', JSON.stringify(preference, null, 2));
 
@@ -130,6 +163,12 @@ export const crearPreferenciaPago = async (cuota, usuario) => {
 
     // Siempre habilitar auto_return para redirigir al usuario después del pago
     preference.auto_return = 'approved';
+
+    // Agregar webhook si está disponible (BACKEND_DOMAIN configurado en Railway)
+    if (WEBHOOK_URL) {
+      preference.notification_url = WEBHOOK_URL;
+      console.log('✅ Webhook configurado:', WEBHOOK_URL);
+    }
 
     console.log('📤 Enviando preferencia a Mercado Pago:', JSON.stringify(preference, null, 2));
 
