@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Home, BookOpen, Upload, Users, Trophy, DollarSign, FileText } from 'lucide-react';
+import { Home, BookOpen, Upload, Users, Trophy, DollarSign, FileText, BookMarked } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const BottomNav = ({ activeTab, setActiveTab }) => {
@@ -35,7 +35,12 @@ const BottomNav = ({ activeTab, setActiveTab }) => {
     ? [{ id: 'gestion', label: 'Usuarios', icon: Users }]
     : [];
 
-  const menuItems = [...baseMenuItems, ...excelItem, ...documentosItem, ...cuotasItem, ...gestionPlantelesItem, ...gestionUsuariosItem];
+  // Gestión Detalles Cursos solo para admins
+  const gestionDetallesItem = usuario?.tipo_perfil === 'admin'
+    ? [{ id: 'gestiondetalles', label: 'Cursos', icon: BookMarked }]
+    : [];
+
+  const menuItems = [...baseMenuItems, ...excelItem, ...documentosItem, ...cuotasItem, ...gestionPlantelesItem, ...gestionUsuariosItem, ...gestionDetallesItem];
 
   return (
     <motion.nav

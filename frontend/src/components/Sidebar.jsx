@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LogOut, ChevronsLeft, Home, BookOpen, User, Upload, Settings, Moon, Sun, Users, Trophy, DollarSign, FileText } from 'lucide-react';
+import { LogOut, ChevronsLeft, Home, BookOpen, User, Upload, Settings, Moon, Sun, Users, Trophy, DollarSign, FileText, BookMarked } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen, activeTab, setActiveTab, handleLogout }) => {
@@ -35,7 +35,12 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeTab, setActiveTab, handleL
     ? [{ id: 'gestion', label: 'Gestión Usuarios', icon: Users }]
     : [];
 
-  const menuItems = [...baseMenuItems, ...excelItem, ...documentosItem, ...cuotasItem, ...gestionPlantelesItem, ...gestionUsuariosItem];
+  // Gestión Detalles Cursos solo para admins
+  const gestionDetallesItem = usuario?.tipo_perfil === 'admin'
+    ? [{ id: 'gestiondetalles', label: 'Gestión Cursos', icon: BookMarked }]
+    : [];
+
+  const menuItems = [...baseMenuItems, ...excelItem, ...documentosItem, ...cuotasItem, ...gestionPlantelesItem, ...gestionUsuariosItem, ...gestionDetallesItem];
 
   return (
     <motion.aside
