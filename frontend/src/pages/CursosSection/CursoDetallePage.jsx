@@ -27,7 +27,7 @@ const CursoDetallePage = ({ curso: cursoProp, onBack, containerVariants }) => {
       cargarDatosCurso();
       verificarPagoExitoso();
     }
-  }, [cursoProp?.id_curso]);
+  }, [cursoProp?.id_curso, token]);
 
   const cargarDatosCurso = async () => {
     try {

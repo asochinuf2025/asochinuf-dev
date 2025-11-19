@@ -5,13 +5,11 @@ import {
   Clock,
   Calendar,
   Users,
-  DollarSign,
   Monitor,
   MapPin,
   Globe,
   CheckCircle,
   Loader,
-  Trash2,
   AlertCircle
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -41,22 +39,6 @@ const MisCursosSection = ({ containerVariants, onVerDetalleCurso }) => {
       setError('Error al cargar tus cursos inscritos');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleCancelarInscripcion = async (cursoId, nombreCurso) => {
-    if (!window.confirm(`¿Estás seguro de que deseas cancelar tu inscripción en "${nombreCurso}"?`)) {
-      return;
-    }
-
-    try {
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.delete(API_ENDPOINTS.INSCRIPCIONES.CANCELAR(cursoId), config);
-      toast.success('Inscripción cancelada exitosamente');
-      cargarMisCursos();
-    } catch (err) {
-      console.error('Error al cancelar inscripción:', err);
-      toast.error(err.response?.data?.error || 'Error al cancelar la inscripción');
     }
   };
 
@@ -326,36 +308,23 @@ const MisCursosSection = ({ containerVariants, onVerDetalleCurso }) => {
                     </div>
                   </div>
 
-                  {/* Footer: Botones */}
-                  <div className="flex gap-2 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  {/* Footer: Botón Realizar Curso */}
+                  <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
                     {onVerDetalleCurso && (
                       <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => onVerDetalleCurso(curso)}
-                        className={`flex-1 px-4 py-2 rounded-lg font-semibold transition-colors ${
+                        className={`w-full px-4 py-3 rounded-lg font-semibold transition-colors ${
                           isDarkMode
                             ? 'bg-[#8c5cff] text-white hover:bg-[#7a4de6]'
                             : 'bg-purple-600 text-white hover:bg-purple-700'
                         }`}
                       >
                         <BookOpen size={16} className="inline mr-1" />
-                        Ver Detalles
+                        Realizar Curso
                       </motion.button>
                     )}
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => handleCancelarInscripcion(curso.id_curso, curso.nombre)}
-                      className={`flex-1 px-4 py-2 rounded-lg font-semibold transition-colors ${
-                        isDarkMode
-                          ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
-                          : 'bg-red-50 text-red-600 hover:bg-red-100'
-                      }`}
-                    >
-                      <Trash2 size={16} className="inline mr-1" />
-                      Cancelar
-                    </motion.button>
                   </div>
                 </div>
               </motion.div>
