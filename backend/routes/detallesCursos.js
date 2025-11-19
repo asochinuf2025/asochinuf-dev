@@ -17,10 +17,10 @@ const router = express.Router();
 // ==================== OBTENER DETALLES (público/privado) ====================
 
 /**
- * GET /api/detalles-cursos/:idCurso
- * Obtener todos los detalles de un curso
+ * GET /api/detalles-cursos/mis-cursos
+ * Obtener todos los cursos a los que el usuario tiene acceso
  */
-router.get('/:idCurso', obtenerDetallesCurso);
+router.get('/mis-cursos', verificarToken, obtenerCursosAccesibles);
 
 /**
  * GET /api/detalles-cursos/:idCurso/seccion/:numeroSeccion
@@ -35,12 +35,26 @@ router.get('/:idCurso/seccion/:numeroSeccion', obtenerSeccion);
 router.get('/:idCurso/acceso', verificarToken, verificarAccesoCurso);
 
 /**
- * GET /api/detalles-cursos/mis-cursos
- * Obtener todos los cursos a los que el usuario tiene acceso
+ * GET /api/detalles-cursos/:idCurso
+ * Obtener todos los detalles de un curso
  */
-router.get('/mis-cursos', verificarToken, obtenerCursosAccesibles);
+router.get('/:idCurso', obtenerDetallesCurso);
+
+// ==================== ACCESO A CURSOS ====================
+
+/**
+ * POST /api/detalles-cursos/acceso/otorgar
+ * Otorgar acceso al curso (después del pago)
+ */
+router.post('/acceso/otorgar', verificarToken, otorgarAccesoCurso);
 
 // ==================== CREAR/ACTUALIZAR DETALLES (ADMIN) ====================
+
+/**
+ * POST /api/detalles-cursos/:idCurso/pago
+ * Iniciar pago para compra de curso (Mercado Pago)
+ */
+router.post('/:idCurso/pago', verificarToken, iniciarPagoCurso);
 
 /**
  * POST /api/detalles-cursos/:idCurso
@@ -59,19 +73,5 @@ router.put('/:idCurso/:detalleId', verificarToken, verificarAdmin, actualizarDet
  * Eliminar detalle de curso
  */
 router.delete('/:idCurso/:detalleId', verificarToken, verificarAdmin, eliminarDetalleCurso);
-
-// ==================== ACCESO A CURSOS ====================
-
-/**
- * POST /api/detalles-cursos/acceso/otorgar
- * Otorgar acceso al curso (después del pago)
- */
-router.post('/acceso/otorgar', verificarToken, otorgarAccesoCurso);
-
-/**
- * POST /api/detalles-cursos/:idCurso/pago
- * Iniciar pago para compra de curso (Mercado Pago)
- */
-router.post('/:idCurso/pago', verificarToken, iniciarPagoCurso);
 
 export default router;

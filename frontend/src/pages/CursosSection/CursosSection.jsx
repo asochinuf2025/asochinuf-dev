@@ -93,6 +93,16 @@ const CursosSection = ({ containerVariants }) => {
     }
   };
 
+  const handlePaymentSuccess = (cursoId) => {
+    // Actualizar inscripciones para reflejar el nuevo acceso
+    setInscripciones(prev => ({
+      ...prev,
+      [cursoId]: true
+    }));
+
+    toast.success('¡Compra completada! El curso ahora aparece en "Mis Cursos"');
+  };
+
   const handleInscribirse = async (cursoId, nombreCurso) => {
     if (!token) {
       toast.error('Debes iniciar sesión para inscribirte');
@@ -485,21 +495,14 @@ const CursosSection = ({ containerVariants }) => {
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        className="flex items-center gap-2 px-4 py-2 bg-[#8c5cff] text-white rounded-lg hover:bg-[#7a4de6] transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                        onClick={() => handleInscribirse(curso.id_curso, curso.nombre)}
-                        disabled={inscribiendo[curso.id_curso]}
+                        className="flex items-center gap-2 px-4 py-2 bg-[#8c5cff] text-white rounded-lg hover:bg-[#7a4de6] transition-colors text-sm font-medium"
+                        onClick={() => {
+                          setSelectedCurso(curso);
+                          setIsDetailModalOpen(true);
+                        }}
                       >
-                        {inscribiendo[curso.id_curso] ? (
-                          <>
-                            <Loader size={16} className="animate-spin" />
-                            Inscribiendo...
-                          </>
-                        ) : (
-                          <>
-                            <UserPlus size={16} />
-                            Inscribirse
-                          </>
-                        )}
+                        <BookOpen size={16} />
+                        Ver detalles
                       </motion.button>
                     )}
                   </div>
@@ -516,6 +519,7 @@ const CursosSection = ({ containerVariants }) => {
         isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
         isDarkMode={isDarkMode}
+        onPaymentSuccess={handlePaymentSuccess}
       />
     </motion.div>
   );

@@ -349,6 +349,12 @@ export const verificarAccesoCurso = async (req, res) => {
 export const otorgarAccesoCurso = async (req, res) => {
   try {
     const { usuarioId, idCurso, tipoAcceso, precioPagado, referenciaPago } = req.body;
+    const usuarioAutenticadoId = req.usuario?.id;
+
+    // Verificar que el usuario autenticado es el mismo que solicita acceso
+    if (!usuarioAutenticadoId || usuarioAutenticadoId !== usuarioId) {
+      return res.status(403).json({ error: 'No tienes permiso para otorgar acceso a ese usuario' });
+    }
 
     // Verificar que el usuario existe
     const usuarioResult = await pool.query(
@@ -371,7 +377,7 @@ export const otorgarAccesoCurso = async (req, res) => {
     }
 
     // Crear acceso (o actualizar si existe)
-    const result = await pool.query(
+    const accesoResult = await pool.query(
       `INSERT INTO t_acceso_cursos (
         usuario_id, id_curso, tipo_acceso, precio_pagado, referencia_pago
       ) VALUES ($1, $2, $3, $4, $5)
@@ -386,9 +392,23 @@ export const otorgarAccesoCurso = async (req, res) => {
       [usuarioId, idCurso, tipoAcceso, precioPagado, referenciaPago]
     );
 
+    // También crear inscripción en t_inscripciones para mantener compatibilidad
+    try {
+      await pool.query(
+        `INSERT INTO t_inscripciones (usuario_id, id_curso, estado)
+         VALUES ($1, $2, 'activa')
+         ON CONFLICT (usuario_id, id_curso)
+         DO NOTHING`,
+        [usuarioId, idCurso]
+      );
+    } catch (error) {
+      // Si falla la inscripción, no es crítico
+      console.log('Inscripción ya existe o no es necesaria:', error.message);
+    }
+
     res.status(201).json({
       mensaje: 'Acceso al curso otorgado exitosamente',
-      acceso: result.rows[0]
+      acceso: accesoResult.rows[0]
     });
   } catch (error) {
     console.error('Error al otorgar acceso:', error);

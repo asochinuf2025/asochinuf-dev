@@ -9,7 +9,7 @@ import { useAuth } from '../../context/AuthContext';
 import { API_ENDPOINTS, BASE as API_URL } from '../../config/apiConfig';
 import { toast } from 'sonner';
 
-const CursoDetalleModal = ({ curso, isOpen, onClose, isDarkMode }) => {
+const CursoDetalleModal = ({ curso, isOpen, onClose, isDarkMode, onPaymentSuccess }) => {
   const { token, usuario } = useAuth();
   const [detalles, setDetalles] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -17,12 +17,82 @@ const CursoDetalleModal = ({ curso, isOpen, onClose, isDarkMode }) => {
   const [expandedSecciones, setExpandedSecciones] = useState({});
   const [activeTab, setActiveTab] = useState('contenido');
   const [buyingState, setBuyingState] = useState(false);
+  const [processingPayment, setProcessingPayment] = useState(false);
 
   useEffect(() => {
     if (isOpen && curso) {
       cargarDetallesCurso();
+      // Verificar si volvemos de un pago exitoso
+      verificarPagoExitoso();
     }
   }, [isOpen, curso?.id_curso]);
+
+  const verificarPagoExitoso = async () => {
+    try {
+      // Obtener parámetros de la URL
+      const params = new URLSearchParams(window.location.search);
+      const pagoStatus = params.get('pago');
+      const cursoIdParam = params.get('curso');
+
+      // Solo procesar si hay un estado de pago y coincide el curso
+      if (pagoStatus && cursoIdParam && parseInt(cursoIdParam) === curso?.id_curso) {
+        setProcessingPayment(true);
+
+        // Mostrar estado del pago
+        if (pagoStatus === 'success') {
+          // Otorgar acceso al curso
+          await otorgarAcceso();
+
+          // Notificar al padre que el pago fue exitoso
+          if (onPaymentSuccess) {
+            onPaymentSuccess(curso.id_curso);
+          }
+        } else if (pagoStatus === 'pending') {
+          toast.info('Tu pago está siendo procesado. Por favor, intenta acceder más tarde.');
+        } else if (pagoStatus === 'failure') {
+          toast.error('El pago no fue completado. Por favor, intenta de nuevo.');
+        }
+
+        // Limpiar parámetros de URL
+        const newUrl = window.location.pathname + window.location.hash;
+        window.history.replaceState({}, document.title, newUrl);
+      }
+    } catch (error) {
+      console.error('Error verificando pago exitoso:', error);
+    } finally {
+      setProcessingPayment(false);
+    }
+  };
+
+  const otorgarAcceso = async () => {
+    try {
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+
+      const response = await axios.post(
+        `${API_URL}/api/detalles-cursos/acceso/otorgar`,
+        {
+          usuarioId: usuario.id,
+          idCurso: curso.id_curso,
+          tipoAcceso: 'pago',
+          precioPagado: curso.precio,
+          referenciaPago: 'mercado_pago'
+        },
+        config
+      );
+
+      // Recargar detalles para actualizar tieneAcceso
+      await cargarDetallesCurso();
+      toast.success('¡Acceso al curso otorgado exitosamente!');
+    } catch (error) {
+      console.error('Error al otorgar acceso:', error);
+      if (error.response?.status === 400) {
+        // Posiblemente ya tiene acceso
+        await cargarDetallesCurso();
+      } else {
+        toast.error('Error al procesar el acceso al curso');
+      }
+    }
+  };
 
   const cargarDetallesCurso = async () => {
     try {
@@ -138,12 +208,13 @@ const CursoDetalleModal = ({ curso, isOpen, onClose, isDarkMode }) => {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-sm" onClick={onClose}>
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="min-h-screen py-8 px-4"
+            onClick={(e) => e.stopPropagation()}
           >
             {/* Contenido Modal */}
             <motion.div
