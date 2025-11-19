@@ -86,13 +86,16 @@ const CursoDetallePage = ({ curso: cursoProp, onBack, containerVariants }) => {
     try {
       const config = { headers: { Authorization: `Bearer ${token}` } };
 
+      // Calcular precio final con descuento si aplica
+      const precioFinal = curso?.precio_final || curso?.precio;
+
       await axios.post(
         `${API_URL}/api/detalles-cursos/acceso/otorgar`,
         {
           usuarioId: usuario.id,
           idCurso: cursoProp.id_curso,
           tipoAcceso: 'pago',
-          precioPagado: cursoProp?.precio,
+          precioPagado: precioFinal,
           referenciaPago: 'mercado_pago'
         },
         config
@@ -125,9 +128,17 @@ const CursoDetallePage = ({ curso: cursoProp, onBack, containerVariants }) => {
     try {
       const config = { headers: { Authorization: `Bearer ${token}` } };
 
+      // Calcular precio final con descuento si aplica
+      const precioFinal = curso.precio_final || curso.precio;
+
       const response = await axios.post(
         `${API_URL}/api/detalles-cursos/${cursoProp.id_curso}/pago`,
-        {},
+        {
+          monto: precioFinal,
+          moneda: curso.moneda || 'CLP',
+          tipoAcceso: 'pago',
+          precioPagado: precioFinal
+        },
         config
       );
 
@@ -135,10 +146,12 @@ const CursoDetallePage = ({ curso: cursoProp, onBack, containerVariants }) => {
         const isProduction = process.env.NODE_ENV === 'production';
         const checkoutUrl = isProduction
           ? response.data.data.init_point
-          : response.data.data.sandbox_init_point;
+          : (response.data.data.sandbox_init_point || response.data.data.init_point);
 
         if (checkoutUrl) {
           window.location.href = checkoutUrl;
+        } else {
+          toast.error('No se pudo obtener la URL de pago');
         }
       }
     } catch (error) {
