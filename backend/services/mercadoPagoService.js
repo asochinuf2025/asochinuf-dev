@@ -4,19 +4,22 @@ import axios from 'axios';
 const MP_ACCESS_TOKEN = process.env.MERCADO_PAGO_ACCESS_TOKEN;
 const MP_API_URL = 'https://api.mercadopago.com';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:5001';
 
-// Construir la URL del webhook basándose en FRONTEND_URL
+// Construir la URL del webhook basándose en BACKEND_URL
 const getWebhookUrl = () => {
-  if (FRONTEND_URL.includes('localhost') || FRONTEND_URL.includes('127.0.0.1')) {
+  if (BACKEND_URL.includes('localhost') || BACKEND_URL.includes('127.0.0.1')) {
     // Desarrollo: usar localhost:5001
     return 'http://localhost:5001/api/payments/webhook';
   }
-  // Producción: usar el mismo dominio que FRONTEND_URL
-  return `${FRONTEND_URL}/api/payments/webhook`;
+  // Producción: usar el dominio del backend
+  return `${BACKEND_URL}/api/payments/webhook`;
 };
 
 const WEBHOOK_URL = getWebhookUrl();
 console.log('🔔 WEBHOOK_URL configurada como:', WEBHOOK_URL);
+console.log('📱 FRONTEND_URL:', FRONTEND_URL);
+console.log('🖥️ BACKEND_URL:', BACKEND_URL);
 
 const mpClient = axios.create({
   baseURL: MP_API_URL,
