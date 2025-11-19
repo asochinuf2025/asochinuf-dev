@@ -37,8 +37,17 @@ router.get('/:idCurso/acceso', verificarToken, verificarAccesoCurso);
 /**
  * GET /api/detalles-cursos/:idCurso
  * Obtener todos los detalles de un curso
+ * Nota: verificarToken es opcional - si hay token, se verifica acceso; si no, muestra contenido bloqueado
  */
-router.get('/:idCurso', obtenerDetallesCurso);
+router.get('/:idCurso', (req, res, next) => {
+  // Middleware flexible: intenta verificar token si existe, pero continúa si no
+  const token = req.headers.authorization?.split(' ')[1];
+  if (token) {
+    verificarToken(req, res, next);
+  } else {
+    next();
+  }
+}, obtenerDetallesCurso);
 
 // ==================== ACCESO A CURSOS ====================
 
