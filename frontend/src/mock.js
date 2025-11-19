@@ -336,10 +336,10 @@ export const mockData = {
   footer: {
     navigation: [
       { name: "Inicio", href: "#hero" },
-      { name: "Cursos", href: "#cursos" },
       { name: "Misión y Visión", href: "#mision-vision" },
-      { name: "Eventos", href: "#eventos" },
+      { name: "Cursos", href: "#cursos" },
       { name: "Profesionales", href: "#profesionales" },
+      { name: "Eventos", href: "#eventos" },
       { name: "Organigrama", href: "#organigrama" }
     ],
     social: [

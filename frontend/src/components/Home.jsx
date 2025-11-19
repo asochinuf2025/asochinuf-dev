@@ -124,10 +124,10 @@ const Home = () => {
           {/* Desktop Navigation - Enhanced typography */}
           <nav className="hidden md:flex items-center space-x-2">
             {[
-              { name: 'cursos' },
               { name: 'mision-vision' },
-              { name: 'eventos' },
+              { name: 'cursos' },
               { name: 'profesionales' },
+              { name: 'eventos' },
               { name: 'organigrama' }
             ].map(({ name }) => (
               <button
@@ -173,10 +173,10 @@ const Home = () => {
               {/* Contenido */}
               <nav className="relative flex flex-col space-y-2 p-6 pt-8 pb-8 z-10">
                 {[
-                  { name: 'Cursos', icon: GraduationCap },
                   { name: 'Misión y Visión', icon: Compass, id: 'mision-vision' },
-                  { name: 'Eventos', icon: Sparkles },
+                  { name: 'Cursos', icon: GraduationCap },
                   { name: 'Profesionales', icon: Award },
+                  { name: 'Eventos', icon: Sparkles },
                   { name: 'Organigrama', icon: Users }
                 ].map(({ name, icon: Icon, id }, index) => (
                   <motion.button
