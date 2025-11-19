@@ -36,6 +36,7 @@ const GestionDetallesCursosSection = ({ containerVariants }) => {
   const [selectedSeccionForLeccion, setSelectedSeccionForLeccion] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [deleteModal, setDeleteModal] = useState({ show: false, seccion: null });
+  const [deleteLeccionModal, setDeleteLeccionModal] = useState({ show: false, leccion: null, seccion: null });
 
   const [seccionForm, setSeccionForm] = useState({
     titulo: '',
@@ -281,28 +282,44 @@ const GestionDetallesCursosSection = ({ containerVariants }) => {
   };
 
   // Eliminar lección
-  const handleEliminarLeccion = async (leccion) => {
-    if (!window.confirm('¿Estás seguro de eliminar esta lección?')) {
-      return;
-    }
+  const handleAbrirModalEliminarLeccion = (seccion, leccion) => {
+    setDeleteLeccionModal({ show: true, leccion, seccion });
+  };
 
+  const handleConfirmarEliminarLeccion = async () => {
     try {
+      setSubmitting(true);
       const config = { headers: { Authorization: `Bearer ${token}` } };
       await axios.delete(
-        `${API_URL}/api/detalles-cursos/${selectedCurso.id_curso}/${leccion.id}`,
+        `${API_URL}/api/detalles-cursos/${selectedCurso.id_curso}/${deleteLeccionModal.leccion.id}`,
         config
       );
+
+      // Actualizar estado local - eliminar la lección de la sección
+      setSecciones(prev => prev.map(sec => {
+        if (sec.numero === deleteLeccionModal.seccion.numero) {
+          return {
+            ...sec,
+            lecciones: sec.lecciones.filter(l => l.id !== deleteLeccionModal.leccion.id)
+          };
+        }
+        return sec;
+      }));
+
       toast.success('Lección eliminada');
-      cargarSecciones(selectedCurso.id_curso);
+      setDeleteLeccionModal({ show: false, leccion: null, seccion: null });
     } catch (error) {
       console.error('Error al eliminar lección:', error);
       toast.error('Error al eliminar la lección');
+    } finally {
+      setSubmitting(false);
     }
   };
 
   // Eliminar sección (con cascada)
   const handleEliminarSeccion = async () => {
     try {
+      setSubmitting(true);
       const config = { headers: { Authorization: `Bearer ${token}` } };
 
       // Eliminar todas las lecciones de la sección
@@ -313,13 +330,17 @@ const GestionDetallesCursosSection = ({ containerVariants }) => {
         );
       }
 
+      // Actualizar estado local - eliminar la sección
+      setSecciones(prev => prev.filter(s => s.numero !== deleteModal.seccion.numero));
+
       toast.success('Sección y sus lecciones eliminadas');
       setDeleteModal({ show: false, seccion: null });
-      cargarSecciones(selectedCurso.id_curso);
     } catch (error) {
       console.error('Error al eliminar sección:', error);
       toast.error('Error al eliminar la sección');
       setDeleteModal({ show: false, seccion: null });
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -611,7 +632,7 @@ const GestionDetallesCursosSection = ({ containerVariants }) => {
                                     <Edit size={16} />
                                   </button>
                                   <button
-                                    onClick={() => handleEliminarLeccion(leccion)}
+                                    onClick={() => handleAbrirModalEliminarLeccion(seccion, leccion)}
                                     className={`p-2 rounded-lg transition ${
                                       isDarkMode
                                         ? 'hover:bg-red-500/20 text-red-500'
@@ -967,10 +988,84 @@ const GestionDetallesCursosSection = ({ containerVariants }) => {
                 </button>
                 <button
                   onClick={handleEliminarSeccion}
-                  className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition flex items-center justify-center gap-2"
+                  disabled={submitting}
+                  className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Trash2 size={16} />
-                  Eliminar
+                  {submitting ? (
+                    <>
+                      <Loader size={16} className="animate-spin" />
+                      Eliminando...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 size={16} />
+                      Eliminar
+                    </>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Modal Eliminar Lección */}
+      <AnimatePresence>
+        {deleteLeccionModal.show && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className={`rounded-2xl overflow-hidden max-w-md w-full mx-4 ${
+                isDarkMode ? 'bg-[#1a1c22]' : 'bg-white'
+              }`}
+            >
+              <div className={`px-6 py-4 border-b border-red-500/20 flex items-start gap-3`}>
+                <AlertCircle className="text-red-500 flex-shrink-0 mt-0.5" size={20} />
+                <div>
+                  <h3 className={`font-bold text-lg ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                    Eliminar Lección
+                  </h3>
+                  <p className={`text-sm mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    Esta acción no se puede deshacer
+                  </p>
+                </div>
+              </div>
+
+              <div className={`px-6 py-4 ${isDarkMode ? 'bg-red-500/5' : 'bg-red-50'}`}>
+                <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  ¿Estás seguro de que deseas eliminar la lección <strong>"{deleteLeccionModal.leccion?.titulo}"</strong>?
+                </p>
+              </div>
+
+              <div className="px-6 py-4 flex gap-3 border-t border-[#8c5cff]/20">
+                <button
+                  onClick={() => setDeleteLeccionModal({ show: false, leccion: null, seccion: null })}
+                  className={`flex-1 px-4 py-2 rounded-lg font-medium transition ${
+                    isDarkMode
+                      ? 'bg-[#2a2c33] text-gray-300 hover:bg-[#1a1c22]'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleConfirmarEliminarLeccion}
+                  disabled={submitting}
+                  className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {submitting ? (
+                    <>
+                      <Loader size={16} className="animate-spin" />
+                      Eliminando...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 size={16} />
+                      Eliminar
+                    </>
+                  )}
                 </button>
               </div>
             </motion.div>
