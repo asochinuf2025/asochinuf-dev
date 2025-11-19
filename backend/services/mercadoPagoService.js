@@ -68,15 +68,19 @@ export const crearPreferenciaCurso = async (curso, usuario, montoFinal) => {
       statement_descriptor: 'ASOCHINUF'
     };
 
-    // Solo agregar auto_return y notification_url si NO estamos en localhost
+    // Solo agregar auto_return y notification_url si tenemos una URL de webhook válida en producción
     const isLocalhost = FRONTEND_URL.includes('localhost') || FRONTEND_URL.includes('127.0.0.1');
+    const hasValidBackendUrl = BACKEND_URL && !BACKEND_URL.includes('localhost') && !BACKEND_URL.includes('127.0.0.1');
 
-    if (!isLocalhost) {
+    if (!isLocalhost && hasValidBackendUrl) {
       preference.auto_return = 'approved';
       preference.notification_url = WEBHOOK_URL;
+      console.log('✅ Webhook configurado:', WEBHOOK_URL);
     } else {
-      console.warn('⚠️ Modo desarrollo (localhost): omitiendo auto_return y notification_url.');
-      console.warn('   → El usuario deberá hacer clic en "Volver al sitio" después del pago.');
+      preference.auto_return = 'approved'; // Permitir auto-retorno en todos los casos
+      console.warn('⚠️ Webhook deshabilitado (localhost o BACKEND_URL no configurado).');
+      console.warn('   → El usuario será redirigido automáticamente después del pago.');
+      console.warn('   → La inscripción se verifica cuando el usuario regresa al sitio.');
     }
 
     console.log('📤 Enviando preferencia de curso a Mercado Pago:', JSON.stringify(preference, null, 2));
@@ -149,16 +153,18 @@ export const crearPreferenciaPago = async (cuota, usuario) => {
       statement_descriptor: 'ASOCHINUF'
     };
 
-    // Solo agregar auto_return y notification_url si NO estamos en localhost
-    // Mercado Pago rechaza localhost URLs con auto_return
+    // Solo agregar notification_url si tenemos una URL de webhook válida en producción
     const isLocalhost = FRONTEND_URL.includes('localhost') || FRONTEND_URL.includes('127.0.0.1');
+    const hasValidBackendUrl = BACKEND_URL && !BACKEND_URL.includes('localhost') && !BACKEND_URL.includes('127.0.0.1');
 
-    if (!isLocalhost) {
-      preference.auto_return = 'approved';
+    preference.auto_return = 'approved'; // Siempre permitir auto-retorno
+
+    if (!isLocalhost && hasValidBackendUrl) {
       preference.notification_url = WEBHOOK_URL;
+      console.log('✅ Webhook configurado para cuota:', WEBHOOK_URL);
     } else {
-      console.warn('⚠️ Modo desarrollo (localhost): omitiendo auto_return y notification_url.');
-      console.warn('   → El usuario deberá hacer clic en "Volver al sitio" después del pago.');
+      console.warn('⚠️ Webhook deshabilitado para cuota (localhost o BACKEND_URL no configurado).');
+      console.warn('   → El usuario será redirigido automáticamente después del pago.');
     }
 
     console.log('📤 Enviando preferencia a Mercado Pago:', JSON.stringify(preference, null, 2));
