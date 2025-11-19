@@ -67,7 +67,7 @@ export const iniciarPagoCuota = async (req, res) => {
 };
 
 /**
- * Webhook para notificaciones de Mercado Pago
+ * Webhook para notificaciones de Mercado Pago (maneja cuotas y cursos)
  */
 export const webhookMercadoPago = async (req, res) => {
   try {
@@ -94,56 +94,135 @@ export const webhookMercadoPago = async (req, res) => {
       return res.status(200).json({ message: 'Pago no aprobado' });
     }
 
-    // Extraer ID de cuota_usuario del external_reference
     const externalRef = paymentStatus.external_reference;
-    const cuotaUsuarioIdMatch = externalRef?.match(/cuota-(\d+)/);
+    console.log(`🔔 Webhook recibido - ExternalRef: ${externalRef}, PaymentId: ${paymentId}`);
 
-    if (!cuotaUsuarioIdMatch || !cuotaUsuarioIdMatch[1]) {
-      return res.status(400).json({ error: 'No se pudo extraer ID de cuota' });
-    }
+    // ===================== PAGO DE CUOTAS =====================
+    const cuotaMatch = externalRef?.match(/cuota-(\d+)/);
+    if (cuotaMatch && cuotaMatch[1]) {
+      const cuotaUsuarioId = parseInt(cuotaMatch[1]);
 
-    const cuotaUsuarioId = parseInt(cuotaUsuarioIdMatch[1]);
-
-    // Obtener cuota_usuario y datos relacionados
-    const cuotaResult = await pool.query(
-      `SELECT cu.*, cm.monto
-       FROM t_cuotas_usuario cu
-       JOIN t_cuotas_mensuales cm ON cu.cuota_id = cm.id
-       WHERE cu.id = $1`,
-      [cuotaUsuarioId]
-    );
-
-    if (cuotaResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Cuota no encontrada' });
-    }
-
-    const cuota = cuotaResult.rows[0];
-
-    // Verificar si ya existe un pago con este ID de Mercado Pago
-    const existingPaymentResult = await pool.query(
-      `SELECT id FROM t_pagos_cuotas WHERE id_mercado_pago = $1`,
-      [paymentId]
-    );
-
-    // Si ya existe, no duplicar el registro
-    if (existingPaymentResult.rows.length === 0) {
-      // Registrar el pago solo si no existe
-      await pool.query(
-        `INSERT INTO t_pagos_cuotas
-         (cuota_usuario_id, monto_pagado, metodo_pago, id_mercado_pago,
-          estado_pago, fecha_pago)
-         VALUES ($1, $2, 'mercado_pago', $3, 'completado', NOW())`,
-        [cuotaUsuarioId, cuota.monto, paymentId]
+      // Obtener cuota_usuario y datos relacionados
+      const cuotaResult = await pool.query(
+        `SELECT cu.*, cm.monto
+         FROM t_cuotas_usuario cu
+         JOIN t_cuotas_mensuales cm ON cu.cuota_id = cm.id
+         WHERE cu.id = $1`,
+        [cuotaUsuarioId]
       );
+
+      if (cuotaResult.rows.length === 0) {
+        console.log(`⚠️  Cuota ${cuotaUsuarioId} no encontrada`);
+        return res.status(404).json({ error: 'Cuota no encontrada' });
+      }
+
+      const cuota = cuotaResult.rows[0];
+
+      // Verificar si ya existe un pago con este ID de Mercado Pago
+      const existingPaymentResult = await pool.query(
+        `SELECT id FROM t_pagos_cuotas WHERE id_mercado_pago = $1`,
+        [paymentId]
+      );
+
+      // Si ya existe, no duplicar el registro
+      if (existingPaymentResult.rows.length === 0) {
+        // Registrar el pago solo si no existe
+        await pool.query(
+          `INSERT INTO t_pagos_cuotas
+           (cuota_usuario_id, monto_pagado, metodo_pago, id_mercado_pago,
+            estado_pago, fecha_pago)
+           VALUES ($1, $2, 'mercado_pago', $3, 'completado', NOW())`,
+          [cuotaUsuarioId, cuota.monto, paymentId]
+        );
+        console.log(`✅ Pago de cuota ${cuotaUsuarioId} registrado`);
+      }
+
+      // Actualizar estado de cuota_usuario a pagada
+      await pool.query(
+        `UPDATE t_cuotas_usuario SET estado = 'pagado' WHERE id = $1`,
+        [cuotaUsuarioId]
+      );
+
+      return res.json({ message: 'Pago de cuota procesado exitosamente' });
     }
 
-    // Actualizar estado de cuota_usuario a pagada
-    await pool.query(
-      `UPDATE t_cuotas_usuario SET estado = 'pagado' WHERE id = $1`,
-      [cuotaUsuarioId]
-    );
+    // ===================== PAGO DE CURSOS =====================
+    const cursoMatch = externalRef?.match(/curso-(\d+)/);
+    if (cursoMatch && cursoMatch[1]) {
+      const idCurso = parseInt(cursoMatch[1]);
+      const usuarioEmail = paymentStatus.payer_email;
 
-    res.json({ message: 'Pago procesado exitosamente' });
+      console.log(`💰 Pago de curso detectado - Curso: ${idCurso}, Email: ${usuarioEmail}`);
+
+      // Obtener el usuario por email
+      const usuarioResult = await pool.query(
+        `SELECT id FROM t_usuarios WHERE email = $1`,
+        [usuarioEmail]
+      );
+
+      if (usuarioResult.rows.length === 0) {
+        console.log(`⚠️  Usuario con email ${usuarioEmail} no encontrado`);
+        return res.status(404).json({ error: 'Usuario no encontrado' });
+      }
+
+      const usuarioId = usuarioResult.rows[0].id;
+
+      // Obtener datos del curso
+      const cursoResult = await pool.query(
+        `SELECT precio FROM t_cursos WHERE id_curso = $1`,
+        [idCurso]
+      );
+
+      if (cursoResult.rows.length === 0) {
+        console.log(`⚠️  Curso ${idCurso} no encontrado`);
+        return res.status(404).json({ error: 'Curso no encontrado' });
+      }
+
+      const curso = cursoResult.rows[0];
+
+      // Verificar si el usuario ya tiene acceso
+      const accesoExistenteResult = await pool.query(
+        `SELECT id FROM t_acceso_cursos WHERE usuario_id = $1 AND id_curso = $2`,
+        [usuarioId, idCurso]
+      );
+
+      // Crear o actualizar acceso al curso
+      if (accesoExistenteResult.rows.length === 0) {
+        // Crear nuevo acceso
+        await pool.query(
+          `INSERT INTO t_acceso_cursos (usuario_id, id_curso, tipo_acceso, precio_pagado, referencia_pago, estado)
+           VALUES ($1, $2, 'pago', $3, $4, 'activo')`,
+          [usuarioId, idCurso, paymentStatus.amount, paymentId]
+        );
+        console.log(`✅ Acceso al curso ${idCurso} otorgado a usuario ${usuarioId}`);
+      } else {
+        // Actualizar acceso existente
+        await pool.query(
+          `UPDATE t_acceso_cursos
+           SET tipo_acceso = 'pago', precio_pagado = $1, referencia_pago = $2, estado = 'activo', fecha_acceso = NOW()
+           WHERE usuario_id = $3 AND id_curso = $4`,
+          [paymentStatus.amount, paymentId, usuarioId, idCurso]
+        );
+        console.log(`✅ Acceso al curso ${idCurso} actualizado para usuario ${usuarioId}`);
+      }
+
+      // También crear inscripción para compatibilidad
+      try {
+        await pool.query(
+          `INSERT INTO t_inscripciones (usuario_id, id_curso, estado)
+           VALUES ($1, $2, 'activa')
+           ON CONFLICT (usuario_id, id_curso) DO NOTHING`,
+          [usuarioId, idCurso]
+        );
+      } catch (error) {
+        console.log('Inscripción ya existe o no es necesaria:', error.message);
+      }
+
+      return res.json({ message: 'Pago de curso procesado exitosamente' });
+    }
+
+    console.log(`⚠️  No se pudo identificar tipo de pago (cuota o curso): ${externalRef}`);
+    return res.status(400).json({ error: 'Tipo de pago no identificado' });
   } catch (error) {
     console.error('Error en webhookMercadoPago:', error);
     res.status(500).json({ error: 'Error al procesar webhook' });
