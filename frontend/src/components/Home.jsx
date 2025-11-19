@@ -126,7 +126,7 @@ const Home = () => {
             {[
               { name: 'cursos' },
               { name: 'mision-vision' },
-              { name: 'capacitaciones' },
+              { name: 'eventos' },
               { name: 'profesionales' },
               { name: 'organigrama' }
             ].map(({ name }) => (
