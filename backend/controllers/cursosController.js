@@ -11,6 +11,8 @@ export const getAllCursos = async (req, res) => {
         codigo_curso,
         nombre,
         descripcion,
+        lo_que_aprenderas,
+        requisitos,
         categoria_id,
         nivel,
         duracion_horas,
