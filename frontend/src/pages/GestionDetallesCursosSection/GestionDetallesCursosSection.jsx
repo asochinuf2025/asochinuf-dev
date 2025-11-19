@@ -35,6 +35,7 @@ const GestionDetallesCursosSection = ({ containerVariants }) => {
   const [showLeccionForm, setShowLeccionForm] = useState(false);
   const [selectedSeccionForLeccion, setSelectedSeccionForLeccion] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [deleteModal, setDeleteModal] = useState({ show: false, seccion: null });
 
   const [seccionForm, setSeccionForm] = useState({
     titulo: '',
@@ -48,6 +49,9 @@ const GestionDetallesCursosSection = ({ containerVariants }) => {
     duracionMinutos: 0,
     url: ''
   });
+
+  const [editingSeccion, setEditingSeccion] = useState(null);
+  const [editingLeccion, setEditingLeccion] = useState(null);
 
   // Cargar cursos
   useEffect(() => {
@@ -95,9 +99,19 @@ const GestionDetallesCursosSection = ({ containerVariants }) => {
     }));
   };
 
-  // Agregar sección
+  // Agregar/Editar sección
   const handleAgregarSeccion = () => {
+    setEditingSeccion(null);
     setSeccionForm({ titulo: '', descripcion: '' });
+    setShowSeccionForm(true);
+  };
+
+  const handleEditarSeccion = (seccion) => {
+    setEditingSeccion(seccion);
+    setSeccionForm({
+      titulo: seccion.titulo,
+      descripcion: seccion.descripcion || ''
+    });
     setShowSeccionForm(true);
   };
 
@@ -113,51 +127,88 @@ const GestionDetallesCursosSection = ({ containerVariants }) => {
       setSubmitting(true);
       const config = { headers: { Authorization: `Bearer ${token}` } };
 
-      // Obtener el número de sección más alto
-      const maxSeccionNumero = secciones.length > 0
-        ? Math.max(...secciones.map(s => s.numero))
-        : 0;
+      if (editingSeccion) {
+        // Editar sección existente - actualizar cada lección de esa sección
+        for (const leccion of editingSeccion.lecciones) {
+          await axios.put(
+            `${API_URL}/api/detalles-cursos/${selectedCurso.id_curso}/${leccion.id}`,
+            {
+              seccionNumero: editingSeccion.numero,
+              seccionTitulo: seccionForm.titulo,
+              seccionDescripcion: seccionForm.descripcion || null,
+              ordenSeccion: editingSeccion.orden,
+              leccionNumero: leccion.numero,
+              leccionTitulo: leccion.titulo,
+              leccionDescripcion: leccion.descripcion || null,
+              tipoContenido: leccion.tipo,
+              urlContenido: leccion.url || null,
+              duracionMinutos: leccion.duracion
+            },
+            config
+          );
+        }
+        toast.success('Sección actualizada exitosamente');
+      } else {
+        // Crear nueva sección
+        const maxSeccionNumero = secciones.length > 0
+          ? Math.max(...secciones.map(s => s.numero))
+          : 0;
 
-      const leccionNumero = 1;
-      const leccionTitulo = `${seccionForm.titulo} - Introducción`;
+        const leccionNumero = 1;
+        const leccionTitulo = `${seccionForm.titulo} - Introducción`;
 
-      await axios.post(
-        `${API_URL}/api/detalles-cursos/${selectedCurso.id_curso}`,
-        {
-          seccionNumero: maxSeccionNumero + 1,
-          seccionTitulo: seccionForm.titulo,
-          seccionDescripcion: seccionForm.descripcion || null,
-          ordenSeccion: maxSeccionNumero + 1,
-          leccionNumero,
-          leccionTitulo,
-          leccionDescripcion: null,
-          tipoContenido: 'video',
-          urlContenido: null,
-          duracionMinutos: 0
-        },
-        config
-      );
+        await axios.post(
+          `${API_URL}/api/detalles-cursos/${selectedCurso.id_curso}`,
+          {
+            seccionNumero: maxSeccionNumero + 1,
+            seccionTitulo: seccionForm.titulo,
+            seccionDescripcion: seccionForm.descripcion || null,
+            ordenSeccion: maxSeccionNumero + 1,
+            leccionNumero,
+            leccionTitulo,
+            leccionDescripcion: null,
+            tipoContenido: 'video',
+            urlContenido: null,
+            duracionMinutos: 0
+          },
+          config
+        );
+        toast.success('Sección creada exitosamente');
+      }
 
-      toast.success('Sección creada exitosamente');
       setShowSeccionForm(false);
       cargarSecciones(selectedCurso.id_curso);
     } catch (error) {
-      console.error('Error al crear sección:', error);
-      toast.error(error.response?.data?.error || 'Error al crear la sección');
+      console.error('Error al guardar sección:', error);
+      toast.error(error.response?.data?.error || 'Error al guardar la sección');
     } finally {
       setSubmitting(false);
     }
   };
 
-  // Agregar lección
+  // Agregar/Editar lección
   const handleAgregarLeccion = (seccion) => {
     setSelectedSeccionForLeccion(seccion);
+    setEditingLeccion(null);
     setLeccionForm({
       titulo: '',
       descripcion: '',
       tipo: 'video',
       duracionMinutos: 0,
       url: ''
+    });
+    setShowLeccionForm(true);
+  };
+
+  const handleEditarLeccion = (seccion, leccion) => {
+    setSelectedSeccionForLeccion(seccion);
+    setEditingLeccion(leccion);
+    setLeccionForm({
+      titulo: leccion.titulo,
+      descripcion: leccion.descripcion || '',
+      tipo: leccion.tipo,
+      duracionMinutos: leccion.duracion || 0,
+      url: leccion.url || ''
     });
     setShowLeccionForm(true);
   };
@@ -174,35 +225,56 @@ const GestionDetallesCursosSection = ({ containerVariants }) => {
       setSubmitting(true);
       const config = { headers: { Authorization: `Bearer ${token}` } };
 
-      // Obtener el número de lección más alto en esta sección
-      const seccionLecciones = selectedSeccionForLeccion.lecciones || [];
-      const maxLeccionNumero = seccionLecciones.length > 0
-        ? Math.max(...seccionLecciones.map(l => l.numero))
-        : 0;
+      if (editingLeccion) {
+        // Editar lección existente
+        await axios.put(
+          `${API_URL}/api/detalles-cursos/${selectedCurso.id_curso}/${editingLeccion.id}`,
+          {
+            seccionNumero: selectedSeccionForLeccion.numero,
+            seccionTitulo: selectedSeccionForLeccion.titulo,
+            seccionDescripcion: selectedSeccionForLeccion.descripcion || null,
+            ordenSeccion: selectedSeccionForLeccion.orden,
+            leccionNumero: editingLeccion.numero,
+            leccionTitulo: leccionForm.titulo,
+            leccionDescripcion: leccionForm.descripcion || null,
+            tipoContenido: leccionForm.tipo,
+            urlContenido: leccionForm.url || null,
+            duracionMinutos: leccionForm.duracionMinutos
+          },
+          config
+        );
+        toast.success('Lección actualizada exitosamente');
+      } else {
+        // Crear nueva lección
+        const seccionLecciones = selectedSeccionForLeccion.lecciones || [];
+        const maxLeccionNumero = seccionLecciones.length > 0
+          ? Math.max(...seccionLecciones.map(l => l.numero))
+          : 0;
 
-      await axios.post(
-        `${API_URL}/api/detalles-cursos/${selectedCurso.id_curso}`,
-        {
-          seccionNumero: selectedSeccionForLeccion.numero,
-          seccionTitulo: selectedSeccionForLeccion.titulo,
-          seccionDescripcion: selectedSeccionForLeccion.descripcion || null,
-          ordenSeccion: selectedSeccionForLeccion.orden,
-          leccionNumero: maxLeccionNumero + 1,
-          leccionTitulo: leccionForm.titulo,
-          leccionDescripcion: leccionForm.descripcion || null,
-          tipoContenido: leccionForm.tipo,
-          urlContenido: leccionForm.url || null,
-          duracionMinutos: leccionForm.duracionMinutos
-        },
-        config
-      );
+        await axios.post(
+          `${API_URL}/api/detalles-cursos/${selectedCurso.id_curso}`,
+          {
+            seccionNumero: selectedSeccionForLeccion.numero,
+            seccionTitulo: selectedSeccionForLeccion.titulo,
+            seccionDescripcion: selectedSeccionForLeccion.descripcion || null,
+            ordenSeccion: selectedSeccionForLeccion.orden,
+            leccionNumero: maxLeccionNumero + 1,
+            leccionTitulo: leccionForm.titulo,
+            leccionDescripcion: leccionForm.descripcion || null,
+            tipoContenido: leccionForm.tipo,
+            urlContenido: leccionForm.url || null,
+            duracionMinutos: leccionForm.duracionMinutos
+          },
+          config
+        );
+        toast.success('Lección agregada exitosamente');
+      }
 
-      toast.success('Lección agregada exitosamente');
       setShowLeccionForm(false);
       cargarSecciones(selectedCurso.id_curso);
     } catch (error) {
-      console.error('Error al crear lección:', error);
-      toast.error(error.response?.data?.error || 'Error al crear la lección');
+      console.error('Error al guardar lección:', error);
+      toast.error(error.response?.data?.error || 'Error al guardar la lección');
     } finally {
       setSubmitting(false);
     }
@@ -225,6 +297,29 @@ const GestionDetallesCursosSection = ({ containerVariants }) => {
     } catch (error) {
       console.error('Error al eliminar lección:', error);
       toast.error('Error al eliminar la lección');
+    }
+  };
+
+  // Eliminar sección (con cascada)
+  const handleEliminarSeccion = async () => {
+    try {
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+
+      // Eliminar todas las lecciones de la sección
+      for (const leccion of deleteModal.seccion.lecciones) {
+        await axios.delete(
+          `${API_URL}/api/detalles-cursos/${selectedCurso.id_curso}/${leccion.id}`,
+          config
+        );
+      }
+
+      toast.success('Sección y sus lecciones eliminadas');
+      setDeleteModal({ show: false, seccion: null });
+      cargarSecciones(selectedCurso.id_curso);
+    } catch (error) {
+      console.error('Error al eliminar sección:', error);
+      toast.error('Error al eliminar la sección');
+      setDeleteModal({ show: false, seccion: null });
     }
   };
 
@@ -384,13 +479,15 @@ const GestionDetallesCursosSection = ({ containerVariants }) => {
                       }`}
                     >
                       {/* Sección Header */}
-                      <button
-                        onClick={() => toggleSeccion(seccion.numero)}
-                        className={`w-full px-6 py-4 flex items-center justify-between hover:opacity-80 transition ${
+                      <div
+                        className={`w-full px-6 py-4 flex items-center justify-between ${
                           isDarkMode ? 'hover:bg-[#1a1c22]' : 'hover:bg-gray-100'
-                        }`}
+                        } transition`}
                       >
-                        <div className="flex items-center gap-3 flex-1 text-left">
+                        <button
+                          onClick={() => toggleSeccion(seccion.numero)}
+                          className="flex items-center gap-3 flex-1 text-left"
+                        >
                           <ChevronDown
                             size={20}
                             className={`transition-transform ${
@@ -409,18 +506,42 @@ const GestionDetallesCursosSection = ({ containerVariants }) => {
                               {seccion.lecciones.length} {seccion.lecciones.length === 1 ? 'lección' : 'lecciones'}
                             </p>
                           </div>
-                        </div>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleAgregarLeccion(seccion);
-                          }}
-                          className="px-3 py-1 bg-[#8c5cff] text-white rounded hover:bg-[#7a4de6] transition text-sm font-medium flex items-center gap-1"
-                        >
-                          <Plus size={16} />
-                          Lección
                         </button>
-                      </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAgregarLeccion(seccion);
+                            }}
+                            className="px-3 py-1 bg-[#8c5cff] text-white rounded hover:bg-[#7a4de6] transition text-sm font-medium flex items-center gap-1"
+                          >
+                            <Plus size={16} />
+                            Lección
+                          </button>
+                          <button
+                            onClick={() => handleEditarSeccion(seccion)}
+                            className={`p-2 rounded-lg transition ${
+                              isDarkMode
+                                ? 'hover:bg-blue-500/20 text-blue-500'
+                                : 'hover:bg-blue-100 text-blue-600'
+                            }`}
+                            title="Editar sección"
+                          >
+                            <Edit size={16} />
+                          </button>
+                          <button
+                            onClick={() => setDeleteModal({ show: true, seccion })}
+                            className={`p-2 rounded-lg transition ${
+                              isDarkMode
+                                ? 'hover:bg-red-500/20 text-red-500'
+                                : 'hover:bg-red-100 text-red-600'
+                            }`}
+                            title="Eliminar sección"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </div>
 
                       {/* Lecciones */}
                       <AnimatePresence>
@@ -477,16 +598,30 @@ const GestionDetallesCursosSection = ({ containerVariants }) => {
                                 </div>
 
                                 {/* Acciones */}
-                                <button
-                                  onClick={() => handleEliminarLeccion(leccion)}
-                                  className={`p-2 rounded-lg transition ${
-                                    isDarkMode
-                                      ? 'hover:bg-red-500/20 text-red-500'
-                                      : 'hover:bg-red-100 text-red-600'
-                                  }`}
-                                >
-                                  <Trash2 size={16} />
-                                </button>
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    onClick={() => handleEditarLeccion(selectedSeccionForLeccion || seccion, leccion)}
+                                    className={`p-2 rounded-lg transition ${
+                                      isDarkMode
+                                        ? 'hover:bg-blue-500/20 text-blue-500'
+                                        : 'hover:bg-blue-100 text-blue-600'
+                                    }`}
+                                    title="Editar lección"
+                                  >
+                                    <Edit size={16} />
+                                  </button>
+                                  <button
+                                    onClick={() => handleEliminarLeccion(leccion)}
+                                    className={`p-2 rounded-lg transition ${
+                                      isDarkMode
+                                        ? 'hover:bg-red-500/20 text-red-500'
+                                        : 'hover:bg-red-100 text-red-600'
+                                    }`}
+                                    title="Eliminar lección"
+                                  >
+                                    <Trash2 size={16} />
+                                  </button>
+                                </div>
                               </div>
                             ))}
                           </motion.div>
@@ -633,7 +768,7 @@ const GestionDetallesCursosSection = ({ containerVariants }) => {
                 isDarkMode ? 'border-[#8c5cff]/20' : 'border-gray-200'
               } flex items-center justify-between`}>
                 <h3 className={`font-bold text-lg ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                  Nueva Lección
+                  {editingLeccion ? 'Editar Lección' : 'Nueva Lección'}
                 </h3>
                 <button
                   onClick={() => setShowLeccionForm(false)}
@@ -775,12 +910,69 @@ const GestionDetallesCursosSection = ({ containerVariants }) => {
                     ) : (
                       <>
                         <Check size={18} />
-                        Guardar
+                        {editingLeccion ? 'Actualizar' : 'Guardar'}
                       </>
                     )}
                   </button>
                 </div>
               </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Modal Eliminar Sección */}
+      <AnimatePresence>
+        {deleteModal.show && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className={`rounded-2xl overflow-hidden max-w-md w-full mx-4 ${
+                isDarkMode ? 'bg-[#1a1c22]' : 'bg-white'
+              }`}
+            >
+              <div className={`px-6 py-4 border-b border-red-500/20 flex items-start gap-3`}>
+                <AlertCircle className="text-red-500 flex-shrink-0 mt-0.5" size={20} />
+                <div>
+                  <h3 className={`font-bold text-lg ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                    Eliminar Sección
+                  </h3>
+                  <p className={`text-sm mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    Esta acción no se puede deshacer
+                  </p>
+                </div>
+              </div>
+
+              <div className={`px-6 py-4 ${isDarkMode ? 'bg-red-500/5' : 'bg-red-50'}`}>
+                <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  ¿Estás seguro de que deseas eliminar la sección <strong>"{deleteModal.seccion?.titulo}"</strong>?
+                </p>
+                <p className={`text-sm mt-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Se eliminarán todas las <strong>{deleteModal.seccion?.lecciones?.length || 0} lecciones</strong> asociadas a esta sección.
+                </p>
+              </div>
+
+              <div className="px-6 py-4 flex gap-3 border-t border-[#8c5cff]/20">
+                <button
+                  onClick={() => setDeleteModal({ show: false, seccion: null })}
+                  className={`flex-1 px-4 py-2 rounded-lg font-medium transition ${
+                    isDarkMode
+                      ? 'bg-[#2a2c33] text-gray-300 hover:bg-[#1a1c22]'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleEliminarSeccion}
+                  className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition flex items-center justify-center gap-2"
+                >
+                  <Trash2 size={16} />
+                  Eliminar
+                </button>
+              </div>
             </motion.div>
           </div>
         )}
