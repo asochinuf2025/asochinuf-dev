@@ -355,10 +355,10 @@ const Home = () => {
           </motion.p>
 
           {/* Rotating text animation */}
-          <div className="mb-8 flex items-center justify-center">
+          <div className="mb-8 flex items-center justify-center px-2">
             <RotatingText
               texts={mockData.hero.rotatingTexts}
-              mainClassName="relative px-6 sm:px-8 md:px-10 text-white overflow-hidden py-3 sm:py-4 md:py-5 justify-center rounded-lg font-semibold text-xl sm:text-2xl md:text-3xl bg-clip-text text-transparent bg-gradient-to-r from-[#8c5cff] to-[#a371ff]"
+              mainClassName={`relative px-3 sm:px-6 md:px-10 text-white overflow-hidden py-2 sm:py-4 md:py-5 justify-center rounded-lg font-semibold ${isMobile ? 'text-sm' : 'text-xl sm:text-2xl md:text-3xl'} bg-clip-text text-transparent bg-gradient-to-r from-[#8c5cff] to-[#a371ff]`}
               staggerFrom="last"
               initial={{ y: "100%", opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
@@ -366,7 +366,7 @@ const Home = () => {
               staggerDuration={0.025}
               splitLevelClassName="overflow-hidden pb-0.5 sm:pb-1 md:pb-1"
               transition={{ type: "spring", damping: 30, stiffness: 400 }}
-              rotationInterval={2500}
+              rotationInterval={isMobile ? 3500 : 2500}
             />
           </div>
 
@@ -443,52 +443,61 @@ const Home = () => {
       {/* Misión y Visión Section - Premium 3D Cards with Flip Effect */}
       <section id="mision-vision" className="py-32 px-4 bg-gradient-to-b from-[#0a0a0a] via-black to-[#0a0a0a] relative overflow-hidden">
 
-        {/* Animated Background Elements */}
+        {/* Animated Background Elements - Optimized for mobile */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <motion.div
-            animate={{
-              x: [0, 80, 0],
-              y: [0, 50, 0],
-            }}
-            transition={{
-              duration: 20,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-            className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-[#8c5cff]/20 via-[#6a3dcf]/10 to-transparent rounded-full blur-3xl"
-          />
-          <motion.div
-            animate={{
-              x: [0, -60, 0],
-              y: [0, -80, 0],
-            }}
-            transition={{
-              duration: 25,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-            className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tl from-[#6a3dcf]/20 via-[#8c5cff]/10 to-transparent rounded-full blur-3xl"
-          />
+          {!isMobile && (
+            <>
+              <motion.div
+                animate={{
+                  x: [0, 80, 0],
+                  y: [0, 50, 0],
+                }}
+                transition={{
+                  duration: 20,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+                className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-[#8c5cff]/20 via-[#6a3dcf]/10 to-transparent rounded-full blur-3xl"
+              />
+              <motion.div
+                animate={{
+                  x: [0, -60, 0],
+                  y: [0, -80, 0],
+                }}
+                transition={{
+                  duration: 25,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+                className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tl from-[#6a3dcf]/20 via-[#8c5cff]/10 to-transparent rounded-full blur-3xl"
+              />
+            </>
+          )}
+          {isMobile && (
+            <div className="absolute inset-0 bg-gradient-to-br from-[#8c5cff]/5 via-transparent to-[#8c5cff]/5" />
+          )}
         </div>
 
-        {/* Ghost Cursor Effect - Gelatinous Mouse Tracking */}
-        <GhostCursor
-          color="#8c5cff"
-          brightness={1.2}
-          trailLength={50}
-          inertia={0.5}
-          grainIntensity={0.05}
-          bloomStrength={0.15}
-          bloomRadius={1.2}
-          bloomThreshold={0.02}
-          fadeDelayMs={1000}
-          fadeDurationMs={1500}
-          style={{
-            position: 'absolute',
-            inset: 0,
-            pointerEvents: 'none'
-          }}
-        />
+        {/* Ghost Cursor Effect - Gelatinous Mouse Tracking - Disabled on mobile */}
+        {!isMobile && (
+          <GhostCursor
+            color="#8c5cff"
+            brightness={1.2}
+            trailLength={50}
+            inertia={0.5}
+            grainIntensity={0.05}
+            bloomStrength={0.15}
+            bloomRadius={1.2}
+            bloomThreshold={0.02}
+            fadeDelayMs={1000}
+            fadeDurationMs={1500}
+            style={{
+              position: 'absolute',
+              inset: 0,
+              pointerEvents: 'none'
+            }}
+          />
+        )}
 
         <div className="container mx-auto max-w-7xl relative z-10">
           {/* Layout with Image Left and Text Right */}
@@ -745,10 +754,10 @@ const Home = () => {
             </p>
           </motion.div>
 
-          {/* Tabs Navigation */}
-          <div className="flex justify-center gap-4 mb-12 flex-wrap">
+          {/* Tabs Navigation - Responsive */}
+          <div className={`flex justify-center ${isMobile ? 'gap-2 mb-8 flex-wrap' : 'gap-4 mb-12 flex-wrap'}`}>
             {[
-              { id: 'ultimos', label: 'Últimos Eventos' },
+              { id: 'ultimos', label: isMobile ? 'Últimos' : 'Últimos Eventos' },
               { id: 'congresos', label: 'Congresos' },
               { id: 'jornadas', label: 'Jornadas' }
             ].map((tab) => (
@@ -758,12 +767,12 @@ const Home = () => {
                   setActiveEventTab(tab.id);
                   setIsAutoRotating(false);
                 }}
-                className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 relative overflow-hidden ${
+                className={`${isMobile ? 'px-4 py-2 text-sm' : 'px-6 py-3'} rounded-xl font-semibold transition-all duration-300 relative overflow-hidden ${
                   (activeEventTab || 'ultimos') === tab.id
                     ? 'text-white'
                     : 'text-gray-400 hover:text-gray-300'
                 }`}
-                whileHover={{ scale: 1.05 }}
+                whileHover={{ scale: isMobile ? 1.02 : 1.05 }}
                 whileTap={{ scale: 0.98 }}
               >
                 {/* Background animation for active tab */}
@@ -796,7 +805,7 @@ const Home = () => {
             ))}
           </div>
 
-          {/* Events Grid */}
+          {/* Events Grid - Responsive */}
           <AnimatePresence mode="wait">
             <motion.div
               key={activeEventTab || 'ultimos'}
@@ -804,7 +813,7 @@ const Home = () => {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -30, scale: 0.95 }}
               transition={{ duration: 0.6, ease: "easeInOut" }}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'}`}
             >
               {mockData.eventos[
                 (activeEventTab || 'ultimos') === 'ultimos' ? 'ultimosEventos' :
@@ -819,17 +828,19 @@ const Home = () => {
                   transition={isMobile ? {} : { duration: 0.6, delay: index * 0.15, type: "spring", stiffness: 100 }}
                   className="group cursor-pointer h-full"
                 >
-                  <div className="relative h-full bg-gradient-to-br from-[#2a2c33] via-[#1f2127] to-[#1a1c22] rounded-2xl overflow-hidden border border-[#8c5cff]/20 hover:border-[#8c5cff]/60 transition-all duration-700 hover:shadow-2xl hover:shadow-[#8c5cff]/40 flex flex-col">
+                  <div className={`relative h-full bg-gradient-to-br from-[#2a2c33] via-[#1f2127] to-[#1a1c22] rounded-2xl overflow-hidden border border-[#8c5cff]/20 hover:border-[#8c5cff]/60 transition-all duration-700 hover:shadow-2xl hover:shadow-[#8c5cff]/40 flex flex-col ${isMobile ? 'rounded-lg' : ''}`}>
                     {/* Animated gradient overlay */}
                     <div className="absolute inset-0 bg-gradient-to-br from-[#8c5cff]/0 via-[#8c5cff]/5 to-[#8c5cff]/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
 
-                    {/* Glowing orb effect */}
-                    <div className="absolute -top-20 -right-20 w-40 h-40 bg-[#8c5cff]/20 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-all duration-700 group-hover:scale-150"></div>
+                    {/* Glowing orb effect - Reduced on mobile */}
+                    {!isMobile && (
+                      <div className="absolute -top-20 -right-20 w-40 h-40 bg-[#8c5cff]/20 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-all duration-700 group-hover:scale-150"></div>
+                    )}
 
-                    <div className="relative p-6 flex flex-col h-full">
+                    <div className={`relative ${isMobile ? 'p-4' : 'p-6'} flex flex-col h-full`}>
                       {/* Type badge */}
-                      <div className="mb-4">
-                        <span className="inline-block px-3 py-1 bg-[#8c5cff]/20 border border-[#8c5cff]/50 rounded-full text-[#8c5cff] text-xs font-semibold">
+                      <div className="mb-3">
+                        <span className={`inline-block px-3 py-1 bg-[#8c5cff]/20 border border-[#8c5cff]/50 rounded-full text-[#8c5cff] ${isMobile ? 'text-xs' : 'text-xs'} font-semibold`}>
                           {evento.type || (
                             (activeEventTab || 'ultimos') === 'congresos' ? 'Congreso' :
                             (activeEventTab || 'ultimos') === 'jornadas' ? 'Jornada' :
@@ -839,54 +850,54 @@ const Home = () => {
                       </div>
 
                       {/* Title */}
-                      <h3 className="text-lg md:text-xl font-bold text-white group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-[#8c5cff] group-hover:bg-clip-text transition-all duration-500 mb-3" style={{ fontWeight: 700 }}>
+                      <h3 className={`${isMobile ? 'text-base' : 'text-lg md:text-xl'} font-bold text-white group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-[#8c5cff] group-hover:bg-clip-text transition-all duration-500 ${isMobile ? 'mb-2' : 'mb-3'}`} style={{ fontWeight: 700 }}>
                         {evento.title}
                       </h3>
 
                       {/* Description */}
-                      <p className="text-gray-400 group-hover:text-gray-300 text-sm leading-relaxed transition-colors duration-500 mb-4 flex-grow">
+                      <p className={`text-gray-400 group-hover:text-gray-300 ${isMobile ? 'text-xs' : 'text-sm'} leading-relaxed transition-colors duration-500 ${isMobile ? 'mb-3' : 'mb-4'} flex-grow`}>
                         {evento.description}
                       </p>
 
                       {/* Event Details */}
-                      <div className="space-y-2 border-t border-[#8c5cff]/20 pt-4 mt-auto">
+                      <div className={`space-y-2 border-t border-[#8c5cff]/20 ${isMobile ? 'pt-3 mt-2' : 'pt-4 mt-auto'}`}>
                         {/* Date */}
-                        <div className="flex items-start gap-3">
+                        <div className={`flex items-start ${isMobile ? 'gap-2' : 'gap-3'}`}>
                           <div className="text-[#8c5cff] mt-0.5">
-                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <svg className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} flex-shrink-0`} fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v2h16V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
                             </svg>
                           </div>
-                          <div>
-                            <p className="text-xs text-gray-500">Fecha</p>
-                            <p className="text-sm text-gray-300">{evento.date}</p>
+                          <div className="min-w-0">
+                            <p className={`${isMobile ? 'text-xs' : 'text-xs'} text-gray-500`}>Fecha</p>
+                            <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-300 truncate`}>{evento.date}</p>
                           </div>
                         </div>
 
                         {/* Location */}
-                        <div className="flex items-start gap-3">
+                        <div className={`flex items-start ${isMobile ? 'gap-2' : 'gap-3'}`}>
                           <div className="text-[#8c5cff] mt-0.5">
-                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <svg className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} flex-shrink-0`} fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
                             </svg>
                           </div>
-                          <div>
-                            <p className="text-xs text-gray-500">Ubicación</p>
-                            <p className="text-sm text-gray-300">{evento.location}</p>
+                          <div className="min-w-0">
+                            <p className={`${isMobile ? 'text-xs' : 'text-xs'} text-gray-500`}>Ubicación</p>
+                            <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-300 truncate`}>{evento.location}</p>
                           </div>
                         </div>
 
                         {/* Speakers if exists */}
-                        {evento.speakers && (
-                          <div className="flex items-start gap-3">
+                        {evento.speakers && !isMobile && (
+                          <div className={`flex items-start ${isMobile ? 'gap-2' : 'gap-3'}`}>
                             <div className="text-[#8c5cff] mt-0.5">
-                              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                              <svg className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} flex-shrink-0`} fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v2h8v-2zM16 15v2h4v-2zM2 8a2 2 0 11-4 0 2 2 0 014 0zM6 15v2H2v-2z" />
                               </svg>
                             </div>
-                            <div>
-                              <p className="text-xs text-gray-500">Expositores</p>
-                              <p className="text-sm text-gray-300">{evento.speakers.join(', ')}</p>
+                            <div className="min-w-0">
+                              <p className={`${isMobile ? 'text-xs' : 'text-xs'} text-gray-500`}>Expositores</p>
+                              <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-300 truncate`}>{evento.speakers.join(', ')}</p>
                             </div>
                           </div>
                         )}
