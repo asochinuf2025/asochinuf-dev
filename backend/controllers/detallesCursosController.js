@@ -63,6 +63,7 @@ export const obtenerDetallesCurso = async (req, res) => {
 
       // Si el usuario no tiene acceso, bloquear contenido
       const leccion = {
+        id: detalle.id,
         numero: detalle.leccion_numero,
         titulo: detalle.leccion_titulo,
         descripcion: detalle.leccion_descripcion,
@@ -251,9 +252,34 @@ export const crearDetalleCurso = async (req, res) => {
 export const actualizarDetalleCurso = async (req, res) => {
   try {
     const { idCurso, detalleId } = req.params;
-    const updates = req.body;
 
-    // Construir query dinámicamente
+    if (!detalleId || detalleId === 'undefined') {
+      return res.status(400).json({ error: 'ID de detalle no válido' });
+    }
+
+    // Convertir camelCase a snake_case
+    const updates = {};
+    const fieldMap = {
+      'seccionNumero': 'seccion_numero',
+      'seccionTitulo': 'seccion_titulo',
+      'seccionDescripcion': 'seccion_descripcion',
+      'ordenSeccion': 'orden_seccion',
+      'leccionNumero': 'leccion_numero',
+      'leccionTitulo': 'leccion_titulo',
+      'leccionDescripcion': 'leccion_descripcion',
+      'tipoContenido': 'tipo_contenido',
+      'urlContenido': 'url_contenido',
+      'duracionMinutos': 'duracion_minutos',
+      'ordenLeccion': 'orden_leccion',
+      'archivoNombre': 'archivo_nombre',
+      'archivoTipo': 'archivo_tipo'
+    };
+
+    Object.keys(req.body).forEach(key => {
+      const dbKey = fieldMap[key] || key;
+      updates[dbKey] = req.body[key];
+    });
+
     const allowedFields = [
       'seccion_numero', 'seccion_titulo', 'seccion_descripcion',
       'orden_seccion', 'leccion_numero', 'leccion_titulo', 'leccion_descripcion',
