@@ -185,9 +185,9 @@ export const updateCurso = async (req, res) => {
 
     // Construir query dinámicamente
     const allowedFields = [
-      'codigo_curso', 'nombre', 'descripcion', 'categoria_id', 'nivel',
-      'duracion_horas', 'modalidad', 'fecha_inicio', 'fecha_fin', 'precio',
-      'descuento', 'precio_final', 'moneda', 'nombre_instructor',
+      'codigo_curso', 'nombre', 'descripcion', 'lo_que_aprenderas', 'requisitos',
+      'categoria_id', 'nivel', 'duracion_horas', 'modalidad', 'fecha_inicio', 'fecha_fin',
+      'precio', 'descuento', 'precio_final', 'moneda', 'nombre_instructor',
       'imagen_portada', 'video_promocional', 'materiales', 'url_curso', 'estado'
     ];
 

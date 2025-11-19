@@ -104,6 +104,8 @@ const inicializarBD = async () => {
         codigo_curso VARCHAR(100) NOT NULL UNIQUE,
         nombre VARCHAR(255) NOT NULL,
         descripcion TEXT,
+        lo_que_aprenderas TEXT,
+        requisitos TEXT,
         categoria_id INTEGER,
         nivel VARCHAR(50),
         duracion_horas INTEGER,
