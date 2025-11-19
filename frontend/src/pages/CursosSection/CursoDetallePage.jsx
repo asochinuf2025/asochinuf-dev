@@ -6,7 +6,7 @@ import {
   Calendar, Video, Monitor, MapPin, Globe, Award
 } from 'lucide-react';
 import axios from 'axios';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 import { API_ENDPOINTS, BASE as API_URL } from '../config/apiConfig';
 import { toast } from 'sonner';
 
