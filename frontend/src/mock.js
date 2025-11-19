@@ -58,37 +58,87 @@ export const mockData = {
     }
   ],
 
-  // Capacitaciones Section
-  capacitaciones: [
-    {
-      id: 1,
-      title: "Evaluación Antropométrica",
-      description: "Técnicas profesionales de medición y evaluación de composición corporal en deportistas.",
-      icon: "activity",
-      duration: "2 días"
-    },
-    {
-      id: 2,
-      title: "Nutrición Pre y Post Partido",
-      description: "Estrategias nutricionales específicas para optimizar el rendimiento durante competencias.",
-      icon: "utensils",
-      duration: "1 día"
-    },
-    {
-      id: 3,
-      title: "Recuperación Muscular",
-      description: "Protocolos nutricionales para acelerar la recuperación y prevenir lesiones deportivas.",
-      icon: "heart-pulse",
-      duration: "1 día"
-    },
-    {
-      id: 4,
-      title: "Hidratación en el Deporte",
-      description: "Manejo avanzado de protocolos de hidratación para deportes de alta exigencia física.",
-      icon: "droplet",
-      duration: "1 día"
-    }
-  ],
+  // Eventos Section (Últimos Eventos, Congresos y Jornadas)
+  eventos: {
+    ultimosEventos: [
+      {
+        id: 1,
+        title: "Workshop: Nutrición Deportiva 2025",
+        description: "Taller intensivo con las últimas tendencias en nutrición aplicada al fútbol profesional. Especialistas internacionales compartirán sus experiencias.",
+        date: "15 de Diciembre, 2024",
+        location: "Centro de Convenciones, Santiago",
+        type: "Workshop",
+        image: "/eventos/workshop-nutricion.jpg"
+      },
+      {
+        id: 2,
+        title: "Jornada de Actualización: Antropometría Deportiva",
+        description: "Encuentro técnico para nutricionistas y profesionales del deporte sobre evaluación corporal avanzada en futbolistas.",
+        date: "22 de Diciembre, 2024",
+        location: "Auditorio Principal, Universidad de Chile",
+        type: "Jornada",
+        image: "/eventos/jornada-antropometria.jpg"
+      },
+      {
+        id: 3,
+        title: "Seminario: Suplementación en Fútbol Profesional",
+        description: "Análisis profundo de protocolos de suplementación basados en evidencia científica para optimizar rendimiento.",
+        date: "28 de Diciembre, 2024",
+        location: "Campus Centro, Santiago",
+        type: "Seminario",
+        image: "/eventos/seminario-suplementacion.jpg"
+      }
+    ],
+    congresos: [
+      {
+        id: 4,
+        title: "Congreso Latinoamericano de Nutrición Deportiva",
+        description: "Encuentro internacional con expertos de América Latina en nutrición aplicada al rendimiento. Presentación de investigaciones y casos clínicos.",
+        date: "15-17 de Enero, 2025",
+        location: "Centro de Convenciones Metropolitano, Santiago",
+        speakers: ["Dr. Felipe González", "Dra. Catalina Carabias", "Nutricionistas Internacionales"],
+        image: "/eventos/congreso-latinoamericano.jpg"
+      },
+      {
+        id: 5,
+        title: "Congreso Internacional de Nutrición y Rendimiento Deportivo",
+        description: "Congreso de 3 días con conferencias magistrales, paneles de debate y presentación de avances científicos en nutrición deportiva.",
+        date: "22-24 de Febrero, 2025",
+        location: "Hotel Grand Hyatt, Santiago",
+        speakers: ["Expertos Internacionales", "Investigadores Destacados", "Profesionales de Elite"],
+        image: "/eventos/congreso-internacional.jpg"
+      }
+    ],
+    jornadas: [
+      {
+        id: 6,
+        title: "Jornada de Intercambio: Nutricionistas de Clubes Profesionales",
+        description: "Espacio para que nutricionistas de equipos profesionales compartan experiencias, desafíos y soluciones implementadas.",
+        date: "10 de Enero, 2025",
+        location: "Estadio Monumental, Santiago",
+        type: "Jornada",
+        image: "/eventos/jornada-intercambio.jpg"
+      },
+      {
+        id: 7,
+        title: "Jornada de Capacitación: Nutrición Femenina en el Fútbol",
+        description: "Jornada especializada en aspectos nutricionales únicos del fútbol femenino profesional y de alta competencia.",
+        date: "18 de Enero, 2025",
+        location: "Centro de Desarrollo CEDAR, Vitacura",
+        type: "Jornada",
+        image: "/eventos/jornada-femenina.jpg"
+      },
+      {
+        id: 8,
+        title: "Jornada Técnica: Evaluación Antropométrica ISAK",
+        description: "Capacitación práctica en técnicas de medición ISAK con expertos certificados para nutricionistas y profesionales del deporte.",
+        date: "25 de Enero, 2025",
+        location: "Laboratorio de Antropometría, Universidad Católica",
+        type: "Jornada",
+        image: "/eventos/jornada-isak.jpg"
+      }
+    ]
+  },
 
   // Testimonios/Profesionales Section
   testimonios: [
@@ -288,7 +338,7 @@ export const mockData = {
       { name: "Inicio", href: "#hero" },
       { name: "Cursos", href: "#cursos" },
       { name: "Misión y Visión", href: "#mision-vision" },
-      { name: "Capacitaciones", href: "#capacitaciones" },
+      { name: "Eventos", href: "#eventos" },
       { name: "Profesionales", href: "#profesionales" },
       { name: "Organigrama", href: "#organigrama" }
     ],

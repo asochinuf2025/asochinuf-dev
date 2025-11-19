@@ -57,6 +57,7 @@ const Home = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [showMemberDescription, setShowMemberDescription] = useState(null);
+  const [activeEventTab, setActiveEventTab] = useState('ultimos');
   const { scrollYProgress } = useScroll();
 
   // Optimizar parallax - desactivar en móvil para mejor rendimiento
@@ -174,7 +175,7 @@ const Home = () => {
                 {[
                   { name: 'Cursos', icon: GraduationCap },
                   { name: 'Misión y Visión', icon: Compass, id: 'mision-vision' },
-                  { name: 'Capacitaciones', icon: Sparkles },
+                  { name: 'Eventos', icon: Sparkles },
                   { name: 'Profesionales', icon: Award },
                   { name: 'Organigrama', icon: Users }
                 ].map(({ name, icon: Icon, id }, index) => (
@@ -492,15 +493,6 @@ const Home = () => {
                 transition={{ duration: 0.8, delay: 0.2 }}
                 className="space-y-6"
               >
-                  {/* Top accent line */}
-                  <motion.div
-                    initial={{ width: 0 }}
-                    whileInView={{ width: 80 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.8 }}
-                    className="h-1.5 bg-gradient-to-r from-[#8c5cff] to-transparent rounded-full"
-                  />
-
                   <motion.h3
                     className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-white via-[#8c5cff] to-[#a371ff] bg-clip-text text-transparent group-hover:via-[#a371ff] transition-all duration-500"
                     style={{ fontWeight: 900, letterSpacing: '-0.02em' }}
@@ -541,15 +533,6 @@ const Home = () => {
                 transition={{ duration: 0.8, delay: 0.3 }}
                 className="space-y-6"
               >
-                  {/* Top accent line */}
-                  <motion.div
-                    initial={{ width: 0 }}
-                    whileInView={{ width: 80 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.8, delay: 0.2 }}
-                    className="h-1.5 bg-gradient-to-r from-transparent to-[#8c5cff] rounded-full"
-                  />
-
                   <motion.h3
                     className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-[#a371ff] via-[#8c5cff] to-white bg-clip-text text-transparent group-hover:via-[#a371ff] transition-all duration-500"
                     style={{ fontWeight: 900, letterSpacing: '-0.02em' }}
@@ -722,8 +705,8 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Capacitaciones Section - Ultra Premium Bento Box Design */}
-      <section id="capacitaciones" className="py-24 px-4 bg-gradient-to-b from-black via-[#0a0a0a] to-black relative overflow-hidden">
+      {/* Eventos Section - Ultra Premium Tab-based Design */}
+      <section id="eventos" className="py-24 px-4 bg-gradient-to-b from-black via-[#0a0a0a] to-black relative overflow-hidden">
         {/* Animated background elements */}
         <div className="absolute inset-0 opacity-30">
           <div className="absolute top-20 left-10 w-72 h-72 bg-[#8c5cff]/10 rounded-full blur-3xl animate-pulse"></div>
@@ -739,81 +722,137 @@ const Home = () => {
             className="text-center mb-20"
           >
             <h2 className="text-3xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-white via-[#8c5cff] to-white bg-clip-text text-transparent" style={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
-              Capacitaciones Especializadas
+              Próximos Eventos
             </h2>
             <p className="text-gray-400 text-lg max-w-2xl mx-auto leading-relaxed">
-              Talleres intensivos de vanguardia diseñados para elevar tu práctica profesional
+              Últimos eventos, congresos y jornadas de capacitación para profesionales de la nutrición deportiva
             </p>
           </motion.div>
 
-          {/* Bento Box Grid - Single row with 4 columns */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {mockData.capacitaciones.map((capacitacion, index) => {
-              const IconComponent = iconMap[capacitacion.icon];
-              return (
+          {/* Tabs Navigation */}
+          <div className="flex justify-center gap-4 mb-12 flex-wrap">
+            {[
+              { id: 'ultimos', label: 'Últimos Eventos' },
+              { id: 'congresos', label: 'Congresos' },
+              { id: 'jornadas', label: 'Jornadas' }
+            ].map((tab) => (
+              <motion.button
+                key={tab.id}
+                onClick={() => setActiveEventTab(tab.id)}
+                className={`px-6 py-3 rounded-lg font-semibold transition-all duration-500 relative ${
+                  (activeEventTab || 'ultimos') === tab.id
+                    ? 'text-white'
+                    : 'text-gray-400 hover:text-gray-300'
+                }`}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                {(activeEventTab || 'ultimos') === tab.id && (
+                  <motion.div
+                    layoutId="eventTabIndicator"
+                    className="absolute inset-0 bg-gradient-to-r from-[#8c5cff]/20 to-[#6a3dcf]/20 rounded-lg border border-[#8c5cff]/50"
+                    transition={{ type: "spring", stiffness: 300 }}
+                  />
+                )}
+                <span className="relative z-10">{tab.label}</span>
+              </motion.button>
+            ))}
+          </div>
+
+          {/* Events Grid */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeEventTab || 'ultimos'}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4 }}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
+              {mockData.eventos[
+                (activeEventTab || 'ultimos') === 'ultimos' ? 'ultimosEventos' :
+                (activeEventTab || 'ultimos') === 'congresos' ? 'congresos' :
+                'jornadas'
+              ].map((evento, index) => (
                 <motion.div
-                  key={capacitacion.id}
+                  key={evento.id}
                   initial={isMobile ? { opacity: 1 } : { opacity: 0, y: 50 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-50px" }}
                   transition={isMobile ? {} : { duration: 0.6, delay: index * 0.15, type: "spring", stiffness: 100 }}
-                  className="group cursor-pointer"
+                  className="group cursor-pointer h-full"
                 >
-                  <div className="relative h-full bg-gradient-to-br from-[#2a2c33] via-[#1f2127] to-[#1a1c22] rounded-2xl overflow-hidden border border-[#8c5cff]/20 hover:border-[#8c5cff]/60 transition-all duration-700 hover:shadow-2xl hover:shadow-[#8c5cff]/40">
+                  <div className="relative h-full bg-gradient-to-br from-[#2a2c33] via-[#1f2127] to-[#1a1c22] rounded-2xl overflow-hidden border border-[#8c5cff]/20 hover:border-[#8c5cff]/60 transition-all duration-700 hover:shadow-2xl hover:shadow-[#8c5cff]/40 flex flex-col">
                     {/* Animated gradient overlay */}
                     <div className="absolute inset-0 bg-gradient-to-br from-[#8c5cff]/0 via-[#8c5cff]/5 to-[#8c5cff]/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
 
                     {/* Glowing orb effect */}
                     <div className="absolute -top-20 -right-20 w-40 h-40 bg-[#8c5cff]/20 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-all duration-700 group-hover:scale-150"></div>
 
-                    <div className="relative p-5">
-                      {/* Icon Section with floating animation */}
-                      <motion.div
-                        className="mb-4 relative"
-                        whileHover={!isMobile ? { y: -10 } : {}}
-                        transition={{ type: "spring", stiffness: 300 }}
-                      >
-                        <div className="relative inline-block">
-                          {/* Glow effect */}
-                          <div className="absolute inset-0 bg-gradient-to-br from-[#8c5cff] to-[#6a3dcf] rounded-xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity duration-500"></div>
+                    <div className="relative p-6 flex flex-col h-full">
+                      {/* Type badge */}
+                      <div className="mb-4">
+                        <span className="inline-block px-3 py-1 bg-[#8c5cff]/20 border border-[#8c5cff]/50 rounded-full text-[#8c5cff] text-xs font-semibold">
+                          {evento.type || (
+                            (activeEventTab || 'ultimos') === 'congresos' ? 'Congreso' :
+                            (activeEventTab || 'ultimos') === 'jornadas' ? 'Jornada' :
+                            'Evento'
+                          )}
+                        </span>
+                      </div>
 
-                          {/* Icon container */}
-                          <div className="relative w-14 h-14 bg-gradient-to-br from-[#8c5cff] to-[#6a3dcf] rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-2xl group-hover:shadow-[#8c5cff]/50 transition-all duration-500 group-hover:rotate-6 group-hover:scale-110">
-                            {IconComponent && <IconComponent className="text-white" size={28} strokeWidth={2.5} />}
+                      {/* Title */}
+                      <h3 className="text-lg md:text-xl font-bold text-white group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-[#8c5cff] group-hover:bg-clip-text transition-all duration-500 mb-3" style={{ fontWeight: 700 }}>
+                        {evento.title}
+                      </h3>
+
+                      {/* Description */}
+                      <p className="text-gray-400 group-hover:text-gray-300 text-sm leading-relaxed transition-colors duration-500 mb-4 flex-grow">
+                        {evento.description}
+                      </p>
+
+                      {/* Event Details */}
+                      <div className="space-y-2 border-t border-[#8c5cff]/20 pt-4 mt-auto">
+                        {/* Date */}
+                        <div className="flex items-start gap-3">
+                          <div className="text-[#8c5cff] mt-0.5">
+                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v2h16V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                            </svg>
                           </div>
-
-                          {/* Orbiting dots */}
-                          <div className="absolute -top-1 -right-1 w-2 h-2 bg-[#8c5cff] rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping"></div>
-                          <div className="absolute -bottom-1 -left-1 w-1.5 h-1.5 bg-[#a371ff] rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping" style={{ animationDelay: '0.2s' }}></div>
-                        </div>
-                      </motion.div>
-
-                      {/* Content */}
-                      <div className="space-y-3">
-                        <h3 className="text-lg md:text-xl font-bold text-white group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-[#8c5cff] group-hover:bg-clip-text transition-all duration-500" style={{ fontWeight: 700 }}>
-                          {capacitacion.title}
-                        </h3>
-
-                        <p className="text-gray-400 group-hover:text-gray-300 text-sm leading-relaxed transition-colors duration-500">
-                          {capacitacion.description}
-                        </p>
-
-                        {/* Duration badge */}
-                        <div className="flex items-center gap-2 pt-2">
-                          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#8c5cff]/10 group-hover:bg-[#8c5cff]/20 rounded-full border border-[#8c5cff]/30 transition-all duration-500">
-                            <Clock size={14} className="text-[#8c5cff]" />
-                            <span className="text-[#8c5cff] font-semibold text-xs">{capacitacion.duration}</span>
+                          <div>
+                            <p className="text-xs text-gray-500">Fecha</p>
+                            <p className="text-sm text-gray-300">{evento.date}</p>
                           </div>
-
-                          {/* Arrow indicator */}
-                          <motion.div
-                            className="ml-auto opacity-0 group-hover:opacity-100 transition-all duration-500"
-                            animate={!isMobile ? { x: [0, 5, 0] } : {}}
-                            transition={{ repeat: Infinity, duration: 1.5 }}
-                          >
-                            <ArrowRight className="text-[#8c5cff]" size={20} />
-                          </motion.div>
                         </div>
+
+                        {/* Location */}
+                        <div className="flex items-start gap-3">
+                          <div className="text-[#8c5cff] mt-0.5">
+                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-500">Ubicación</p>
+                            <p className="text-sm text-gray-300">{evento.location}</p>
+                          </div>
+                        </div>
+
+                        {/* Speakers if exists */}
+                        {evento.speakers && (
+                          <div className="flex items-start gap-3">
+                            <div className="text-[#8c5cff] mt-0.5">
+                              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v2h8v-2zM16 15v2h4v-2zM2 8a2 2 0 11-4 0 2 2 0 014 0zM6 15v2H2v-2z" />
+                              </svg>
+                            </div>
+                            <div>
+                              <p className="text-xs text-gray-500">Expositores</p>
+                              <p className="text-sm text-gray-300">{evento.speakers.join(', ')}</p>
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       {/* Bottom decorative line */}
@@ -821,9 +860,9 @@ const Home = () => {
                     </div>
                   </div>
                 </motion.div>
-              );
-            })}
-          </div>
+              ))}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </section>
 
