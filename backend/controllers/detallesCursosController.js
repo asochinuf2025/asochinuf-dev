@@ -490,6 +490,7 @@ export const obtenerCursosAccesibles = async (req, res) => {
 export const iniciarPagoCurso = async (req, res) => {
   try {
     const { idCurso } = req.params;
+    const { monto, moneda } = req.body; // Recibir monto con descuento desde frontend
     const usuarioId = req.usuario?.id;
 
     if (!usuarioId) {
@@ -530,8 +531,11 @@ export const iniciarPagoCurso = async (req, res) => {
 
     const usuario = usuarioResult.rows[0];
 
-    // Crear preferencia de pago en Mercado Pago
-    const preferencia = await crearPreferenciaCurso(curso, usuario);
+    // Usar monto desde frontend si se proporciona, sino usar precio del curso
+    const montoFinal = monto || curso.precio;
+
+    // Crear preferencia de pago en Mercado Pago (pasar monto al servicio)
+    const preferencia = await crearPreferenciaCurso(curso, usuario, montoFinal);
 
     res.json({
       mensaje: 'Preferencia de pago creada',

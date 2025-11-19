@@ -29,11 +29,17 @@ const mpClient = axios.create({
 /**
  * Crear preferencia de pago para un curso
  * Retorna la URL de Mercado Pago donde redirigir al usuario
+ * @param {Object} curso - Datos del curso
+ * @param {Object} usuario - Datos del usuario
+ * @param {number} montoFinal - Monto final a pagar (con descuento aplicado)
  */
-export const crearPreferenciaCurso = async (curso, usuario) => {
+export const crearPreferenciaCurso = async (curso, usuario, montoFinal) => {
   try {
+    // Usar montoFinal si se proporciona, sino usar precio del curso
     // Asegurar que el monto sea válido (mínimo 50 CLP)
-    const monto = Math.max(50, parseFloat(curso.precio));
+    const monto = Math.max(50, parseFloat(montoFinal || curso.precio));
+
+    console.log(`💰 Creando preferencia de pago para curso: ${curso.nombre}, Monto: ${monto} CLP`);
 
     const preference = {
       items: [
@@ -83,7 +89,7 @@ export const crearPreferenciaCurso = async (curso, usuario) => {
       init_point: response.data.init_point,
       sandbox_init_point: response.data.sandbox_init_point,
       cursoId: curso.id_curso,
-      montoTotal: parseFloat(curso.precio)
+      montoTotal: monto
     };
   } catch (error) {
     console.error('❌ Error al crear preferencia de curso:');
@@ -93,12 +99,13 @@ export const crearPreferenciaCurso = async (curso, usuario) => {
     // En desarrollo/testing, retornar un objeto simulado
     if (!MP_ACCESS_TOKEN || MP_ACCESS_TOKEN === 'undefined') {
       console.warn('⚠️ MERCADO_PAGO_ACCESS_TOKEN no configurado. Retornando preferencia simulada para testing.');
+      const monto = Math.max(50, parseFloat(montoFinal || curso.precio));
       return {
         id: `pref_test_${Date.now()}`,
         init_point: `${FRONTEND_URL}/payment-processing?curso=${curso.id_curso}&test=true`,
         sandbox_init_point: `${FRONTEND_URL}/payment-processing?curso=${curso.id_curso}&test=true`,
         cursoId: curso.id_curso,
-        montoTotal: parseFloat(curso.precio),
+        montoTotal: monto,
         isTestMode: true
       };
     }
