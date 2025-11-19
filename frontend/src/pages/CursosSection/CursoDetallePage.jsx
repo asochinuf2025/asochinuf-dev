@@ -432,11 +432,11 @@ const CursoDetallePage = ({ curso: cursoProp, onBack, containerVariants }) => {
                                 <div className="flex-shrink-0 mt-1">
                                   {tieneAcceso ? (
                                     <>
-                                      {leccion.tipo_contenido === 'video' && <Video size={20} className="text-blue-500" />}
-                                      {leccion.tipo_contenido === 'pdf' && <FileIcon size={20} className="text-red-500" />}
-                                      {leccion.tipo_contenido === 'articulo' && <FileText size={20} className="text-green-500" />}
-                                      {leccion.tipo_contenido === 'quiz' && <CheckCircle size={20} className="text-purple-500" />}
-                                      {!['video', 'pdf', 'articulo', 'quiz'].includes(leccion.tipo_contenido) && <Play size={20} className="text-[#8c5cff]" />}
+                                      {leccion.tipo === 'video' && <Video size={20} className="text-blue-500" />}
+                                      {leccion.tipo === 'pdf' && <FileIcon size={20} className="text-red-500" />}
+                                      {leccion.tipo === 'articulo' && <FileText size={20} className="text-green-500" />}
+                                      {leccion.tipo === 'quiz' && <CheckCircle size={20} className="text-purple-500" />}
+                                      {!['video', 'pdf', 'articulo', 'quiz'].includes(leccion.tipo) && <Play size={20} className="text-[#8c5cff]" />}
                                     </>
                                   ) : (
                                     <Lock size={20} className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
@@ -449,18 +449,18 @@ const CursoDetallePage = ({ curso: cursoProp, onBack, containerVariants }) => {
                                   {tieneAcceso && (
                                     <div className="flex items-center gap-2 mt-1">
                                       <span className={`text-xs font-medium px-2 py-1 rounded ${isDarkMode ? 'bg-[#8c5cff]/20 text-[#8c5cff]' : 'bg-purple-100 text-purple-700'}`}>
-                                        {obtenerNombreTipoContenido(leccion.tipo_contenido)}
+                                        {obtenerNombreTipoContenido(leccion.tipo)}
                                       </span>
-                                      {leccion.duracionMinutos && (
+                                      {leccion.duracion && (
                                         <span className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>
-                                          {leccion.duracionMinutos} min
+                                          {leccion.duracion} min
                                         </span>
                                       )}
                                     </div>
                                   )}
-                                  {!tieneAcceso && leccion.duracionMinutos && (
+                                  {!tieneAcceso && leccion.duracion && (
                                     <p className={`text-sm mt-1 ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>
-                                      {leccion.duracionMinutos} min
+                                      {leccion.duracion} min
                                     </p>
                                   )}
                                 </div>
@@ -655,16 +655,16 @@ const CursoDetallePage = ({ curso: cursoProp, onBack, containerVariants }) => {
                 isDarkMode ? 'border-[#8c5cff]/20 bg-[#1a1c22]' : 'border-purple-200 bg-gray-50'
               }`}>
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  {leccionSeleccionada.tipo_contenido === 'video' && <Video size={24} className="text-blue-500 flex-shrink-0" />}
-                  {leccionSeleccionada.tipo_contenido === 'pdf' && <FileIcon size={24} className="text-red-500 flex-shrink-0" />}
-                  {leccionSeleccionada.tipo_contenido === 'articulo' && <FileText size={24} className="text-green-500 flex-shrink-0" />}
-                  {leccionSeleccionada.tipo_contenido === 'quiz' && <CheckCircle size={24} className="text-purple-500 flex-shrink-0" />}
+                  {leccionSeleccionada.tipo === 'video' && <Video size={24} className="text-blue-500 flex-shrink-0" />}
+                  {leccionSeleccionada.tipo === 'pdf' && <FileIcon size={24} className="text-red-500 flex-shrink-0" />}
+                  {leccionSeleccionada.tipo === 'articulo' && <FileText size={24} className="text-green-500 flex-shrink-0" />}
+                  {leccionSeleccionada.tipo === 'quiz' && <CheckCircle size={24} className="text-purple-500 flex-shrink-0" />}
                   <div className="min-w-0">
                     <h2 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'} truncate`}>
                       {leccionSeleccionada.titulo}
                     </h2>
                     <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                      {obtenerNombreTipoContenido(leccionSeleccionada.tipo_contenido)}
+                      {obtenerNombreTipoContenido(leccionSeleccionada.tipo)}
                     </p>
                   </div>
                 </div>
@@ -684,10 +684,10 @@ const CursoDetallePage = ({ curso: cursoProp, onBack, containerVariants }) => {
                 <div className={`mb-6 aspect-video rounded-xl overflow-hidden ${
                   isDarkMode ? 'bg-[#1a1c22]' : 'bg-gray-100'
                 } flex items-center justify-center`}>
-                  {leccionSeleccionada.tipo_contenido === 'video' ? (
-                    leccionSeleccionada.url_contenido ? (
+                  {leccionSeleccionada.tipo === 'video' ? (
+                    leccionSeleccionada.url ? (
                       <iframe
-                        src={leccionSeleccionada.url_contenido}
+                        src={leccionSeleccionada.url}
                         title={leccionSeleccionada.titulo}
                         className="w-full h-full"
                         allowFullScreen
@@ -699,10 +699,10 @@ const CursoDetallePage = ({ curso: cursoProp, onBack, containerVariants }) => {
                         <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Video no disponible</p>
                       </div>
                     )
-                  ) : leccionSeleccionada.tipo_contenido === 'pdf' ? (
-                    leccionSeleccionada.url_contenido ? (
+                  ) : leccionSeleccionada.tipo === 'pdf' ? (
+                    leccionSeleccionada.url ? (
                       <iframe
-                        src={leccionSeleccionada.url_contenido}
+                        src={leccionSeleccionada.url}
                         title={leccionSeleccionada.titulo}
                         className="w-full h-full"
                       />
@@ -721,13 +721,13 @@ const CursoDetallePage = ({ curso: cursoProp, onBack, containerVariants }) => {
                 </div>
 
                 {/* Descripción */}
-                {leccionSeleccionada.leccion_descripcion && (
+                {leccionSeleccionada.descripcion && (
                   <div className="mb-6">
                     <h3 className={`text-lg font-semibold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                       Descripción
                     </h3>
                     <p className={`leading-relaxed ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                      {leccionSeleccionada.leccion_descripcion}
+                      {leccionSeleccionada.descripcion}
                     </p>
                   </div>
                 )}
@@ -741,16 +741,16 @@ const CursoDetallePage = ({ curso: cursoProp, onBack, containerVariants }) => {
                       Tipo de contenido
                     </p>
                     <p className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                      {obtenerNombreTipoContenido(leccionSeleccionada.tipo_contenido)}
+                      {obtenerNombreTipoContenido(leccionSeleccionada.tipo)}
                     </p>
                   </div>
-                  {leccionSeleccionada.duracion_minutos && (
+                  {leccionSeleccionada.duracion && (
                     <div>
                       <p className={`text-sm font-semibold ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                         Duración
                       </p>
                       <p className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                        {leccionSeleccionada.duracion_minutos} minutos
+                        {leccionSeleccionada.duracion} minutos
                       </p>
                     </div>
                   )}
