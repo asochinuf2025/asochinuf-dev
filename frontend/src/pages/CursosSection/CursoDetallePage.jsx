@@ -1,14 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft, Clock, Users, Star, Lock, Play, FileText, CheckCircle,
   ChevronDown, ShoppingCart, AlertCircle, Loader, BookOpen, DollarSign,
-  Calendar, Video, Monitor, MapPin, Globe, Award, X, Download, FileText as FileIcon
+  Calendar, Video, Monitor, MapPin, Globe, Award, X, Download, FileText as FileIcon,
+  Maximize, Minimize
 } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { API_ENDPOINTS, BASE as API_URL } from '../../config/apiConfig';
 import { toast } from 'sonner';
+import { convertirAEmbedUrl } from '../../utils/videoUrlConverter';
 
 const CursoDetallePage = ({ curso: cursoProp, onBack, containerVariants }) => {
   const { token, usuario, isDarkMode } = useAuth();
@@ -21,6 +23,8 @@ const CursoDetallePage = ({ curso: cursoProp, onBack, containerVariants }) => {
   const [processingPayment, setProcessingPayment] = useState(false);
   const [leccionSeleccionada, setLeccionSeleccionada] = useState(null);
   const [seccionActiva, setSeccionActiva] = useState(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const iframeRef = useRef(null);
 
   // Cargar datos del curso
   useEffect(() => {
@@ -223,6 +227,41 @@ const CursoDetallePage = ({ curso: cursoProp, onBack, containerVariants }) => {
       'quiz': 'Quiz'
     };
     return nombres[tipo] || tipo;
+  };
+
+  const handleFullscreen = async () => {
+    try {
+      const elem = iframeRef.current;
+      if (!elem) return;
+
+      if (!isFullscreen) {
+        // Entrar a fullscreen
+        if (elem.requestFullscreen) {
+          await elem.requestFullscreen();
+        } else if (elem.webkitRequestFullscreen) {
+          await elem.webkitRequestFullscreen();
+        } else if (elem.mozRequestFullScreen) {
+          await elem.mozRequestFullScreen();
+        } else if (elem.msRequestFullscreen) {
+          await elem.msRequestFullscreen();
+        }
+        setIsFullscreen(true);
+      } else {
+        // Salir de fullscreen
+        if (document.fullscreenElement) {
+          await document.exitFullscreen();
+        } else if (document.webkitFullscreenElement) {
+          await document.webkitExitFullscreen();
+        } else if (document.mozFullScreenElement) {
+          await document.mozCancelFullScreen();
+        } else if (document.msFullscreenElement) {
+          await document.msExitFullscreen();
+        }
+        setIsFullscreen(false);
+      }
+    } catch (error) {
+      console.error('Error al cambiar pantalla completa:', error);
+    }
   };
 
   // Loading state
@@ -681,18 +720,28 @@ const CursoDetallePage = ({ curso: cursoProp, onBack, containerVariants }) => {
               {/* Contenido */}
               <div className={`flex-1 overflow-y-auto p-6 ${isDarkMode ? 'bg-[#0f1419]' : 'bg-white'}`}>
                 {/* Área de reproducción/contenido */}
-                <div className={`mb-6 aspect-video rounded-xl overflow-hidden ${
+                <div className={`mb-6 relative ${
                   isDarkMode ? 'bg-[#1a1c22]' : 'bg-gray-100'
-                } flex items-center justify-center`}>
+                } rounded-xl overflow-hidden flex items-center justify-center`} style={{ aspectRatio: '16/9' }}>
                   {leccionSeleccionada.tipo === 'video' ? (
                     leccionSeleccionada.url ? (
-                      <iframe
-                        src={leccionSeleccionada.url}
-                        title={leccionSeleccionada.titulo}
-                        className="w-full h-full"
-                        allowFullScreen
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      />
+                      <>
+                        <iframe
+                          ref={iframeRef}
+                          src={convertirAEmbedUrl(leccionSeleccionada.url)}
+                          title={leccionSeleccionada.titulo}
+                          className="w-full h-full"
+                          allowFullScreen
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                        />
+                        <button
+                          onClick={handleFullscreen}
+                          className={`absolute top-4 right-4 p-2 rounded-lg bg-black/50 hover:bg-black/70 text-white transition-colors z-10`}
+                          title={isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'}
+                        >
+                          {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
+                        </button>
+                      </>
                     ) : (
                       <div className="text-center">
                         <Video size={48} className={isDarkMode ? 'text-gray-600 mx-auto mb-2' : 'text-gray-400 mx-auto mb-2'} />
@@ -701,11 +750,22 @@ const CursoDetallePage = ({ curso: cursoProp, onBack, containerVariants }) => {
                     )
                   ) : leccionSeleccionada.tipo === 'pdf' ? (
                     leccionSeleccionada.url ? (
-                      <iframe
-                        src={leccionSeleccionada.url}
-                        title={leccionSeleccionada.titulo}
-                        className="w-full h-full"
-                      />
+                      <>
+                        <iframe
+                          ref={iframeRef}
+                          src={convertirAEmbedUrl(leccionSeleccionada.url)}
+                          title={leccionSeleccionada.titulo}
+                          className="w-full h-full"
+                          allow="fullscreen"
+                        />
+                        <button
+                          onClick={handleFullscreen}
+                          className={`absolute top-4 right-4 p-2 rounded-lg bg-black/50 hover:bg-black/70 text-white transition-colors z-10`}
+                          title={isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'}
+                        >
+                          {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
+                        </button>
+                      </>
                     ) : (
                       <div className="text-center">
                         <FileIcon size={48} className={isDarkMode ? 'text-gray-600 mx-auto mb-2' : 'text-gray-400 mx-auto mb-2'} />
