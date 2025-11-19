@@ -107,6 +107,15 @@ export const mockData = {
         location: "Hotel Grand Hyatt, Santiago",
         speakers: ["Expertos Internacionales", "Investigadores Destacados", "Profesionales de Elite"],
         image: "/eventos/congreso-internacional.jpg"
+      },
+      {
+        id: 9,
+        title: "Congreso Mundial de Nutrición en Deportes de Equipo",
+        description: "Evento mundial reuniendo los mejores especialistas en nutrición deportiva. Enfoque en metodologías innovadoras y tendencias futuras en nutrición de alto rendimiento.",
+        date: "15-18 de Marzo, 2025",
+        location: "Centro de Convenciones Internacional, Santiago",
+        speakers: ["Profesores de Universidades de Elite", "Investigadores Renombrados", "Nutricionistas de Selecciones Nacionales"],
+        image: "/eventos/congreso-mundial.jpg"
       }
     ],
     jornadas: [

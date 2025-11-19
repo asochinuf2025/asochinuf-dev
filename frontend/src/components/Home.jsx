@@ -739,22 +739,40 @@ const Home = () => {
               <motion.button
                 key={tab.id}
                 onClick={() => setActiveEventTab(tab.id)}
-                className={`px-6 py-3 rounded-lg font-semibold transition-all duration-500 relative ${
+                className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 relative overflow-hidden ${
                   (activeEventTab || 'ultimos') === tab.id
                     ? 'text-white'
                     : 'text-gray-400 hover:text-gray-300'
                 }`}
                 whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileTap={{ scale: 0.98 }}
               >
+                {/* Background animation for active tab */}
                 {(activeEventTab || 'ultimos') === tab.id && (
                   <motion.div
                     layoutId="eventTabIndicator"
-                    className="absolute inset-0 bg-gradient-to-r from-[#8c5cff]/20 to-[#6a3dcf]/20 rounded-lg border border-[#8c5cff]/50"
-                    transition={{ type: "spring", stiffness: 300 }}
+                    className="absolute inset-0 bg-gradient-to-r from-[#8c5cff]/30 via-[#8c5cff]/20 to-[#6a3dcf]/30 rounded-xl border border-[#8c5cff]/60 shadow-lg shadow-[#8c5cff]/20"
+                    transition={{
+                      type: "spring",
+                      stiffness: 380,
+                      damping: 30,
+                      mass: 1
+                    }}
                   />
                 )}
-                <span className="relative z-10">{tab.label}</span>
+
+                {/* Animated underline effect */}
+                {(activeEventTab || 'ultimos') === tab.id && (
+                  <motion.div
+                    className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#8c5cff] to-transparent"
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: 1 }}
+                    transition={{ duration: 0.5, ease: "easeInOut" }}
+                    style={{ originX: 0.5 }}
+                  />
+                )}
+
+                <span className="relative z-10 capitalize">{tab.label}</span>
               </motion.button>
             ))}
           </div>
@@ -763,10 +781,10 @@ const Home = () => {
           <AnimatePresence mode="wait">
             <motion.div
               key={activeEventTab || 'ultimos'}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.4 }}
+              initial={{ opacity: 0, y: 30, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -30, scale: 0.95 }}
+              transition={{ duration: 0.6, ease: "easeInOut" }}
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
             >
               {mockData.eventos[
