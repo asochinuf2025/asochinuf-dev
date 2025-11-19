@@ -193,6 +193,11 @@ export const crearDetalleCurso = async (req, res) => {
       archivoTipo
     } = req.body;
 
+    // Validar campos requeridos
+    if (!seccionTitulo || !leccionTitulo) {
+      return res.status(400).json({ error: 'Título de sección y lección son requeridos' });
+    }
+
     // Validar que el curso existe
     const cursoResult = await pool.query(
       'SELECT id_curso FROM t_cursos WHERE id_curso = $1',
@@ -202,6 +207,13 @@ export const crearDetalleCurso = async (req, res) => {
     if (cursoResult.rows.length === 0) {
       return res.status(404).json({ error: 'Curso no encontrado' });
     }
+
+    // Convertir strings vacíos a null para campos opcionales
+    const urlContenidoValue = urlContenido && urlContenido.trim() ? urlContenido : null;
+    const seccionDescripcionValue = seccionDescripcion && seccionDescripcion.trim() ? seccionDescripcion : null;
+    const leccionDescripcionValue = leccionDescripcion && leccionDescripcion.trim() ? leccionDescripcion : null;
+    const archivoNombreValue = archivoNombre && archivoNombre.trim() ? archivoNombre : null;
+    const archivoTipoValue = archivoTipo && archivoTipo.trim() ? archivoTipo : null;
 
     // Crear detalle
     const result = await pool.query(
@@ -213,10 +225,10 @@ export const crearDetalleCurso = async (req, res) => {
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
       RETURNING *`,
       [
-        idCurso, seccionNumero, seccionTitulo, seccionDescripcion,
-        ordenSeccion, leccionNumero, leccionTitulo, leccionDescripcion,
-        tipoContenido, urlContenido, duracionMinutos, ordenLeccion,
-        archivoNombre, archivoTipo
+        idCurso, seccionNumero, seccionTitulo, seccionDescripcionValue,
+        ordenSeccion, leccionNumero, leccionTitulo, leccionDescripcionValue,
+        tipoContenido, urlContenidoValue, duracionMinutos, ordenLeccion,
+        archivoNombreValue, archivoTipoValue
       ]
     );
 

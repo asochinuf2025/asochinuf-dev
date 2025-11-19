@@ -208,19 +208,24 @@ const CursoDetalleModal = ({ curso, isOpen, onClose, isDarkMode, onPaymentSucces
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-sm" onClick={onClose}>
+        <>
+          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="min-h-screen py-8 px-4"
-            onClick={(e) => e.stopPropagation()}
-          >
+            onClick={onClose}
+            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+          />
+
+          {/* Modal Container */}
+          <div className="fixed inset-0 z-50 overflow-y-auto py-8 px-4 flex items-start justify-center" onClick={onClose}>
             {/* Contenido Modal */}
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
               className={`mx-auto max-w-6xl rounded-3xl overflow-hidden ${
                 isDarkMode ? 'bg-[#1a1c22]' : 'bg-white'
               }`}
@@ -562,8 +567,8 @@ const CursoDetalleModal = ({ curso, isOpen, onClose, isDarkMode, onPaymentSucces
                 </div>
               )}
             </motion.div>
-          </motion.div>
-        </div>
+          </div>
+        </>
       )}
     </AnimatePresence>
   );
