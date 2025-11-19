@@ -600,7 +600,7 @@ const GestionDetallesCursosSection = ({ containerVariants }) => {
                                 {/* Acciones */}
                                 <div className="flex items-center gap-1">
                                   <button
-                                    onClick={() => handleEditarLeccion(selectedSeccionForLeccion || seccion, leccion)}
+                                    onClick={() => handleEditarLeccion(seccion, leccion)}
                                     className={`p-2 rounded-lg transition ${
                                       isDarkMode
                                         ? 'hover:bg-blue-500/20 text-blue-500'
