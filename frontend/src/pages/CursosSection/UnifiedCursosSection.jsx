@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, GraduationCap, CheckCircle } from 'lucide-react';
+import { BookOpen, GraduationCap, CheckCircle, Settings } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import CursosSection from './CursosSection';
 import MisCursosSection from './MisCursosSection';
@@ -13,7 +13,7 @@ const UnifiedCursosSection = ({ containerVariants }) => {
 
   // Si no es admin, forzar tab de cursos o mis-cursos
   useEffect(() => {
-    if (!isAdmin && activeTab === 'gestion') {
+    if (!isAdmin && (activeTab === 'mantenedor' || activeTab === 'sesiones')) {
       setActiveTab('cursos');
     }
   }, [isAdmin, activeTab]);
@@ -85,9 +85,9 @@ const UnifiedCursosSection = ({ containerVariants }) => {
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            onClick={() => setActiveTab('gestion')}
+            onClick={() => setActiveTab('mantenedor')}
             className={`flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 rounded-t-lg font-semibold text-xs md:text-sm flex-shrink-0 transition-all ${
-              activeTab === 'gestion'
+              activeTab === 'mantenedor'
                 ? isDarkMode
                   ? 'bg-[#8c5cff] text-white'
                   : 'bg-purple-600 text-white'
@@ -98,6 +98,26 @@ const UnifiedCursosSection = ({ containerVariants }) => {
           >
             <BookOpen size={16} className="md:block hidden" />
             <span className="whitespace-nowrap">Mantenedor</span>
+          </motion.button>
+        )}
+
+        {isAdmin && (
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setActiveTab('sesiones')}
+            className={`flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 rounded-t-lg font-semibold text-xs md:text-sm flex-shrink-0 transition-all ${
+              activeTab === 'sesiones'
+                ? isDarkMode
+                  ? 'bg-[#8c5cff] text-white'
+                  : 'bg-purple-600 text-white'
+                : isDarkMode
+                ? 'text-gray-400 hover:text-white hover:bg-[#8c5cff]/20'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-purple-100'
+            }`}
+          >
+            <Settings size={16} className="md:block hidden" />
+            <span className="whitespace-nowrap">Sesiones Cursos</span>
           </motion.button>
         )}
       </div>
@@ -128,9 +148,21 @@ const UnifiedCursosSection = ({ containerVariants }) => {
           </motion.div>
         )}
 
-        {activeTab === 'gestion' && isAdmin && (
+        {activeTab === 'mantenedor' && isAdmin && (
           <motion.div
-            key="gestion"
+            key="mantenedor"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+          >
+            <GestionCursosSection containerVariants={containerVariants} />
+          </motion.div>
+        )}
+
+        {activeTab === 'sesiones' && isAdmin && (
+          <motion.div
+            key="sesiones"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}

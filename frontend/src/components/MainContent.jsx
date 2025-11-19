@@ -10,7 +10,6 @@ const UnifiedExcelSection = lazy(() => import('../pages/ExcelSection/UnifiedExce
 const ConfiguracionSection = lazy(() => import('../pages/ConfiguracionSection/ConfiguracionSection'));
 const GestionUsuariosSection = lazy(() => import('../pages/GestionUsuariosSection/GestionUsuariosSection'));
 const GestionPlantelesSection = lazy(() => import('../pages/GestionPlantelesSection/GestionPlantelesSection'));
-const GestionDetallesCursosSection = lazy(() => import('../pages/GestionDetallesCursosSection/GestionDetallesCursosSection'));
 const MiPerfil = lazy(() => import('../pages/PerfilSection/MiPerfil'));
 const CuotasSection = lazy(() => import('../pages/CuotasSection/CuotasSection'));
 const DocumentosSection = lazy(() => import('../pages/DocumentosSection/DocumentosSection'));
@@ -95,11 +94,6 @@ const MainContent = ({ activeTab }) => {
         {activeTab === 'gestion' && (
           <Suspense fallback={<SectionLoadingFallback />}>
             <GestionUsuariosSection containerVariants={containerVariants} />
-          </Suspense>
-        )}
-        {activeTab === 'gestiondetalles' && (
-          <Suspense fallback={<SectionLoadingFallback />}>
-            <GestionDetallesCursosSection containerVariants={containerVariants} />
           </Suspense>
         )}
       </AnimatePresence>
