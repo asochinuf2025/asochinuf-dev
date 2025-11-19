@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft, Clock, Users, Star, Lock, Play, FileText, CheckCircle,
   ChevronDown, ShoppingCart, AlertCircle, Loader, BookOpen, DollarSign,
-  Calendar, Video, Monitor, MapPin, Globe, Award
+  Calendar, Video, Monitor, MapPin, Globe, Award, X, Download, FileText as FileIcon
 } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
@@ -19,6 +19,8 @@ const CursoDetallePage = ({ curso: cursoProp, onBack, containerVariants }) => {
   const [expandedSecciones, setExpandedSecciones] = useState({});
   const [buyingState, setBuyingState] = useState(false);
   const [processingPayment, setProcessingPayment] = useState(false);
+  const [leccionSeleccionada, setLeccionSeleccionada] = useState(null);
+  const [seccionActiva, setSeccionActiva] = useState(null);
 
   // Cargar datos del curso
   useEffect(() => {
@@ -196,6 +198,31 @@ const CursoDetallePage = ({ curso: cursoProp, onBack, containerVariants }) => {
       default:
         return <BookOpen size={20} className="text-[#8c5cff]" />;
     }
+  };
+
+  const obtenerIconoContenido = (tipo) => {
+    switch (tipo) {
+      case 'video':
+        return <Video size={20} className="text-blue-500" />;
+      case 'pdf':
+        return <FileIcon size={20} className="text-red-500" />;
+      case 'articulo':
+        return <FileText size={20} className="text-green-500" />;
+      case 'quiz':
+        return <CheckCircle size={20} className="text-purple-500" />;
+      default:
+        return <Play size={20} className="text-[#8c5cff]" />;
+    }
+  };
+
+  const obtenerNombreTipoContenido = (tipo) => {
+    const nombres = {
+      'video': 'Video',
+      'pdf': 'Documento PDF',
+      'articulo': 'Artículo',
+      'quiz': 'Quiz'
+    };
+    return nombres[tipo] || tipo;
   };
 
   // Loading state
@@ -381,36 +408,63 @@ const CursoDetallePage = ({ curso: cursoProp, onBack, containerVariants }) => {
                           exit={{ height: 0 }}
                           className={`border-t ${isDarkMode ? 'border-[#8c5cff]/20' : 'border-purple-200'}`}
                         >
-                          <div className="p-4 space-y-3">
+                          <div className="p-4 space-y-2">
                             {seccion.lecciones?.map((leccion, idx) => (
-                              <motion.div
+                              <motion.button
                                 key={leccion.id_leccion || idx}
-                                className={`p-3 rounded flex items-start gap-3 ${
+                                onClick={() => {
+                                  if (tieneAcceso) {
+                                    setLeccionSeleccionada(leccion);
+                                    setSeccionActiva(seccion.numero);
+                                  }
+                                }}
+                                disabled={!tieneAcceso}
+                                className={`w-full p-4 rounded-lg flex items-start gap-3 cursor-pointer text-left transition-all duration-200 ${
                                   tieneAcceso
                                     ? isDarkMode
-                                      ? 'bg-[#1a1c22] hover:bg-[#252730]'
-                                      : 'bg-gray-50 hover:bg-gray-100'
+                                      ? 'bg-[#1a1c22] hover:bg-[#252730] border border-transparent hover:border-[#8c5cff]/30'
+                                      : 'bg-gray-50 hover:bg-gray-100 border border-transparent hover:border-purple-300'
                                     : isDarkMode
-                                    ? 'bg-[#1a1c22]/50 opacity-50'
-                                    : 'bg-gray-50/50 opacity-50'
-                                } transition-colors`}
+                                    ? 'bg-[#1a1c22]/50 opacity-50 cursor-not-allowed border border-transparent'
+                                    : 'bg-gray-50/50 opacity-50 cursor-not-allowed border border-transparent'
+                                } ${leccionSeleccionada?.id_leccion === leccion.id_leccion && tieneAcceso ? isDarkMode ? 'bg-[#8c5cff]/20 border-[#8c5cff]/50' : 'bg-purple-100 border-purple-300' : ''}`}
                               >
-                                {tieneAcceso ? (
-                                  <Play size={16} className="text-[#8c5cff] flex-shrink-0 mt-1" />
-                                ) : (
-                                  <Lock size={16} className={`${isDarkMode ? 'text-gray-500' : 'text-gray-400'} flex-shrink-0 mt-1`} />
-                                )}
+                                <div className="flex-shrink-0 mt-1">
+                                  {tieneAcceso ? (
+                                    <>
+                                      {leccion.tipo_contenido === 'video' && <Video size={20} className="text-blue-500" />}
+                                      {leccion.tipo_contenido === 'pdf' && <FileIcon size={20} className="text-red-500" />}
+                                      {leccion.tipo_contenido === 'articulo' && <FileText size={20} className="text-green-500" />}
+                                      {leccion.tipo_contenido === 'quiz' && <CheckCircle size={20} className="text-purple-500" />}
+                                      {!['video', 'pdf', 'articulo', 'quiz'].includes(leccion.tipo_contenido) && <Play size={20} className="text-[#8c5cff]" />}
+                                    </>
+                                  ) : (
+                                    <Lock size={20} className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
+                                  )}
+                                </div>
                                 <div className="flex-1 min-w-0">
-                                  <p className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'} break-words`}>
+                                  <p className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'} break-words`}>
                                     {leccion.titulo}
                                   </p>
-                                  {leccion.duracionMinutos && (
-                                    <p className={`text-sm ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                                  {tieneAcceso && (
+                                    <div className="flex items-center gap-2 mt-1">
+                                      <span className={`text-xs font-medium px-2 py-1 rounded ${isDarkMode ? 'bg-[#8c5cff]/20 text-[#8c5cff]' : 'bg-purple-100 text-purple-700'}`}>
+                                        {obtenerNombreTipoContenido(leccion.tipo_contenido)}
+                                      </span>
+                                      {leccion.duracionMinutos && (
+                                        <span className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                                          {leccion.duracionMinutos} min
+                                        </span>
+                                      )}
+                                    </div>
+                                  )}
+                                  {!tieneAcceso && leccion.duracionMinutos && (
+                                    <p className={`text-sm mt-1 ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>
                                       {leccion.duracionMinutos} min
                                     </p>
                                   )}
                                 </div>
-                              </motion.div>
+                              </motion.button>
                             ))}
                           </div>
                         </motion.div>
@@ -575,6 +629,156 @@ const CursoDetallePage = ({ curso: cursoProp, onBack, containerVariants }) => {
           )}
         </div>
       </div>
+
+      {/* Modal de Lección */}
+      <AnimatePresence>
+        {leccionSeleccionada && tieneAcceso && (
+          <motion.div
+            key="leccion-modal"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+            onClick={() => setLeccionSeleccionada(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className={`w-full max-w-4xl max-h-[90vh] rounded-2xl overflow-hidden flex flex-col ${
+                isDarkMode ? 'bg-[#0f1419]' : 'bg-white'
+              }`}
+            >
+              {/* Header del Modal */}
+              <div className={`flex items-center justify-between p-6 border-b ${
+                isDarkMode ? 'border-[#8c5cff]/20 bg-[#1a1c22]' : 'border-purple-200 bg-gray-50'
+              }`}>
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  {leccionSeleccionada.tipo_contenido === 'video' && <Video size={24} className="text-blue-500 flex-shrink-0" />}
+                  {leccionSeleccionada.tipo_contenido === 'pdf' && <FileIcon size={24} className="text-red-500 flex-shrink-0" />}
+                  {leccionSeleccionada.tipo_contenido === 'articulo' && <FileText size={24} className="text-green-500 flex-shrink-0" />}
+                  {leccionSeleccionada.tipo_contenido === 'quiz' && <CheckCircle size={24} className="text-purple-500 flex-shrink-0" />}
+                  <div className="min-w-0">
+                    <h2 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'} truncate`}>
+                      {leccionSeleccionada.titulo}
+                    </h2>
+                    <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      {obtenerNombreTipoContenido(leccionSeleccionada.tipo_contenido)}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setLeccionSeleccionada(null)}
+                  className={`p-2 rounded-lg transition-colors flex-shrink-0 ${
+                    isDarkMode ? 'hover:bg-[#252730]' : 'hover:bg-gray-100'
+                  }`}
+                >
+                  <X size={24} className={isDarkMode ? 'text-gray-400' : 'text-gray-600'} />
+                </button>
+              </div>
+
+              {/* Contenido */}
+              <div className={`flex-1 overflow-y-auto p-6 ${isDarkMode ? 'bg-[#0f1419]' : 'bg-white'}`}>
+                {/* Área de reproducción/contenido */}
+                <div className={`mb-6 aspect-video rounded-xl overflow-hidden ${
+                  isDarkMode ? 'bg-[#1a1c22]' : 'bg-gray-100'
+                } flex items-center justify-center`}>
+                  {leccionSeleccionada.tipo_contenido === 'video' ? (
+                    leccionSeleccionada.url_contenido ? (
+                      <iframe
+                        src={leccionSeleccionada.url_contenido}
+                        title={leccionSeleccionada.titulo}
+                        className="w-full h-full"
+                        allowFullScreen
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      />
+                    ) : (
+                      <div className="text-center">
+                        <Video size={48} className={isDarkMode ? 'text-gray-600 mx-auto mb-2' : 'text-gray-400 mx-auto mb-2'} />
+                        <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Video no disponible</p>
+                      </div>
+                    )
+                  ) : leccionSeleccionada.tipo_contenido === 'pdf' ? (
+                    leccionSeleccionada.url_contenido ? (
+                      <iframe
+                        src={leccionSeleccionada.url_contenido}
+                        title={leccionSeleccionada.titulo}
+                        className="w-full h-full"
+                      />
+                    ) : (
+                      <div className="text-center">
+                        <FileIcon size={48} className={isDarkMode ? 'text-gray-600 mx-auto mb-2' : 'text-gray-400 mx-auto mb-2'} />
+                        <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>PDF no disponible</p>
+                      </div>
+                    )
+                  ) : (
+                    <div className="text-center">
+                      <FileText size={48} className={isDarkMode ? 'text-gray-600 mx-auto mb-2' : 'text-gray-400 mx-auto mb-2'} />
+                      <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Contenido cargándose...</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Descripción */}
+                {leccionSeleccionada.leccion_descripcion && (
+                  <div className="mb-6">
+                    <h3 className={`text-lg font-semibold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                      Descripción
+                    </h3>
+                    <p className={`leading-relaxed ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      {leccionSeleccionada.leccion_descripcion}
+                    </p>
+                  </div>
+                )}
+
+                {/* Detalles */}
+                <div className={`grid grid-cols-2 gap-4 p-4 rounded-lg ${
+                  isDarkMode ? 'bg-[#1a1c22]' : 'bg-gray-50'
+                }`}>
+                  <div>
+                    <p className={`text-sm font-semibold ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      Tipo de contenido
+                    </p>
+                    <p className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                      {obtenerNombreTipoContenido(leccionSeleccionada.tipo_contenido)}
+                    </p>
+                  </div>
+                  {leccionSeleccionada.duracion_minutos && (
+                    <div>
+                      <p className={`text-sm font-semibold ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                        Duración
+                      </p>
+                      <p className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                        {leccionSeleccionada.duracion_minutos} minutos
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Footer del Modal */}
+              <div className={`flex items-center justify-between p-6 border-t ${
+                isDarkMode ? 'border-[#8c5cff]/20 bg-[#1a1c22]' : 'border-purple-200 bg-gray-50'
+              }`}>
+                <div className="flex-1" />
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setLeccionSeleccionada(null)}
+                  className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+                    isDarkMode
+                      ? 'bg-[#8c5cff] text-white hover:bg-[#7a4de6]'
+                      : 'bg-purple-600 text-white hover:bg-purple-700'
+                  }`}
+                >
+                  Cerrar
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };
