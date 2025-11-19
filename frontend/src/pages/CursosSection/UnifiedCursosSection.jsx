@@ -133,7 +133,11 @@ const UnifiedCursosSection = ({ containerVariants, onVerDetalleCurso }) => {
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
           >
-            <CursosSection containerVariants={containerVariants} onVerDetalleCurso={onVerDetalleCurso} />
+            <CursosSection
+              containerVariants={containerVariants}
+              onVerDetalleCurso={onVerDetalleCurso}
+              onIrAMisCursos={() => setActiveTab('mis-cursos')}
+            />
           </motion.div>
         )}
 

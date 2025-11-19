@@ -13,24 +13,25 @@ import {
   MapPin,
   Monitor,
   RefreshCw,
-  Filter,
   X,
   UserPlus,
   CheckCircle,
-  Loader
+  Loader,
+  Search,
+  ArrowRight
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { API_ENDPOINTS, BASE as API_URL } from '../../config/apiConfig';
 import axios from 'axios';
 import { toast } from 'sonner';
 
-const CursosSection = ({ containerVariants, onVerDetalleCurso }) => {
+const CursosSection = ({ containerVariants, onVerDetalleCurso, onIrAMisCursos }) => {
   const { isDarkMode, token } = useAuth();
   const [cursos, setCursos] = useState([]);
   const [filteredCursos, setFilteredCursos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [filtroNivel, setFiltroNivel] = useState('todos');
+  const [searchNombre, setSearchNombre] = useState('');
   const [inscripciones, setInscripciones] = useState({});  // { id_curso: true/false }
   const [inscribiendo, setInscribiendo] = useState({});    // { id_curso: true/false }
 
@@ -39,16 +40,17 @@ const CursosSection = ({ containerVariants, onVerDetalleCurso }) => {
     obtenerCursos();
   }, []);
 
-  // Filtrar cursos cuando cambia el filtro (solo mostrar cursos activos)
+  // Filtrar cursos por búsqueda y nombre (solo mostrar cursos activos)
   useEffect(() => {
     const cursosActivos = cursos.filter(curso => curso.estado === 'activo');
 
-    if (filtroNivel === 'todos') {
-      setFilteredCursos(cursosActivos);
-    } else {
-      setFilteredCursos(cursosActivos.filter(curso => curso.nivel === filtroNivel));
-    }
-  }, [filtroNivel, cursos]);
+    // Filtrar por nombre
+    const cursosFiltrrados = cursosActivos.filter(curso =>
+      curso.nombre.toLowerCase().includes(searchNombre.toLowerCase())
+    );
+
+    setFilteredCursos(cursosFiltrrados);
+  }, [searchNombre, cursos]);
 
   const obtenerCursos = async () => {
     try {
@@ -240,34 +242,26 @@ const CursosSection = ({ containerVariants, onVerDetalleCurso }) => {
         animate="visible"
         exit="exit"
       >
-        {/* Filtros */}
-        <div className="flex flex-wrap gap-3 mb-6">
-          {['todos', 'básico', 'intermedio', 'avanzado'].map((nivel) => (
+        {/* Buscador */}
+        <div className="relative mb-6 max-w-md">
+          <Search size={20} className={`absolute left-3 top-1/2 -translate-y-1/2 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`} />
+          <input
+            type="text"
+            placeholder="Buscar por nombre de curso..."
+            value={searchNombre}
+            onChange={(e) => setSearchNombre(e.target.value)}
+            className={`w-full pl-10 pr-4 py-2 rounded-lg font-medium transition-all ${
+              isDarkMode
+                ? 'bg-[#1a1c22]/50 text-white placeholder-gray-500 border border-[#8c5cff]/20 focus:border-[#8c5cff]/50 focus:outline-none'
+                : 'bg-white text-gray-900 placeholder-gray-400 border border-gray-200 focus:border-purple-400 focus:outline-none'
+            }`}
+          />
+          {searchNombre && (
             <button
-              key={nivel}
-              onClick={() => setFiltroNivel(nivel)}
-              className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                filtroNivel === nivel
-                  ? 'bg-[#8c5cff] text-white shadow-lg shadow-[#8c5cff]/30'
-                  : isDarkMode
-                  ? 'bg-[#1a1c22]/50 text-gray-400 hover:bg-[#1a1c22] border border-[#8c5cff]/20'
-                  : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
-              }`}
+              onClick={() => setSearchNombre('')}
+              className={`absolute right-3 top-1/2 -translate-y-1/2 ${isDarkMode ? 'text-gray-500 hover:text-gray-400' : 'text-gray-400 hover:text-gray-600'}`}
             >
-              {nivel === 'todos' ? 'Todos' : nivel.charAt(0).toUpperCase() + nivel.slice(1)}
-            </button>
-          ))}
-          {filtroNivel !== 'todos' && (
-            <button
-              onClick={() => setFiltroNivel('todos')}
-              className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                isDarkMode
-                  ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
-                  : 'bg-red-50 text-red-600 hover:bg-red-100'
-              }`}
-            >
-              <X size={16} className="inline mr-1" />
-              Limpiar filtro
+              <X size={16} />
             </button>
           )}
         </div>
@@ -279,16 +273,14 @@ const CursosSection = ({ containerVariants, onVerDetalleCurso }) => {
         >
           <BookOpen size={48} className="mx-auto text-[#8c5cff] mb-4" />
           <p className={`text-lg ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-            {filtroNivel === 'todos'
-              ? 'No hay cursos disponibles en este momento.'
-              : `No hay cursos de nivel ${filtroNivel}.`}
+            No hay cursos que coincidan con tu búsqueda.
           </p>
-          {filtroNivel !== 'todos' && (
+          {searchNombre && (
             <button
-              onClick={() => setFiltroNivel('todos')}
+              onClick={() => setSearchNombre('')}
               className="mt-4 px-6 py-2 bg-[#8c5cff] text-white rounded-lg hover:bg-[#7a4de6] transition-colors"
             >
-              Ver todos los cursos
+              Limpiar búsqueda
             </button>
           )}
         </div>
@@ -305,8 +297,33 @@ const CursosSection = ({ containerVariants, onVerDetalleCurso }) => {
       animate="visible"
       exit="exit"
     >
-      {/* Counter */}
-      <div className="flex items-center justify-end mb-6">
+      {/* Buscador y Counter */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        {/* Buscador */}
+        <div className="relative flex-1 max-w-md">
+          <Search size={20} className={`absolute left-3 top-1/2 -translate-y-1/2 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`} />
+          <input
+            type="text"
+            placeholder="Buscar por nombre..."
+            value={searchNombre}
+            onChange={(e) => setSearchNombre(e.target.value)}
+            className={`w-full pl-10 pr-4 py-2 rounded-lg font-medium transition-all ${
+              isDarkMode
+                ? 'bg-[#1a1c22]/50 text-white placeholder-gray-500 border border-[#8c5cff]/20 focus:border-[#8c5cff]/50 focus:outline-none'
+                : 'bg-white text-gray-900 placeholder-gray-400 border border-gray-200 focus:border-purple-400 focus:outline-none'
+            }`}
+          />
+          {searchNombre && (
+            <button
+              onClick={() => setSearchNombre('')}
+              className={`absolute right-3 top-1/2 -translate-y-1/2 ${isDarkMode ? 'text-gray-500 hover:text-gray-400' : 'text-gray-400 hover:text-gray-600'}`}
+            >
+              <X size={16} />
+            </button>
+          )}
+        </div>
+
+        {/* Counter */}
         <div className={`px-4 py-2 rounded-lg ${
           isDarkMode ? 'bg-[#1a1c22]/50 border border-[#8c5cff]/20' : 'bg-white border border-purple-200'
         }`}>
@@ -314,26 +331,6 @@ const CursosSection = ({ containerVariants, onVerDetalleCurso }) => {
             {filteredCursos.length} {filteredCursos.length === 1 ? 'curso' : 'cursos'}
           </span>
         </div>
-      </div>
-
-      {/* Filtros */}
-      <div className="flex flex-wrap items-center gap-3 mb-6">
-        <Filter size={20} className={isDarkMode ? 'text-gray-400' : 'text-gray-600'} />
-        {['todos', 'básico', 'intermedio', 'avanzado'].map((nivel) => (
-          <button
-            key={nivel}
-            onClick={() => setFiltroNivel(nivel)}
-            className={`px-4 py-2 rounded-lg font-medium transition-all ${
-              filtroNivel === nivel
-                ? 'bg-[#8c5cff] text-white shadow-lg shadow-[#8c5cff]/30'
-                : isDarkMode
-                ? 'bg-[#1a1c22]/50 text-gray-400 hover:bg-[#1a1c22] border border-[#8c5cff]/20'
-                : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
-            }`}
-          >
-            {nivel === 'todos' ? 'Todos' : nivel.charAt(0).toUpperCase() + nivel.slice(1)}
-          </button>
-        ))}
       </div>
 
       {/* Grid de Cursos */}
@@ -358,7 +355,11 @@ const CursosSection = ({ containerVariants, onVerDetalleCurso }) => {
                     : 'bg-white border-purple-200 hover:border-purple-400'
                 } border rounded-2xl overflow-hidden backdrop-blur-xl hover:shadow-xl hover:shadow-[#8c5cff]/10 transition-all duration-300`}
                 onClick={() => {
-                  onVerDetalleCurso(curso);
+                  if (inscripciones[curso.id_curso] && onIrAMisCursos) {
+                    onIrAMisCursos();
+                  } else {
+                    onVerDetalleCurso(curso);
+                  }
                 }}
               >
                 {/* Imagen/Gradient Header */}
@@ -469,20 +470,27 @@ const CursosSection = ({ containerVariants, onVerDetalleCurso }) => {
                     </div>
 
                     {inscripciones[curso.id_curso] ? (
-                      <motion.div
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        className="flex items-center gap-2 px-4 py-2 bg-green-500/20 text-green-500 rounded-lg text-sm font-medium"
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="flex items-center gap-2 px-4 py-2 bg-green-500/20 text-green-500 rounded-lg hover:bg-green-500/30 transition-colors text-sm font-medium"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (onIrAMisCursos) {
+                            onIrAMisCursos();
+                          }
+                        }}
                       >
-                        <CheckCircle size={16} />
-                        Inscrito
-                      </motion.div>
+                        <ArrowRight size={16} />
+                        Ir a mi curso
+                      </motion.button>
                     ) : (
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         className="flex items-center gap-2 px-4 py-2 bg-[#8c5cff] text-white rounded-lg hover:bg-[#7a4de6] transition-colors text-sm font-medium"
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           onVerDetalleCurso(curso);
                         }}
                       >
