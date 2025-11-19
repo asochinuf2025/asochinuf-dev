@@ -4,22 +4,8 @@ import axios from 'axios';
 const MP_ACCESS_TOKEN = process.env.MERCADO_PAGO_ACCESS_TOKEN;
 const MP_API_URL = 'https://api.mercadopago.com';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:5001';
 
-// Construir la URL del webhook basándose en BACKEND_URL
-const getWebhookUrl = () => {
-  if (BACKEND_URL.includes('localhost') || BACKEND_URL.includes('127.0.0.1')) {
-    // Desarrollo: usar localhost:5001
-    return 'http://localhost:5001/api/payments/webhook';
-  }
-  // Producción: usar el dominio del backend
-  return `${BACKEND_URL}/api/payments/webhook`;
-};
-
-const WEBHOOK_URL = getWebhookUrl();
-console.log('🔔 WEBHOOK_URL configurada como:', WEBHOOK_URL);
 console.log('📱 FRONTEND_URL:', FRONTEND_URL);
-console.log('🖥️ BACKEND_URL:', BACKEND_URL);
 
 const mpClient = axios.create({
   baseURL: MP_API_URL,
@@ -68,20 +54,9 @@ export const crearPreferenciaCurso = async (curso, usuario, montoFinal) => {
       statement_descriptor: 'ASOCHINUF'
     };
 
-    // Solo agregar auto_return y notification_url si tenemos una URL de webhook válida en producción
-    const isLocalhost = FRONTEND_URL.includes('localhost') || FRONTEND_URL.includes('127.0.0.1');
-    const hasValidBackendUrl = BACKEND_URL && !BACKEND_URL.includes('localhost') && !BACKEND_URL.includes('127.0.0.1');
-
-    if (!isLocalhost && hasValidBackendUrl) {
-      preference.auto_return = 'approved';
-      preference.notification_url = WEBHOOK_URL;
-      console.log('✅ Webhook configurado:', WEBHOOK_URL);
-    } else {
-      preference.auto_return = 'approved'; // Permitir auto-retorno en todos los casos
-      console.warn('⚠️ Webhook deshabilitado (localhost o BACKEND_URL no configurado).');
-      console.warn('   → El usuario será redirigido automáticamente después del pago.');
-      console.warn('   → La inscripción se verifica cuando el usuario regresa al sitio.');
-    }
+    // Siempre habilitar auto_return para redirigir al usuario después del pago
+    // La verificación de acceso se hace en el frontend cuando el usuario regresa
+    preference.auto_return = 'approved';
 
     console.log('📤 Enviando preferencia de curso a Mercado Pago:', JSON.stringify(preference, null, 2));
 
@@ -153,19 +128,8 @@ export const crearPreferenciaPago = async (cuota, usuario) => {
       statement_descriptor: 'ASOCHINUF'
     };
 
-    // Solo agregar notification_url si tenemos una URL de webhook válida en producción
-    const isLocalhost = FRONTEND_URL.includes('localhost') || FRONTEND_URL.includes('127.0.0.1');
-    const hasValidBackendUrl = BACKEND_URL && !BACKEND_URL.includes('localhost') && !BACKEND_URL.includes('127.0.0.1');
-
-    preference.auto_return = 'approved'; // Siempre permitir auto-retorno
-
-    if (!isLocalhost && hasValidBackendUrl) {
-      preference.notification_url = WEBHOOK_URL;
-      console.log('✅ Webhook configurado para cuota:', WEBHOOK_URL);
-    } else {
-      console.warn('⚠️ Webhook deshabilitado para cuota (localhost o BACKEND_URL no configurado).');
-      console.warn('   → El usuario será redirigido automáticamente después del pago.');
-    }
+    // Siempre habilitar auto_return para redirigir al usuario después del pago
+    preference.auto_return = 'approved';
 
     console.log('📤 Enviando preferencia a Mercado Pago:', JSON.stringify(preference, null, 2));
 
