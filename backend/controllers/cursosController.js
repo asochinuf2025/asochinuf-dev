@@ -191,14 +191,31 @@ export const updateCurso = async (req, res) => {
       'imagen_portada', 'video_promocional', 'materiales', 'url_curso', 'estado'
     ];
 
-    const fields = Object.keys(updates).filter(key => allowedFields.includes(key));
+    // Filtrar campos válidos y no vacíos
+    const fields = Object.keys(updates)
+      .filter(key => {
+        if (!allowedFields.includes(key)) return false;
+        const value = updates[key];
+        // Excluir campos vacíos (string vacío, undefined)
+        // Pero permitir 0, false, null explícito
+        if (value === undefined) return false;
+        if (typeof value === 'string' && value === '') return false;
+        return true;
+      });
 
     if (fields.length === 0) {
       return res.status(400).json({ error: 'No hay campos válidos para actualizar' });
     }
 
     const setClause = fields.map((field, i) => `${field} = $${i + 1}`).join(', ');
-    const values = fields.map(field => updates[field]);
+    const values = fields.map(field => {
+      const value = updates[field];
+      // Convertir string vacío a NULL para ciertos campos
+      if (typeof value === 'string' && value === '') {
+        return null;
+      }
+      return value;
+    });
     values.push(id);
 
     const result = await pool.query(
