@@ -27,6 +27,86 @@ const mpClient = axios.create({
 });
 
 /**
+ * Crear preferencia de pago para un curso
+ * Retorna la URL de Mercado Pago donde redirigir al usuario
+ */
+export const crearPreferenciaCurso = async (curso, usuario) => {
+  try {
+    // Asegurar que el monto sea válido (mínimo 50 CLP)
+    const monto = Math.max(50, parseFloat(curso.precio));
+
+    const preference = {
+      items: [
+        {
+          title: `Curso: ${curso.nombre}`,
+          description: `Acceso completo al curso de ${curso.nombre} - ${usuario.nombre} ${usuario.apellido}`,
+          quantity: 1,
+          unit_price: monto,
+          currency_id: 'CLP'
+        }
+      ],
+      payer: {
+        name: usuario.nombre,
+        surname: usuario.apellido || '',
+        email: usuario.email
+      },
+      back_urls: {
+        success: `${FRONTEND_URL}/dashboard?tab=cursos&pago=success&curso=${curso.id_curso}`,
+        failure: `${FRONTEND_URL}/dashboard?tab=cursos&pago=failure&curso=${curso.id_curso}`,
+        pending: `${FRONTEND_URL}/dashboard?tab=cursos&pago=pending&curso=${curso.id_curso}`
+      },
+      external_reference: `curso-${curso.id_curso}`,
+      statement_descriptor: 'ASOCHINUF'
+    };
+
+    // Solo agregar auto_return y notification_url si NO estamos en localhost
+    const isLocalhost = FRONTEND_URL.includes('localhost') || FRONTEND_URL.includes('127.0.0.1');
+
+    if (!isLocalhost) {
+      preference.auto_return = 'approved';
+      preference.notification_url = WEBHOOK_URL;
+    } else {
+      console.warn('⚠️ Modo desarrollo (localhost): omitiendo auto_return y notification_url.');
+      console.warn('   → El usuario deberá hacer clic en "Volver al sitio" después del pago.');
+    }
+
+    console.log('📤 Enviando preferencia de curso a Mercado Pago:', JSON.stringify(preference, null, 2));
+
+    // Hacer llamada a API de Mercado Pago
+    const response = await mpClient.post('/checkout/preferences', preference);
+
+    console.log('✅ Preferencia de curso creada exitosamente:', response.data.id);
+    console.log('🔗 Checkout URL (init_point):', response.data.init_point);
+
+    return {
+      id: response.data.id,
+      init_point: response.data.init_point,
+      sandbox_init_point: response.data.sandbox_init_point,
+      cursoId: curso.id_curso,
+      montoTotal: parseFloat(curso.precio)
+    };
+  } catch (error) {
+    console.error('❌ Error al crear preferencia de curso:');
+    console.error('Status:', error.response?.status);
+    console.error('Datos del error:', JSON.stringify(error.response?.data, null, 2));
+    console.error('Mensaje:', error.message);
+    // En desarrollo/testing, retornar un objeto simulado
+    if (!MP_ACCESS_TOKEN || MP_ACCESS_TOKEN === 'undefined') {
+      console.warn('⚠️ MERCADO_PAGO_ACCESS_TOKEN no configurado. Retornando preferencia simulada para testing.');
+      return {
+        id: `pref_test_${Date.now()}`,
+        init_point: `${FRONTEND_URL}/payment-processing?curso=${curso.id_curso}&test=true`,
+        sandbox_init_point: `${FRONTEND_URL}/payment-processing?curso=${curso.id_curso}&test=true`,
+        cursoId: curso.id_curso,
+        montoTotal: parseFloat(curso.precio),
+        isTestMode: true
+      };
+    }
+    throw error;
+  }
+};
+
+/**
  * Crear preferencia de pago para una cuota
  * Retorna la URL de Mercado Pago donde redirigir al usuario
  */
@@ -130,5 +210,6 @@ export const verificarEstadoPago = async (paymentId) => {
 
 export default {
   crearPreferenciaPago,
+  crearPreferenciaCurso,
   verificarEstadoPago
 };

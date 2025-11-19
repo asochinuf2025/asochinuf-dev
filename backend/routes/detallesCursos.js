@@ -7,7 +7,8 @@ import {
   eliminarDetalleCurso,
   verificarAccesoCurso,
   otorgarAccesoCurso,
-  obtenerCursosAccesibles
+  obtenerCursosAccesibles,
+  iniciarPagoCurso
 } from '../controllers/detallesCursosController.js';
 import { verificarToken, verificarAdmin } from '../middleware/auth.js';
 
@@ -66,5 +67,11 @@ router.delete('/:idCurso/:detalleId', verificarToken, verificarAdmin, eliminarDe
  * Otorgar acceso al curso (después del pago)
  */
 router.post('/acceso/otorgar', verificarToken, otorgarAccesoCurso);
+
+/**
+ * POST /api/detalles-cursos/:idCurso/pago
+ * Iniciar pago para compra de curso (Mercado Pago)
+ */
+router.post('/:idCurso/pago', verificarToken, iniciarPagoCurso);
 
 export default router;

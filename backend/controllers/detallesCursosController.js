@@ -1,4 +1,5 @@
 import pool from '../config/database.js';
+import { crearPreferenciaCurso } from '../services/mercadoPagoService.js';
 
 /**
  * Controller para gestionar detalles de cursos
@@ -419,5 +420,64 @@ export const obtenerCursosAccesibles = async (req, res) => {
   } catch (error) {
     console.error('Error al obtener cursos accesibles:', error);
     res.status(500).json({ error: 'Error al obtener cursos accesibles' });
+  }
+};
+
+/**
+ * Iniciar pago para compra de curso (Mercado Pago)
+ */
+export const iniciarPagoCurso = async (req, res) => {
+  try {
+    const { idCurso } = req.params;
+    const usuarioId = req.usuario?.id;
+
+    if (!usuarioId) {
+      return res.status(401).json({ error: 'No autenticado' });
+    }
+
+    // Obtener datos del curso
+    const cursoResult = await pool.query(
+      'SELECT * FROM t_cursos WHERE id_curso = $1',
+      [idCurso]
+    );
+
+    if (cursoResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Curso no encontrado' });
+    }
+
+    const curso = cursoResult.rows[0];
+
+    // Verificar si el usuario ya tiene acceso
+    const accesoResult = await pool.query(
+      'SELECT * FROM t_acceso_cursos WHERE usuario_id = $1 AND id_curso = $2 AND estado = $3',
+      [usuarioId, idCurso, 'activo']
+    );
+
+    if (accesoResult.rows.length > 0) {
+      return res.status(400).json({ error: 'Ya tienes acceso a este curso' });
+    }
+
+    // Obtener datos del usuario
+    const usuarioResult = await pool.query(
+      'SELECT id, nombre, apellido, email FROM t_usuarios WHERE id = $1',
+      [usuarioId]
+    );
+
+    if (usuarioResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    const usuario = usuarioResult.rows[0];
+
+    // Crear preferencia de pago en Mercado Pago
+    const preferencia = await crearPreferenciaCurso(curso, usuario);
+
+    res.json({
+      mensaje: 'Preferencia de pago creada',
+      data: preferencia
+    });
+  } catch (error) {
+    console.error('Error al iniciar pago de curso:', error);
+    res.status(500).json({ error: 'Error al iniciar pago del curso' });
   }
 };

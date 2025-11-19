@@ -16,6 +16,7 @@ const CursoDetalleModal = ({ curso, isOpen, onClose, isDarkMode }) => {
   const [tieneAcceso, setTieneAcceso] = useState(false);
   const [expandedSecciones, setExpandedSecciones] = useState({});
   const [activeTab, setActiveTab] = useState('contenido');
+  const [buyingState, setBuyingState] = useState(false);
 
   useEffect(() => {
     if (isOpen && curso) {
@@ -56,15 +57,41 @@ const CursoDetalleModal = ({ curso, isOpen, onClose, isDarkMode }) => {
     }));
   };
 
-  const handleComprar = () => {
+  const handleComprar = async () => {
     if (!token) {
       toast.error('Debes iniciar sesión para comprar');
       return;
     }
 
-    // Aquí se integraría con Mercado Pago
-    toast.info('Redirigiendo a Mercado Pago...');
-    // window.location.href = `/checkout/${curso.id_curso}`;
+    setBuyingState(true);
+
+    try {
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+
+      const response = await axios.post(
+        `${API_URL}/api/detalles-cursos/${curso.id_curso}/pago`,
+        {},
+        config
+      );
+
+      if (response.data?.data) {
+        const checkoutUrl = response.data.data.sandbox_init_point || response.data.data.init_point;
+
+        if (!checkoutUrl) {
+          toast.error('No se pudo obtener la URL de pago');
+          setBuyingState(false);
+          return;
+        }
+
+        // Redirigir a Mercado Pago
+        window.location.href = checkoutUrl;
+      }
+    } catch (error) {
+      console.error('Error al iniciar pago:', error);
+      const errorMsg = error.response?.data?.error || 'Error al iniciar el pago. Por favor intenta de nuevo.';
+      toast.error(errorMsg);
+      setBuyingState(false);
+    }
   };
 
   const getIconoTipo = (tipo) => {
@@ -420,10 +447,20 @@ const CursoDetalleModal = ({ curso, isOpen, onClose, isDarkMode }) => {
                   </div>
                   <button
                     onClick={handleComprar}
-                    className="px-8 py-3 bg-[#8c5cff] hover:bg-[#7a4de6] text-white rounded-lg font-bold flex items-center gap-2 transition"
+                    disabled={buyingState}
+                    className="px-8 py-3 bg-[#8c5cff] hover:bg-[#7a4de6] text-white rounded-lg font-bold flex items-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <ShoppingCart size={20} />
-                    Comprar ahora
+                    {buyingState ? (
+                      <>
+                        <Loader size={20} className="animate-spin" />
+                        Procesando...
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingCart size={20} />
+                        Comprar ahora
+                      </>
+                    )}
                   </button>
                 </div>
               )}
