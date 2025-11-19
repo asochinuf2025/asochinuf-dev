@@ -58,6 +58,7 @@ const Home = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [showMemberDescription, setShowMemberDescription] = useState(null);
   const [activeEventTab, setActiveEventTab] = useState('ultimos');
+  const [isAutoRotating, setIsAutoRotating] = useState(true);
   const { scrollYProgress } = useScroll();
 
   // Optimizar parallax - desactivar en móvil para mejor rendimiento
@@ -76,6 +77,21 @@ const Home = () => {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // Auto-rotate event tabs
+  useEffect(() => {
+    if (!isAutoRotating) return;
+
+    const tabSequence = ['ultimos', 'congresos', 'jornadas'];
+    let currentIndex = 0;
+
+    const interval = setInterval(() => {
+      currentIndex = (currentIndex + 1) % tabSequence.length;
+      setActiveEventTab(tabSequence[currentIndex]);
+    }, 6000); // Cambiar cada 6 segundos
+
+    return () => clearInterval(interval);
+  }, [isAutoRotating]);
 
   // Text rotation is now handled by TypewriterText component
 
@@ -738,7 +754,10 @@ const Home = () => {
             ].map((tab) => (
               <motion.button
                 key={tab.id}
-                onClick={() => setActiveEventTab(tab.id)}
+                onClick={() => {
+                  setActiveEventTab(tab.id);
+                  setIsAutoRotating(false);
+                }}
                 className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 relative overflow-hidden ${
                   (activeEventTab || 'ultimos') === tab.id
                     ? 'text-white'
