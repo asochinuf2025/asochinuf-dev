@@ -191,7 +191,7 @@ export const webhookMercadoPago = async (req, res) => {
         // Crear nuevo acceso
         await pool.query(
           `INSERT INTO t_acceso_cursos (usuario_id, id_curso, tipo_acceso, precio_pagado, referencia_pago, estado)
-           VALUES ($1, $2, 'pago', $3, $4, 'activo')`,
+           VALUES ($1, $2, 'comprado', $3, $4, 'activo')`,
           [usuarioId, idCurso, paymentStatus.amount, paymentId]
         );
         console.log(`✅ Acceso al curso ${idCurso} otorgado a usuario ${usuarioId}`);
@@ -199,7 +199,7 @@ export const webhookMercadoPago = async (req, res) => {
         // Actualizar acceso existente
         await pool.query(
           `UPDATE t_acceso_cursos
-           SET tipo_acceso = 'pago', precio_pagado = $1, referencia_pago = $2, estado = 'activo', fecha_acceso = NOW()
+           SET tipo_acceso = 'comprado', precio_pagado = $1, referencia_pago = $2, estado = 'activo', fecha_acceso = NOW()
            WHERE usuario_id = $3 AND id_curso = $4`,
           [paymentStatus.amount, paymentId, usuarioId, idCurso]
         );

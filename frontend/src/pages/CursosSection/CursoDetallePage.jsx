@@ -94,7 +94,7 @@ const CursoDetallePage = ({ curso: cursoProp, onBack, containerVariants }) => {
         {
           usuarioId: usuario.id,
           idCurso: cursoProp.id_curso,
-          tipoAcceso: 'pago',
+          tipoAcceso: 'comprado',
           precioPagado: precioFinal,
           referenciaPago: 'mercado_pago'
         },
