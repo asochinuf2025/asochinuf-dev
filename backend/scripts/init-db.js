@@ -670,6 +670,72 @@ const inicializarBD = async () => {
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_documentos_fecha_creacion ON t_documentos(fecha_creacion);`);
     console.log('✓ Índices en t_documentos creados\\n');
 
+    // ========== TABLA t_detalles_cursos ==========
+    console.log('Creando tabla t_detalles_cursos...');
+
+    await pool.query(`DROP TABLE IF EXISTS t_detalles_cursos CASCADE;`);
+
+    await pool.query(`
+      CREATE TABLE t_detalles_cursos (
+        id SERIAL PRIMARY KEY,
+        id_curso INTEGER NOT NULL,
+        seccion_numero INTEGER NOT NULL,
+        seccion_titulo VARCHAR(255) NOT NULL,
+        seccion_descripcion TEXT,
+        orden_seccion INTEGER NOT NULL,
+        leccion_numero INTEGER NOT NULL,
+        leccion_titulo VARCHAR(255) NOT NULL,
+        leccion_descripcion TEXT,
+        tipo_contenido VARCHAR(50) NOT NULL CHECK (tipo_contenido IN ('video', 'articulo', 'pdf', 'quiz')),
+        url_contenido VARCHAR(500),
+        duracion_minutos INTEGER,
+        orden_leccion INTEGER NOT NULL,
+        archivo_contenido BYTEA,
+        archivo_nombre VARCHAR(255),
+        archivo_tipo VARCHAR(100),
+        fecha_creacion TIMESTAMP DEFAULT NOW(),
+        fecha_actualizacion TIMESTAMP DEFAULT NOW(),
+        FOREIGN KEY (id_curso) REFERENCES t_cursos(id_curso) ON DELETE CASCADE,
+        UNIQUE(id_curso, seccion_numero, leccion_numero)
+      );
+    `);
+    console.log('✓ Tabla t_detalles_cursos creada');
+
+    // Índices para t_detalles_cursos
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_detalles_cursos_id_curso ON t_detalles_cursos(id_curso);`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_detalles_cursos_seccion ON t_detalles_cursos(id_curso, seccion_numero);`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_detalles_cursos_orden ON t_detalles_cursos(id_curso, orden_seccion, orden_leccion);`);
+    console.log('✓ Índices en t_detalles_cursos creados\\n');
+
+    // ========== TABLA t_acceso_cursos (para bloqueo/desbloqueo) ==========
+    console.log('Creando tabla t_acceso_cursos...');
+
+    await pool.query(`DROP TABLE IF EXISTS t_acceso_cursos CASCADE;`);
+
+    await pool.query(`
+      CREATE TABLE t_acceso_cursos (
+        id SERIAL PRIMARY KEY,
+        usuario_id INTEGER NOT NULL,
+        id_curso INTEGER NOT NULL,
+        tipo_acceso VARCHAR(50) NOT NULL CHECK (tipo_acceso IN ('comprado', 'regalo', 'beca')),
+        precio_pagado DECIMAL(10, 2),
+        fecha_compra TIMESTAMP DEFAULT NOW(),
+        fecha_acceso TIMESTAMP DEFAULT NOW(),
+        estado VARCHAR(50) DEFAULT 'activo',
+        referencia_pago VARCHAR(255),
+        FOREIGN KEY (usuario_id) REFERENCES t_usuarios(id) ON DELETE CASCADE,
+        FOREIGN KEY (id_curso) REFERENCES t_cursos(id_curso) ON DELETE CASCADE,
+        UNIQUE(usuario_id, id_curso)
+      );
+    `);
+    console.log('✓ Tabla t_acceso_cursos creada');
+
+    // Índices para t_acceso_cursos
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_acceso_cursos_usuario ON t_acceso_cursos(usuario_id);`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_acceso_cursos_curso ON t_acceso_cursos(id_curso);`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_acceso_cursos_estado ON t_acceso_cursos(estado);`);
+    console.log('✓ Índices en t_acceso_cursos creados\\n');
+
     console.log('\\n========================================');
     console.log('✓ BASE DE DATOS INICIALIZADA CORRECTAMENTE');
     console.log('========================================\\n');
@@ -690,7 +756,9 @@ const inicializarBD = async () => {
     console.log('  • t_recovery_tokens (tokens de recuperación)');
     console.log('  • t_cuotas_mensuales (cuotas mensuales)');
     console.log('  • t_pagos_cuotas (registro de pagos de cuotas)');
-    console.log('  • t_documentos (documentos y papers)\\n');
+    console.log('  • t_documentos (documentos y papers)');
+    console.log('  • t_detalles_cursos (secciones y lecciones de cursos)');
+    console.log('  • t_acceso_cursos (control de acceso a cursos pagos)\\n');
     console.log('Índices creados para optimizar consultas frecuentes.\\n');
 
     process.exit(0);
