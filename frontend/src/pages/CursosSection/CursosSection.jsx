@@ -23,6 +23,7 @@ import { useAuth } from '../../context/AuthContext';
 import { API_ENDPOINTS, BASE as API_URL } from '../../config/apiConfig';
 import axios from 'axios';
 import { toast } from 'sonner';
+import CursoDetalleModal from './CursoDetalleModal';
 
 const CursosSection = ({ containerVariants }) => {
   const { isDarkMode, token } = useAuth();
@@ -33,6 +34,8 @@ const CursosSection = ({ containerVariants }) => {
   const [filtroNivel, setFiltroNivel] = useState('todos');
   const [inscripciones, setInscripciones] = useState({});  // { id_curso: true/false }
   const [inscribiendo, setInscribiendo] = useState({});    // { id_curso: true/false }
+  const [selectedCurso, setSelectedCurso] = useState(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   // Obtener cursos al cargar
   useEffect(() => {
@@ -352,11 +355,15 @@ const CursosSection = ({ containerVariants }) => {
                 animate="visible"
                 exit="exit"
                 transition={{ delay: index * 0.05 }}
-                className={`group ${
+                className={`group cursor-pointer ${
                   isDarkMode
                     ? 'bg-[#1a1c22]/50 border-[#8c5cff]/20 hover:border-[#8c5cff]/50'
                     : 'bg-white border-purple-200 hover:border-purple-400'
                 } border rounded-2xl overflow-hidden backdrop-blur-xl hover:shadow-xl hover:shadow-[#8c5cff]/10 transition-all duration-300`}
+                onClick={() => {
+                  setSelectedCurso(curso);
+                  setIsDetailModalOpen(true);
+                }}
               >
                 {/* Imagen/Gradient Header */}
                 <div className="relative h-48 overflow-hidden bg-gradient-to-br from-[#8c5cff] via-[#6a3dcf] to-[#4e2d9a]">
@@ -502,6 +509,14 @@ const CursosSection = ({ containerVariants }) => {
           })}
         </AnimatePresence>
       </div>
+
+      {/* Modal de Detalles del Curso */}
+      <CursoDetalleModal
+        curso={selectedCurso}
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        isDarkMode={isDarkMode}
+      />
     </motion.div>
   );
 };
