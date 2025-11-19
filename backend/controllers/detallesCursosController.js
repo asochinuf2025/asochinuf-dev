@@ -215,6 +215,9 @@ export const crearDetalleCurso = async (req, res) => {
     const archivoNombreValue = archivoNombre && archivoNombre.trim() ? archivoNombre : null;
     const archivoTipoValue = archivoTipo && archivoTipo.trim() ? archivoTipo : null;
 
+    // Calcular orden_leccion: si no se proporciona, usar leccion_numero
+    const ordenLeccionValue = ordenLeccion || leccionNumero;
+
     // Crear detalle
     const result = await pool.query(
       `INSERT INTO t_detalles_cursos (
@@ -227,7 +230,7 @@ export const crearDetalleCurso = async (req, res) => {
       [
         idCurso, seccionNumero, seccionTitulo, seccionDescripcionValue,
         ordenSeccion, leccionNumero, leccionTitulo, leccionDescripcionValue,
-        tipoContenido, urlContenidoValue, duracionMinutos, ordenLeccion,
+        tipoContenido, urlContenidoValue, duracionMinutos, ordenLeccionValue,
         archivoNombreValue, archivoTipoValue
       ]
     );
