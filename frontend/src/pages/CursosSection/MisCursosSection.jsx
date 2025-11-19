@@ -240,7 +240,13 @@ const MisCursosSection = ({ containerVariants }) => {
                 <div className="relative h-48 overflow-hidden bg-gradient-to-br from-[#8c5cff] via-[#6a3dcf] to-[#4e2d9a]">
                   {curso.imagen_portada ? (
                     <img
-                      src={curso.imagen_portada.startsWith('http') ? curso.imagen_portada : `${API_URL}${curso.imagen_portada}`}
+                      src={
+                        curso.imagen_portada.startsWith('http')
+                          ? curso.imagen_portada.includes('cloudinary')
+                            ? `${curso.imagen_portada.split('upload')[0]}upload/c_auto,f_auto,q_80,w_600/${curso.imagen_portada.split('upload')[1]}`
+                            : curso.imagen_portada
+                          : `${API_URL}${curso.imagen_portada}`
+                      }
                       alt={curso.nombre}
                       loading="lazy"
                       className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
