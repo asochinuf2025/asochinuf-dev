@@ -14,7 +14,7 @@ import {
   Video,
   FileText,
   CheckCircle,
-  GripVertical
+  BookOpen
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -25,29 +25,28 @@ const GestionDetallesCursosSection = ({ containerVariants }) => {
   const { isDarkMode, token } = useAuth();
   const [cursos, setCursos] = useState([]);
   const [selectedCurso, setSelectedCurso] = useState(null);
-  const [detalles, setDetalles] = useState([]);
+  const [secciones, setSecciones] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedSecciones, setExpandedSecciones] = useState({});
-  const [showForm, setShowForm] = useState(false);
-  const [editingDetalle, setEditingDetalle] = useState(null);
   const [search, setSearch] = useState('');
+
+  // Form states
+  const [showSeccionForm, setShowSeccionForm] = useState(false);
+  const [showLeccionForm, setShowLeccionForm] = useState(false);
+  const [selectedSeccionForLeccion, setSelectedSeccionForLeccion] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Form state
-  const [formData, setFormData] = useState({
-    seccionNumero: 1,
-    seccionTitulo: '',
-    seccionDescripcion: '',
-    ordenSeccion: 1,
-    leccionNumero: 1,
-    leccionTitulo: '',
-    leccionDescripcion: '',
-    tipoContenido: 'video',
-    urlContenido: '',
+  const [seccionForm, setSeccionForm] = useState({
+    titulo: '',
+    descripcion: ''
+  });
+
+  const [leccionForm, setLeccionForm] = useState({
+    titulo: '',
+    descripcion: '',
+    tipo: 'video',
     duracionMinutos: 0,
-    ordenLeccion: 1,
-    archivoNombre: '',
-    archivoTipo: ''
+    url: ''
   });
 
   // Cargar cursos
@@ -55,10 +54,10 @@ const GestionDetallesCursosSection = ({ containerVariants }) => {
     obtenerCursos();
   }, []);
 
-  // Cargar detalles cuando se selecciona un curso
+  // Cargar secciones cuando se selecciona un curso
   useEffect(() => {
     if (selectedCurso) {
-      cargarDetalles(selectedCurso.id_curso);
+      cargarSecciones(selectedCurso.id_curso);
     }
   }, [selectedCurso]);
 
@@ -75,34 +74,15 @@ const GestionDetallesCursosSection = ({ containerVariants }) => {
     }
   };
 
-  const cargarDetalles = async (cursoId) => {
+  const cargarSecciones = async (cursoId) => {
     try {
       setLoading(true);
       const response = await axios.get(`${API_URL}/api/detalles-cursos/${cursoId}`);
-      const detallesData = [];
-      response.data.secciones.forEach(seccion => {
-        seccion.lecciones.forEach(leccion => {
-          detallesData.push({
-            seccion_numero: seccion.numero,
-            seccion_titulo: seccion.titulo,
-            seccion_descripcion: seccion.descripcion,
-            orden_seccion: seccion.orden,
-            leccion_numero: leccion.numero,
-            leccion_titulo: leccion.titulo,
-            leccion_descripcion: leccion.descripcion,
-            tipo_contenido: leccion.tipo,
-            url_contenido: leccion.url || '',
-            duracion_minutos: leccion.duracion || 0,
-            orden_leccion: leccion.orden,
-            archivo_nombre: leccion.archivo?.nombre || '',
-            archivo_tipo: leccion.archivo?.tipo || ''
-          });
-        });
-      });
-      setDetalles(detallesData);
+      setSecciones(response.data.secciones || []);
+      setExpandedSecciones({});
     } catch (error) {
-      console.error('Error al cargar detalles:', error);
-      toast.error('Error al cargar detalles del curso');
+      console.error('Error al cargar secciones:', error);
+      toast.error('Error al cargar secciones del curso');
     } finally {
       setLoading(false);
     }
@@ -115,66 +95,17 @@ const GestionDetallesCursosSection = ({ containerVariants }) => {
     }));
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: name.includes('Numero') || name.includes('Orden') || name === 'duracionMinutos'
-        ? parseInt(value) || 0
-        : value
-    }));
+  // Agregar sección
+  const handleAgregarSeccion = () => {
+    setSeccionForm({ titulo: '', descripcion: '' });
+    setShowSeccionForm(true);
   };
 
-  const handleAddDetalle = () => {
-    setEditingDetalle(null);
-    setFormData({
-      seccionNumero: 1,
-      seccionTitulo: '',
-      seccionDescripcion: '',
-      ordenSeccion: 1,
-      leccionNumero: 1,
-      leccionTitulo: '',
-      leccionDescripcion: '',
-      tipoContenido: 'video',
-      urlContenido: '',
-      duracionMinutos: 0,
-      ordenLeccion: 1,
-      archivoNombre: '',
-      archivoTipo: ''
-    });
-    setShowForm(true);
-  };
-
-  const handleEditDetalle = (detalle) => {
-    setEditingDetalle(detalle);
-    setFormData({
-      seccionNumero: detalle.seccion_numero,
-      seccionTitulo: detalle.seccion_titulo,
-      seccionDescripcion: detalle.seccion_descripcion,
-      ordenSeccion: detalle.orden_seccion,
-      leccionNumero: detalle.leccion_numero,
-      leccionTitulo: detalle.leccion_titulo,
-      leccionDescripcion: detalle.leccion_descripcion,
-      tipoContenido: detalle.tipo_contenido,
-      urlContenido: detalle.url_contenido,
-      duracionMinutos: detalle.duracion_minutos,
-      ordenLeccion: detalle.orden_leccion,
-      archivoNombre: detalle.archivo_nombre,
-      archivoTipo: detalle.archivo_tipo
-    });
-    setShowForm(true);
-  };
-
-  const handleSubmitForm = async (e) => {
+  const handleGuardarSeccion = async (e) => {
     e.preventDefault();
 
-    if (!selectedCurso) {
-      toast.error('Selecciona un curso primero');
-      return;
-    }
-
-    if (!formData.seccionTitulo || !formData.leccionTitulo) {
-      toast.error('Completa los campos obligatorios');
+    if (!seccionForm.titulo.trim()) {
+      toast.error('El título de la sección es obligatorio');
       return;
     }
 
@@ -182,78 +113,118 @@ const GestionDetallesCursosSection = ({ containerVariants }) => {
       setSubmitting(true);
       const config = { headers: { Authorization: `Bearer ${token}` } };
 
-      if (editingDetalle) {
-        // Actualizar
-        await axios.put(
-          `${API_URL}/api/detalles-cursos/${selectedCurso.id_curso}/${editingDetalle.id}`,
-          {
-            seccion_numero: formData.seccionNumero,
-            seccion_titulo: formData.seccionTitulo,
-            seccion_descripcion: formData.seccionDescripcion,
-            orden_seccion: formData.ordenSeccion,
-            leccion_numero: formData.leccionNumero,
-            leccion_titulo: formData.leccionTitulo,
-            leccion_descripcion: formData.leccionDescripcion,
-            tipo_contenido: formData.tipoContenido,
-            url_contenido: formData.urlContenido,
-            duracion_minutos: formData.duracionMinutos,
-            orden_leccion: formData.ordenLeccion,
-            archivo_nombre: formData.archivoNombre,
-            archivo_tipo: formData.archivoTipo
-          },
-          config
-        );
-        toast.success('Detalle actualizado correctamente');
-      } else {
-        // Crear
-        await axios.post(
-          `${API_URL}/api/detalles-cursos/${selectedCurso.id_curso}`,
-          {
-            seccionNumero: formData.seccionNumero,
-            seccionTitulo: formData.seccionTitulo,
-            seccionDescripcion: formData.seccionDescripcion,
-            ordenSeccion: formData.ordenSeccion,
-            leccionNumero: formData.leccionNumero,
-            leccionTitulo: formData.leccionTitulo,
-            leccionDescripcion: formData.leccionDescripcion,
-            tipoContenido: formData.tipoContenido,
-            urlContenido: formData.urlContenido,
-            duracionMinutos: formData.duracionMinutos,
-            ordenLeccion: formData.ordenLeccion,
-            archivoNombre: formData.archivoNombre,
-            archivoTipo: formData.archivoTipo
-          },
-          config
-        );
-        toast.success('Detalle creado correctamente');
-      }
+      // Obtener el número de sección más alto
+      const maxSeccionNumero = secciones.length > 0
+        ? Math.max(...secciones.map(s => s.numero))
+        : 0;
 
-      setShowForm(false);
-      cargarDetalles(selectedCurso.id_curso);
+      const leccionNumero = 1;
+      const leccionTitulo = `${seccionForm.titulo} - Introducción`;
+
+      await axios.post(
+        `${API_URL}/api/detalles-cursos/${selectedCurso.id_curso}`,
+        {
+          seccionNumero: maxSeccionNumero + 1,
+          seccionTitulo: seccionForm.titulo,
+          seccionDescripcion: seccionForm.descripcion || null,
+          ordenSeccion: maxSeccionNumero + 1,
+          leccionNumero,
+          leccionTitulo,
+          leccionDescripcion: null,
+          tipoContenido: 'video',
+          urlContenido: null,
+          duracionMinutos: 0
+        },
+        config
+      );
+
+      toast.success('Sección creada exitosamente');
+      setShowSeccionForm(false);
+      cargarSecciones(selectedCurso.id_curso);
     } catch (error) {
-      console.error('Error al guardar detalle:', error);
-      toast.error(error.response?.data?.error || 'Error al guardar el detalle');
+      console.error('Error al crear sección:', error);
+      toast.error(error.response?.data?.error || 'Error al crear la sección');
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleDeleteDetalle = async (detalle) => {
-    if (!window.confirm('¿Estás seguro de que quieres eliminar este detalle?')) {
+  // Agregar lección
+  const handleAgregarLeccion = (seccion) => {
+    setSelectedSeccionForLeccion(seccion);
+    setLeccionForm({
+      titulo: '',
+      descripcion: '',
+      tipo: 'video',
+      duracionMinutos: 0,
+      url: ''
+    });
+    setShowLeccionForm(true);
+  };
+
+  const handleGuardarLeccion = async (e) => {
+    e.preventDefault();
+
+    if (!leccionForm.titulo.trim()) {
+      toast.error('El título de la lección es obligatorio');
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+
+      // Obtener el número de lección más alto en esta sección
+      const seccionLecciones = selectedSeccionForLeccion.lecciones || [];
+      const maxLeccionNumero = seccionLecciones.length > 0
+        ? Math.max(...seccionLecciones.map(l => l.numero))
+        : 0;
+
+      await axios.post(
+        `${API_URL}/api/detalles-cursos/${selectedCurso.id_curso}`,
+        {
+          seccionNumero: selectedSeccionForLeccion.numero,
+          seccionTitulo: selectedSeccionForLeccion.titulo,
+          seccionDescripcion: selectedSeccionForLeccion.descripcion || null,
+          ordenSeccion: selectedSeccionForLeccion.orden,
+          leccionNumero: maxLeccionNumero + 1,
+          leccionTitulo: leccionForm.titulo,
+          leccionDescripcion: leccionForm.descripcion || null,
+          tipoContenido: leccionForm.tipo,
+          urlContenido: leccionForm.url || null,
+          duracionMinutos: leccionForm.duracionMinutos
+        },
+        config
+      );
+
+      toast.success('Lección agregada exitosamente');
+      setShowLeccionForm(false);
+      cargarSecciones(selectedCurso.id_curso);
+    } catch (error) {
+      console.error('Error al crear lección:', error);
+      toast.error(error.response?.data?.error || 'Error al crear la lección');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Eliminar lección
+  const handleEliminarLeccion = async (leccion) => {
+    if (!window.confirm('¿Estás seguro de eliminar esta lección?')) {
       return;
     }
 
     try {
       const config = { headers: { Authorization: `Bearer ${token}` } };
       await axios.delete(
-        `${API_URL}/api/detalles-cursos/${selectedCurso.id_curso}/${detalle.id}`,
+        `${API_URL}/api/detalles-cursos/${selectedCurso.id_curso}/${leccion.id}`,
         config
       );
-      toast.success('Detalle eliminado correctamente');
-      cargarDetalles(selectedCurso.id_curso);
+      toast.success('Lección eliminada');
+      cargarSecciones(selectedCurso.id_curso);
     } catch (error) {
-      console.error('Error al eliminar detalle:', error);
-      toast.error('Error al eliminar el detalle');
+      console.error('Error al eliminar lección:', error);
+      toast.error('Error al eliminar la lección');
     }
   };
 
@@ -275,27 +246,6 @@ const GestionDetallesCursosSection = ({ containerVariants }) => {
   const filteredCursos = cursos.filter(c =>
     c.nombre.toLowerCase().includes(search.toLowerCase())
   );
-
-  const seccionesAgrupadas = {};
-  detalles.forEach(detalle => {
-    if (!seccionesAgrupadas[detalle.seccion_numero]) {
-      seccionesAgrupadas[detalle.seccion_numero] = {
-        numero: detalle.seccion_numero,
-        titulo: detalle.seccion_titulo,
-        descripcion: detalle.seccion_descripcion,
-        orden: detalle.orden_seccion,
-        lecciones: []
-      };
-    }
-    seccionesAgrupadas[detalle.seccion_numero].lecciones.push(detalle);
-  });
-
-  const seccionesArray = Object.values(seccionesAgrupadas)
-    .sort((a, b) => a.orden - b.orden)
-    .map(s => ({
-      ...s,
-      lecciones: s.lecciones.sort((a, b) => a.orden_leccion - b.orden_leccion)
-    }));
 
   if (loading && !selectedCurso) {
     return (
@@ -329,7 +279,7 @@ const GestionDetallesCursosSection = ({ containerVariants }) => {
             isDarkMode ? 'bg-[#1a1c22]/50 border border-[#8c5cff]/20' : 'bg-white border border-gray-200'
           }`}>
             <h3 className={`font-bold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-              Cursos
+              Mis Cursos
             </h3>
 
             {/* Search */}
@@ -370,7 +320,7 @@ const GestionDetallesCursosSection = ({ containerVariants }) => {
                     {curso.nombre}
                   </p>
                   <p className={`text-xs mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                    {detalles.filter(d => d.seccion_numero).length || 0} detalles
+                    {secciones.length || 0} secciones
                   </p>
                 </button>
               ))}
@@ -389,15 +339,15 @@ const GestionDetallesCursosSection = ({ containerVariants }) => {
                     {selectedCurso.nombre}
                   </h2>
                   <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>
-                    {seccionesArray.length} secciones • {detalles.length} lecciones
+                    {secciones.length} {secciones.length === 1 ? 'sección' : 'secciones'}
                   </p>
                 </div>
                 <button
-                  onClick={handleAddDetalle}
+                  onClick={handleAgregarSeccion}
                   className="px-4 py-2 bg-[#8c5cff] text-white rounded-lg hover:bg-[#7a4de6] transition font-medium flex items-center gap-2"
                 >
                   <Plus size={18} />
-                  Agregar
+                  Agregar Sección
                 </button>
               </div>
 
@@ -406,25 +356,25 @@ const GestionDetallesCursosSection = ({ containerVariants }) => {
                 <div className="flex items-center justify-center py-12">
                   <Loader className="animate-spin mr-3" />
                   <span className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>
-                    Cargando detalles...
+                    Cargando contenido...
                   </span>
                 </div>
-              ) : seccionesArray.length === 0 ? (
+              ) : secciones.length === 0 ? (
                 <div className={`text-center py-12 rounded-xl border-2 border-dashed ${
                   isDarkMode
                     ? 'border-[#8c5cff]/20 bg-[#1a1c22]/50'
                     : 'border-gray-200 bg-gray-50'
                 }`}>
-                  <AlertCircle size={48} className={`mx-auto mb-4 ${
+                  <BookOpen size={48} className={`mx-auto mb-4 ${
                     isDarkMode ? 'text-gray-500' : 'text-gray-400'
                   }`} />
                   <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>
-                    No hay detalles en este curso. Comienza agregando una sección y lección.
+                    No hay secciones todavía. ¡Comienza agregando una!
                   </p>
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {seccionesArray.map(seccion => (
+                  {secciones.map(seccion => (
                     <div
                       key={seccion.numero}
                       className={`rounded-lg border overflow-hidden ${
@@ -451,20 +401,30 @@ const GestionDetallesCursosSection = ({ containerVariants }) => {
                             <h4 className={`font-bold ${
                               isDarkMode ? 'text-white' : 'text-gray-900'
                             }`}>
-                              Sección {seccion.numero}: {seccion.titulo}
+                              {seccion.titulo}
                             </h4>
                             <p className={`text-sm ${
                               isDarkMode ? 'text-gray-400' : 'text-gray-600'
                             }`}>
-                              {seccion.lecciones.length} lecciones
+                              {seccion.lecciones.length} {seccion.lecciones.length === 1 ? 'lección' : 'lecciones'}
                             </p>
                           </div>
                         </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAgregarLeccion(seccion);
+                          }}
+                          className="px-3 py-1 bg-[#8c5cff] text-white rounded hover:bg-[#7a4de6] transition text-sm font-medium flex items-center gap-1"
+                        >
+                          <Plus size={16} />
+                          Lección
+                        </button>
                       </button>
 
                       {/* Lecciones */}
                       <AnimatePresence>
-                        {expandedSecciones[seccion.numero] && (
+                        {expandedSecciones[seccion.numero] && seccion.lecciones.length > 0 && (
                           <motion.div
                             initial={{ height: 0 }}
                             animate={{ height: 'auto' }}
@@ -475,7 +435,7 @@ const GestionDetallesCursosSection = ({ containerVariants }) => {
                           >
                             {seccion.lecciones.map(leccion => (
                               <div
-                                key={`${leccion.seccion_numero}-${leccion.leccion_numero}`}
+                                key={`${leccion.numero}`}
                                 className={`px-6 py-4 flex items-start justify-between gap-4 ${
                                   isDarkMode
                                     ? 'border-t border-[#8c5cff]/10 hover:bg-[#1a1c22]'
@@ -484,19 +444,19 @@ const GestionDetallesCursosSection = ({ containerVariants }) => {
                               >
                                 <div className="flex items-start gap-3 flex-1 min-w-0">
                                   <div className="mt-1">
-                                    {getIconoTipo(leccion.tipo_contenido)}
+                                    {getIconoTipo(leccion.tipo)}
                                   </div>
                                   <div className="flex-1 min-w-0">
                                     <p className={`font-semibold ${
                                       isDarkMode ? 'text-white' : 'text-gray-900'
                                     }`}>
-                                      Lección {leccion.leccion_numero}: {leccion.leccion_titulo}
+                                      {leccion.titulo}
                                     </p>
-                                    {leccion.leccion_descripcion && (
+                                    {leccion.descripcion && (
                                       <p className={`text-sm mt-1 line-clamp-2 ${
                                         isDarkMode ? 'text-gray-400' : 'text-gray-600'
                                       }`}>
-                                        {leccion.leccion_descripcion}
+                                        {leccion.descripcion}
                                       </p>
                                     )}
                                     <div className="flex items-center gap-4 mt-2 text-xs">
@@ -505,11 +465,11 @@ const GestionDetallesCursosSection = ({ containerVariants }) => {
                                           ? 'bg-[#8c5cff]/20 text-[#8c5cff]'
                                           : 'bg-purple-100 text-purple-700'
                                       }`}>
-                                        {leccion.tipo_contenido}
+                                        {leccion.tipo}
                                       </span>
-                                      {leccion.duracion_minutos > 0 && (
+                                      {leccion.duracion > 0 && (
                                         <span className={isDarkMode ? 'text-gray-500' : 'text-gray-600'}>
-                                          ⏱ {leccion.duracion_minutos} min
+                                          ⏱ {leccion.duracion} min
                                         </span>
                                       )}
                                     </div>
@@ -517,28 +477,16 @@ const GestionDetallesCursosSection = ({ containerVariants }) => {
                                 </div>
 
                                 {/* Acciones */}
-                                <div className="flex gap-2">
-                                  <button
-                                    onClick={() => handleEditDetalle(leccion)}
-                                    className={`p-2 rounded-lg transition ${
-                                      isDarkMode
-                                        ? 'hover:bg-[#8c5cff]/20 text-[#8c5cff]'
-                                        : 'hover:bg-purple-100 text-purple-600'
-                                    }`}
-                                  >
-                                    <Edit size={16} />
-                                  </button>
-                                  <button
-                                    onClick={() => handleDeleteDetalle(leccion)}
-                                    className={`p-2 rounded-lg transition ${
-                                      isDarkMode
-                                        ? 'hover:bg-red-500/20 text-red-500'
-                                        : 'hover:bg-red-100 text-red-600'
-                                    }`}
-                                  >
-                                    <Trash2 size={16} />
-                                  </button>
-                                </div>
+                                <button
+                                  onClick={() => handleEliminarLeccion(leccion)}
+                                  className={`p-2 rounded-lg transition ${
+                                    isDarkMode
+                                      ? 'hover:bg-red-500/20 text-red-500'
+                                      : 'hover:bg-red-100 text-red-600'
+                                  }`}
+                                >
+                                  <Trash2 size={16} />
+                                </button>
                               </div>
                             ))}
                           </motion.div>
@@ -555,38 +503,37 @@ const GestionDetallesCursosSection = ({ containerVariants }) => {
                 ? 'border-[#8c5cff]/20 bg-[#1a1c22]/50'
                 : 'border-gray-200 bg-gray-50'
             }`}>
-              <AlertCircle size={48} className={`mx-auto mb-4 ${
+              <BookOpen size={48} className={`mx-auto mb-4 ${
                 isDarkMode ? 'text-gray-500' : 'text-gray-400'
               }`} />
               <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>
-                Selecciona un curso para ver sus detalles
+                Selecciona un curso para comenzar a agregar contenido
               </p>
             </div>
           )}
         </div>
       </div>
 
-      {/* Modal de Formulario */}
+      {/* Modal Agregar Sección */}
       <AnimatePresence>
-        {showForm && (
+        {showSeccionForm && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className={`rounded-2xl overflow-hidden max-w-2xl w-full mx-4 ${
+              className={`rounded-2xl overflow-hidden max-w-md w-full mx-4 ${
                 isDarkMode ? 'bg-[#1a1c22]' : 'bg-white'
               }`}
             >
-              {/* Header */}
               <div className={`px-6 py-4 border-b ${
                 isDarkMode ? 'border-[#8c5cff]/20' : 'border-gray-200'
               } flex items-center justify-between`}>
                 <h3 className={`font-bold text-lg ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                  {editingDetalle ? 'Editar Detalle' : 'Nuevo Detalle'}
+                  Nueva Sección
                 </h3>
                 <button
-                  onClick={() => setShowForm(false)}
+                  onClick={() => setShowSeccionForm(false)}
                   className={`p-1 rounded-lg transition ${
                     isDarkMode ? 'hover:bg-[#8c5cff]/20' : 'hover:bg-gray-100'
                   }`}
@@ -595,293 +542,218 @@ const GestionDetallesCursosSection = ({ containerVariants }) => {
                 </button>
               </div>
 
-              {/* Contenido */}
-              <form onSubmit={handleSubmitForm} className="p-6 space-y-6">
-                {/* Sección */}
-                <div className="space-y-4">
-                  <h4 className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                    Información de Sección
-                  </h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className={`block text-sm font-medium mb-1 ${
-                        isDarkMode ? 'text-gray-300' : 'text-gray-700'
-                      }`}>
-                        Número de Sección
-                      </label>
-                      <input
-                        type="number"
-                        name="seccionNumero"
-                        value={formData.seccionNumero}
-                        onChange={handleInputChange}
-                        min="1"
-                        className={`w-full px-3 py-2 rounded-lg border transition ${
-                          isDarkMode
-                            ? 'bg-[#2a2c33] border-[#8c5cff]/20 text-white'
-                            : 'bg-white border-gray-200 text-gray-900'
-                        } focus:outline-none focus:border-[#8c5cff]`}
-                      />
-                    </div>
-                    <div>
-                      <label className={`block text-sm font-medium mb-1 ${
-                        isDarkMode ? 'text-gray-300' : 'text-gray-700'
-                      }`}>
-                        Orden de Sección
-                      </label>
-                      <input
-                        type="number"
-                        name="ordenSeccion"
-                        value={formData.ordenSeccion}
-                        onChange={handleInputChange}
-                        min="1"
-                        className={`w-full px-3 py-2 rounded-lg border transition ${
-                          isDarkMode
-                            ? 'bg-[#2a2c33] border-[#8c5cff]/20 text-white'
-                            : 'bg-white border-gray-200 text-gray-900'
-                        } focus:outline-none focus:border-[#8c5cff]`}
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className={`block text-sm font-medium mb-1 ${
-                      isDarkMode ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
-                      Título de Sección *
-                    </label>
-                    <input
-                      type="text"
-                      name="seccionTitulo"
-                      value={formData.seccionTitulo}
-                      onChange={handleInputChange}
-                      placeholder="Ej: Fundamentos de Nutrición"
-                      className={`w-full px-3 py-2 rounded-lg border transition ${
-                        isDarkMode
-                          ? 'bg-[#2a2c33] border-[#8c5cff]/20 text-white'
-                          : 'bg-white border-gray-200 text-gray-900'
-                      } focus:outline-none focus:border-[#8c5cff]`}
-                    />
-                  </div>
-
-                  <div>
-                    <label className={`block text-sm font-medium mb-1 ${
-                      isDarkMode ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
-                      Descripción de Sección
-                    </label>
-                    <textarea
-                      name="seccionDescripcion"
-                      value={formData.seccionDescripcion}
-                      onChange={handleInputChange}
-                      placeholder="Descripción optional de la sección"
-                      rows="3"
-                      className={`w-full px-3 py-2 rounded-lg border transition resize-none ${
-                        isDarkMode
-                          ? 'bg-[#2a2c33] border-[#8c5cff]/20 text-white'
-                          : 'bg-white border-gray-200 text-gray-900'
-                      } focus:outline-none focus:border-[#8c5cff]`}
-                    />
-                  </div>
+              <form onSubmit={handleGuardarSeccion} className="p-6 space-y-4">
+                <div>
+                  <label className={`block text-sm font-medium mb-2 ${
+                    isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
+                    Título de la Sección *
+                  </label>
+                  <input
+                    type="text"
+                    value={seccionForm.titulo}
+                    onChange={(e) => setSeccionForm({ ...seccionForm, titulo: e.target.value })}
+                    placeholder="Ej: Fundamentos Básicos"
+                    className={`w-full px-3 py-2 rounded-lg border transition ${
+                      isDarkMode
+                        ? 'bg-[#2a2c33] border-[#8c5cff]/20 text-white'
+                        : 'bg-white border-gray-200 text-gray-900'
+                    } focus:outline-none focus:border-[#8c5cff]`}
+                  />
                 </div>
 
-                {/* Lección */}
-                <div className="space-y-4 pt-4 border-t border-[#8c5cff]/20">
-                  <h4 className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                    Información de Lección
-                  </h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className={`block text-sm font-medium mb-1 ${
-                        isDarkMode ? 'text-gray-300' : 'text-gray-700'
-                      }`}>
-                        Número de Lección
-                      </label>
-                      <input
-                        type="number"
-                        name="leccionNumero"
-                        value={formData.leccionNumero}
-                        onChange={handleInputChange}
-                        min="1"
-                        className={`w-full px-3 py-2 rounded-lg border transition ${
-                          isDarkMode
-                            ? 'bg-[#2a2c33] border-[#8c5cff]/20 text-white'
-                            : 'bg-white border-gray-200 text-gray-900'
-                        } focus:outline-none focus:border-[#8c5cff]`}
-                      />
-                    </div>
-                    <div>
-                      <label className={`block text-sm font-medium mb-1 ${
-                        isDarkMode ? 'text-gray-300' : 'text-gray-700'
-                      }`}>
-                        Orden de Lección
-                      </label>
-                      <input
-                        type="number"
-                        name="ordenLeccion"
-                        value={formData.ordenLeccion}
-                        onChange={handleInputChange}
-                        min="1"
-                        className={`w-full px-3 py-2 rounded-lg border transition ${
-                          isDarkMode
-                            ? 'bg-[#2a2c33] border-[#8c5cff]/20 text-white'
-                            : 'bg-white border-gray-200 text-gray-900'
-                        } focus:outline-none focus:border-[#8c5cff]`}
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className={`block text-sm font-medium mb-1 ${
-                      isDarkMode ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
-                      Título de Lección *
-                    </label>
-                    <input
-                      type="text"
-                      name="leccionTitulo"
-                      value={formData.leccionTitulo}
-                      onChange={handleInputChange}
-                      placeholder="Ej: Macronutrientes Básicos"
-                      className={`w-full px-3 py-2 rounded-lg border transition ${
-                        isDarkMode
-                          ? 'bg-[#2a2c33] border-[#8c5cff]/20 text-white'
-                          : 'bg-white border-gray-200 text-gray-900'
-                      } focus:outline-none focus:border-[#8c5cff]`}
-                    />
-                  </div>
-
-                  <div>
-                    <label className={`block text-sm font-medium mb-1 ${
-                      isDarkMode ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
-                      Descripción de Lección
-                    </label>
-                    <textarea
-                      name="leccionDescripcion"
-                      value={formData.leccionDescripcion}
-                      onChange={handleInputChange}
-                      placeholder="Descripción de la lección"
-                      rows="3"
-                      className={`w-full px-3 py-2 rounded-lg border transition resize-none ${
-                        isDarkMode
-                          ? 'bg-[#2a2c33] border-[#8c5cff]/20 text-white'
-                          : 'bg-white border-gray-200 text-gray-900'
-                      } focus:outline-none focus:border-[#8c5cff]`}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className={`block text-sm font-medium mb-1 ${
-                        isDarkMode ? 'text-gray-300' : 'text-gray-700'
-                      }`}>
-                        Tipo de Contenido *
-                      </label>
-                      <select
-                        name="tipoContenido"
-                        value={formData.tipoContenido}
-                        onChange={handleInputChange}
-                        className={`w-full px-3 py-2 rounded-lg border transition ${
-                          isDarkMode
-                            ? 'bg-[#2a2c33] border-[#8c5cff]/20 text-white'
-                            : 'bg-white border-gray-200 text-gray-900'
-                        } focus:outline-none focus:border-[#8c5cff]`}
-                      >
-                        <option value="video">Video</option>
-                        <option value="articulo">Artículo</option>
-                        <option value="pdf">PDF</option>
-                        <option value="quiz">Quiz</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className={`block text-sm font-medium mb-1 ${
-                        isDarkMode ? 'text-gray-300' : 'text-gray-700'
-                      }`}>
-                        Duración (minutos)
-                      </label>
-                      <input
-                        type="number"
-                        name="duracionMinutos"
-                        value={formData.duracionMinutos}
-                        onChange={handleInputChange}
-                        min="0"
-                        placeholder="30"
-                        className={`w-full px-3 py-2 rounded-lg border transition ${
-                          isDarkMode
-                            ? 'bg-[#2a2c33] border-[#8c5cff]/20 text-white'
-                            : 'bg-white border-gray-200 text-gray-900'
-                        } focus:outline-none focus:border-[#8c5cff]`}
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className={`block text-sm font-medium mb-1 ${
-                      isDarkMode ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
-                      URL del Contenido
-                    </label>
-                    <input
-                      type="url"
-                      name="urlContenido"
-                      value={formData.urlContenido}
-                      onChange={handleInputChange}
-                      placeholder="https://..."
-                      className={`w-full px-3 py-2 rounded-lg border transition ${
-                        isDarkMode
-                          ? 'bg-[#2a2c33] border-[#8c5cff]/20 text-white'
-                          : 'bg-white border-gray-200 text-gray-900'
-                      } focus:outline-none focus:border-[#8c5cff]`}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className={`block text-sm font-medium mb-1 ${
-                        isDarkMode ? 'text-gray-300' : 'text-gray-700'
-                      }`}>
-                        Nombre del Archivo
-                      </label>
-                      <input
-                        type="text"
-                        name="archivoNombre"
-                        value={formData.archivoNombre}
-                        onChange={handleInputChange}
-                        placeholder="documento.pdf"
-                        className={`w-full px-3 py-2 rounded-lg border transition ${
-                          isDarkMode
-                            ? 'bg-[#2a2c33] border-[#8c5cff]/20 text-white'
-                            : 'bg-white border-gray-200 text-gray-900'
-                        } focus:outline-none focus:border-[#8c5cff]`}
-                      />
-                    </div>
-                    <div>
-                      <label className={`block text-sm font-medium mb-1 ${
-                        isDarkMode ? 'text-gray-300' : 'text-gray-700'
-                      }`}>
-                        Tipo de Archivo
-                      </label>
-                      <input
-                        type="text"
-                        name="archivoTipo"
-                        value={formData.archivoTipo}
-                        onChange={handleInputChange}
-                        placeholder="application/pdf"
-                        className={`w-full px-3 py-2 rounded-lg border transition ${
-                          isDarkMode
-                            ? 'bg-[#2a2c33] border-[#8c5cff]/20 text-white'
-                            : 'bg-white border-gray-200 text-gray-900'
-                        } focus:outline-none focus:border-[#8c5cff]`}
-                      />
-                    </div>
-                  </div>
+                <div>
+                  <label className={`block text-sm font-medium mb-2 ${
+                    isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
+                    Descripción (opcional)
+                  </label>
+                  <textarea
+                    value={seccionForm.descripcion}
+                    onChange={(e) => setSeccionForm({ ...seccionForm, descripcion: e.target.value })}
+                    placeholder="Breve descripción de qué trata esta sección"
+                    rows="3"
+                    className={`w-full px-3 py-2 rounded-lg border transition resize-none ${
+                      isDarkMode
+                        ? 'bg-[#2a2c33] border-[#8c5cff]/20 text-white'
+                        : 'bg-white border-gray-200 text-gray-900'
+                    } focus:outline-none focus:border-[#8c5cff]`}
+                  />
                 </div>
 
-                {/* Botones */}
                 <div className="flex gap-3 pt-4 border-t border-[#8c5cff]/20">
                   <button
                     type="button"
-                    onClick={() => setShowForm(false)}
+                    onClick={() => setShowSeccionForm(false)}
+                    className={`flex-1 px-4 py-2 rounded-lg font-medium transition ${
+                      isDarkMode
+                        ? 'bg-[#2a2c33] text-gray-300 hover:bg-[#1a1c22]'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="flex-1 px-4 py-2 bg-[#8c5cff] text-white rounded-lg font-medium hover:bg-[#7a4de6] transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {submitting ? (
+                      <>
+                        <Loader size={18} className="animate-spin" />
+                        Creando...
+                      </>
+                    ) : (
+                      <>
+                        <Check size={18} />
+                        Crear
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Modal Agregar Lección */}
+      <AnimatePresence>
+        {showLeccionForm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className={`rounded-2xl overflow-hidden max-w-md w-full mx-4 ${
+                isDarkMode ? 'bg-[#1a1c22]' : 'bg-white'
+              }`}
+            >
+              <div className={`px-6 py-4 border-b ${
+                isDarkMode ? 'border-[#8c5cff]/20' : 'border-gray-200'
+              } flex items-center justify-between`}>
+                <h3 className={`font-bold text-lg ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                  Nueva Lección
+                </h3>
+                <button
+                  onClick={() => setShowLeccionForm(false)}
+                  className={`p-1 rounded-lg transition ${
+                    isDarkMode ? 'hover:bg-[#8c5cff]/20' : 'hover:bg-gray-100'
+                  }`}
+                >
+                  <X size={24} />
+                </button>
+              </div>
+
+              <form onSubmit={handleGuardarLeccion} className="p-6 space-y-4">
+                <div>
+                  <label className={`block text-sm font-medium mb-2 ${
+                    isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
+                    Título de la Lección *
+                  </label>
+                  <input
+                    type="text"
+                    value={leccionForm.titulo}
+                    onChange={(e) => setLeccionForm({ ...leccionForm, titulo: e.target.value })}
+                    placeholder="Ej: Introducción al Tema"
+                    className={`w-full px-3 py-2 rounded-lg border transition ${
+                      isDarkMode
+                        ? 'bg-[#2a2c33] border-[#8c5cff]/20 text-white'
+                        : 'bg-white border-gray-200 text-gray-900'
+                    } focus:outline-none focus:border-[#8c5cff]`}
+                  />
+                </div>
+
+                <div>
+                  <label className={`block text-sm font-medium mb-2 ${
+                    isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
+                    Descripción
+                  </label>
+                  <textarea
+                    value={leccionForm.descripcion}
+                    onChange={(e) => setLeccionForm({ ...leccionForm, descripcion: e.target.value })}
+                    placeholder="Qué aprenderá el estudiante en esta lección"
+                    rows="2"
+                    className={`w-full px-3 py-2 rounded-lg border transition resize-none ${
+                      isDarkMode
+                        ? 'bg-[#2a2c33] border-[#8c5cff]/20 text-white'
+                        : 'bg-white border-gray-200 text-gray-900'
+                    } focus:outline-none focus:border-[#8c5cff]`}
+                  />
+                </div>
+
+                <div>
+                  <label className={`block text-sm font-medium mb-2 ${
+                    isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
+                    Tipo de Contenido
+                  </label>
+                  <select
+                    value={leccionForm.tipo}
+                    onChange={(e) => setLeccionForm({ ...leccionForm, tipo: e.target.value })}
+                    className={`w-full px-3 py-2 rounded-lg border transition ${
+                      isDarkMode
+                        ? 'bg-[#2a2c33] border-[#8c5cff]/20 text-white'
+                        : 'bg-white border-gray-200 text-gray-900'
+                    } focus:outline-none focus:border-[#8c5cff]`}
+                  >
+                    <option value="video">Video</option>
+                    <option value="articulo">Artículo</option>
+                    <option value="pdf">PDF / Documento</option>
+                    <option value="quiz">Quiz / Evaluación</option>
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className={`block text-sm font-medium mb-2 ${
+                      isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                    }`}>
+                      Duración (min)
+                    </label>
+                    <input
+                      type="number"
+                      value={leccionForm.duracionMinutos}
+                      onChange={(e) => setLeccionForm({ ...leccionForm, duracionMinutos: parseInt(e.target.value) || 0 })}
+                      min="0"
+                      placeholder="30"
+                      className={`w-full px-3 py-2 rounded-lg border transition ${
+                        isDarkMode
+                          ? 'bg-[#2a2c33] border-[#8c5cff]/20 text-white'
+                          : 'bg-white border-gray-200 text-gray-900'
+                      } focus:outline-none focus:border-[#8c5cff]`}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className={`block text-sm font-medium mb-2 ${
+                    isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
+                    Enlace del Contenido
+                  </label>
+                  <input
+                    type="url"
+                    value={leccionForm.url}
+                    onChange={(e) => setLeccionForm({ ...leccionForm, url: e.target.value })}
+                    placeholder="https://enlace-al-contenido.com"
+                    className={`w-full px-3 py-2 rounded-lg border transition ${
+                      isDarkMode
+                        ? 'bg-[#2a2c33] border-[#8c5cff]/20 text-white'
+                        : 'bg-white border-gray-200 text-gray-900'
+                    } focus:outline-none focus:border-[#8c5cff]`}
+                  />
+                  <p className={`text-xs mt-1 ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                    Donde está el video, artículo o documento
+                  </p>
+                </div>
+
+                <div className="flex gap-3 pt-4 border-t border-[#8c5cff]/20">
+                  <button
+                    type="button"
+                    onClick={() => setShowLeccionForm(false)}
                     className={`flex-1 px-4 py-2 rounded-lg font-medium transition ${
                       isDarkMode
                         ? 'bg-[#2a2c33] text-gray-300 hover:bg-[#1a1c22]'
@@ -902,7 +774,7 @@ const GestionDetallesCursosSection = ({ containerVariants }) => {
                       </>
                     ) : (
                       <>
-                        <Save size={18} />
+                        <Check size={18} />
                         Guardar
                       </>
                     )}
