@@ -19,7 +19,7 @@ import axios from 'axios';
 import { API_ENDPOINTS, BASE as API_URL } from '../../config/apiConfig';
 import { toast } from 'sonner';
 
-const MisCursosSection = ({ containerVariants }) => {
+const MisCursosSection = ({ containerVariants, onVerDetalleCurso }) => {
   const { isDarkMode, token } = useAuth();
   const [misCursos, setMisCursos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -326,8 +326,23 @@ const MisCursosSection = ({ containerVariants }) => {
                     </div>
                   </div>
 
-                  {/* Footer: Botón */}
+                  {/* Footer: Botones */}
                   <div className="flex gap-2 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    {onVerDetalleCurso && (
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => onVerDetalleCurso(curso)}
+                        className={`flex-1 px-4 py-2 rounded-lg font-semibold transition-colors ${
+                          isDarkMode
+                            ? 'bg-[#8c5cff] text-white hover:bg-[#7a4de6]'
+                            : 'bg-purple-600 text-white hover:bg-purple-700'
+                        }`}
+                      >
+                        <BookOpen size={16} className="inline mr-1" />
+                        Ver Detalles
+                      </motion.button>
+                    )}
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
@@ -339,7 +354,7 @@ const MisCursosSection = ({ containerVariants }) => {
                       }`}
                     >
                       <Trash2 size={16} className="inline mr-1" />
-                      Cancelar Inscripción
+                      Cancelar
                     </motion.button>
                   </div>
                 </div>
