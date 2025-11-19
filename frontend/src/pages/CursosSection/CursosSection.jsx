@@ -23,9 +23,8 @@ import { useAuth } from '../../context/AuthContext';
 import { API_ENDPOINTS, BASE as API_URL } from '../../config/apiConfig';
 import axios from 'axios';
 import { toast } from 'sonner';
-import CursoDetalleModal from './CursoDetalleModal';
 
-const CursosSection = ({ containerVariants }) => {
+const CursosSection = ({ containerVariants, onVerDetalleCurso }) => {
   const { isDarkMode, token } = useAuth();
   const [cursos, setCursos] = useState([]);
   const [filteredCursos, setFilteredCursos] = useState([]);
@@ -34,8 +33,6 @@ const CursosSection = ({ containerVariants }) => {
   const [filtroNivel, setFiltroNivel] = useState('todos');
   const [inscripciones, setInscripciones] = useState({});  // { id_curso: true/false }
   const [inscribiendo, setInscribiendo] = useState({});    // { id_curso: true/false }
-  const [selectedCurso, setSelectedCurso] = useState(null);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   // Obtener cursos al cargar
   useEffect(() => {
@@ -91,16 +88,6 @@ const CursosSection = ({ containerVariants }) => {
     } catch (err) {
       console.error('Error al verificar inscripciones:', err);
     }
-  };
-
-  const handlePaymentSuccess = (cursoId) => {
-    // Actualizar inscripciones para reflejar el nuevo acceso
-    setInscripciones(prev => ({
-      ...prev,
-      [cursoId]: true
-    }));
-
-    toast.success('¡Compra completada! El curso ahora aparece en "Mis Cursos"');
   };
 
   const handleInscribirse = async (cursoId, nombreCurso) => {
@@ -371,8 +358,7 @@ const CursosSection = ({ containerVariants }) => {
                     : 'bg-white border-purple-200 hover:border-purple-400'
                 } border rounded-2xl overflow-hidden backdrop-blur-xl hover:shadow-xl hover:shadow-[#8c5cff]/10 transition-all duration-300`}
                 onClick={() => {
-                  setSelectedCurso(curso);
-                  setIsDetailModalOpen(true);
+                  onVerDetalleCurso(curso);
                 }}
               >
                 {/* Imagen/Gradient Header */}
@@ -497,8 +483,7 @@ const CursosSection = ({ containerVariants }) => {
                         whileTap={{ scale: 0.95 }}
                         className="flex items-center gap-2 px-4 py-2 bg-[#8c5cff] text-white rounded-lg hover:bg-[#7a4de6] transition-colors text-sm font-medium"
                         onClick={() => {
-                          setSelectedCurso(curso);
-                          setIsDetailModalOpen(true);
+                          onVerDetalleCurso(curso);
                         }}
                       >
                         <BookOpen size={16} />
@@ -513,14 +498,6 @@ const CursosSection = ({ containerVariants }) => {
         </AnimatePresence>
       </div>
 
-      {/* Modal de Detalles del Curso */}
-      <CursoDetalleModal
-        curso={selectedCurso}
-        isOpen={isDetailModalOpen}
-        onClose={() => setIsDetailModalOpen(false)}
-        isDarkMode={isDarkMode}
-        onPaymentSuccess={handlePaymentSuccess}
-      />
     </motion.div>
   );
 };

@@ -5,8 +5,9 @@ import { useAuth } from '../../context/AuthContext';
 import CursosSection from './CursosSection';
 import MisCursosSection from './MisCursosSection';
 import GestionCursosSection from './GestionCursosSection';
+import GestionDetallesCursosSection from '../GestionDetallesCursosSection/GestionDetallesCursosSection';
 
-const UnifiedCursosSection = ({ containerVariants }) => {
+const UnifiedCursosSection = ({ containerVariants, onVerDetalleCurso }) => {
   const { isDarkMode, usuario } = useAuth();
   const isAdmin = usuario?.tipo_perfil === 'admin';
   const [activeTab, setActiveTab] = useState('cursos'); // 'cursos', 'mis-cursos' o 'gestion' (solo para admin)
@@ -132,7 +133,7 @@ const UnifiedCursosSection = ({ containerVariants }) => {
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
           >
-            <CursosSection containerVariants={containerVariants} />
+            <CursosSection containerVariants={containerVariants} onVerDetalleCurso={onVerDetalleCurso} />
           </motion.div>
         )}
 
@@ -168,7 +169,7 @@ const UnifiedCursosSection = ({ containerVariants }) => {
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
           >
-            <GestionCursosSection containerVariants={containerVariants} />
+            <GestionDetallesCursosSection containerVariants={containerVariants} />
           </motion.div>
         )}
       </AnimatePresence>

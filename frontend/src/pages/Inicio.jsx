@@ -15,6 +15,7 @@ const Inicio = () => {
   });
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
+  const [cursoSeleccionado, setCursoSeleccionado] = useState(null);
 
   // Guardar activeTab en sessionStorage cuando cambie
   React.useEffect(() => {
@@ -24,6 +25,14 @@ const Inicio = () => {
   const handleLogout = () => {
     logout();
     navigate('/');
+  };
+
+  const handleVerDetalleCurso = (curso) => {
+    setCursoSeleccionado(curso);
+  };
+
+  const handleCloseCursoDetalle = () => {
+    setCursoSeleccionado(null);
   };
 
   return (
@@ -48,7 +57,13 @@ const Inicio = () => {
         />
 
         {/* Main Content - Scrollable only this section */}
-        <MainContent activeTab={activeTab} />
+        <MainContent
+          activeTab={activeTab}
+          cursoSeleccionado={cursoSeleccionado}
+          onCloseCursoDetalle={handleCloseCursoDetalle}
+          setActiveTab={setActiveTab}
+          onVerDetalleCurso={handleVerDetalleCurso}
+        />
       </div>
 
       {/* Bottom Navigation Bar - Mobile only (Fixed) */}
