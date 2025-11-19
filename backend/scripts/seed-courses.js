@@ -15,6 +15,8 @@ const seedCourses = async () => {
         codigo_curso: 'NUT-001',
         nombre: 'Fundamentos de Nutrición Deportiva',
         descripcion: 'Aprende los conceptos básicos de nutrición aplicada al deporte profesional. Ideal para principiantes.',
+        lo_que_aprenderas: '• Principios básicos de macronutrientes\n• Importancia de la hidratación\n• Planificación de comidas para atletas\n• Suplementos seguros y efectivos\n• Evaluación de necesidades nutricionales individuales',
+        requisitos: 'No se requieren conocimientos previos. Solo interés en nutrición y deportes.',
         nivel: 'básico',
         precio: 49900,
         duracion_horas: 8,
@@ -26,6 +28,8 @@ const seedCourses = async () => {
         codigo_curso: 'ANT-002',
         nombre: 'Antropometría Avanzada para Futbolistas',
         descripcion: 'Domina las técnicas de medición antropométrica ISAK para evaluar el rendimiento físico de jugadores.',
+        lo_que_aprenderas: '• Protocolos ISAK certificados internacionalmente\n• Medición precisa de pliegues cutáneos\n• Evaluación de perímetros corporales\n• Interpretación de resultados para futbolistas\n• Uso de software de análisis antropométrico',
+        requisitos: 'Conocimientos básicos de anatomía deportiva. Certificación ISAK recomendada pero no obligatoria.',
         nivel: 'intermedio',
         precio: 79900,
         duracion_horas: 12,
@@ -37,6 +41,8 @@ const seedCourses = async () => {
         codigo_curso: 'PLA-003',
         nombre: 'Planificación Nutricional Competitiva',
         descripcion: 'Diseña planes nutricionales personalizados para diferentes fases de la temporada deportiva.',
+        lo_que_aprenderas: '• Planificación en diferentes fases: pretemporada, competencia, post-temporada\n• Nutrición pre, durante y post-partido\n• Manejo nutricional de lesiones\n• Periodización nutricional avanzada\n• Casos prácticos y seguimiento real\n• Herramientas de monitoreo y evaluación',
+        requisitos: 'Certificación en nutrición deportiva o experiencia mínima de 2 años. Conocimientos intermedios en fisiología del ejercicio.',
         nivel: 'avanzado',
         precio: 129900,
         duracion_horas: 20,
@@ -51,13 +57,15 @@ const seedCourses = async () => {
     for (const cursoData of cursosData) {
       try {
         const result = await pool.query(
-          `INSERT INTO t_cursos (codigo_curso, nombre, descripcion, nivel, precio, duracion_horas, modalidad, nombre_instructor, estado)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+          `INSERT INTO t_cursos (codigo_curso, nombre, descripcion, lo_que_aprenderas, requisitos, nivel, precio, duracion_horas, modalidad, nombre_instructor, estado)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
            RETURNING id_curso`,
           [
             cursoData.codigo_curso,
             cursoData.nombre,
             cursoData.descripcion,
+            cursoData.lo_que_aprenderas,
+            cursoData.requisitos,
             cursoData.nivel,
             cursoData.precio,
             cursoData.duracion_horas,
