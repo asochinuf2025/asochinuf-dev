@@ -49,6 +49,8 @@ const GestionCursosSection = ({ containerVariants }) => {
     codigo_curso: '',
     nombre: '',
     descripcion: '',
+    lo_que_aprenderas: '',
+    requisitos: '',
     categoria_id: '',
     nivel: 'básico',
     duracion_horas: '',
@@ -226,6 +228,8 @@ const GestionCursosSection = ({ containerVariants }) => {
         codigo_curso: cursoCompleto.codigo_curso || '',
         nombre: cursoCompleto.nombre || '',
         descripcion: cursoCompleto.descripcion || '',
+        lo_que_aprenderas: cursoCompleto.lo_que_aprenderas || '',
+        requisitos: cursoCompleto.requisitos || '',
         categoria_id: cursoCompleto.categoria_id || '',
         nivel: cursoCompleto.nivel || 'básico',
         duracion_horas: cursoCompleto.duracion_horas || '',
@@ -261,6 +265,8 @@ const GestionCursosSection = ({ containerVariants }) => {
       codigo_curso: '',
       nombre: '',
       descripcion: '',
+      lo_que_aprenderas: '',
+      requisitos: '',
       categoria_id: '',
       nivel: 'básico',
       duracion_horas: '',
@@ -953,6 +959,44 @@ const GestionCursosSection = ({ containerVariants }) => {
                           : 'bg-white border-purple-200 text-gray-900 placeholder-gray-400'
                       } focus:outline-none focus:border-[#8c5cff]`}
                       placeholder="Dr. Juan Pérez"
+                    />
+                  </div>
+
+                  {/* Lo que Aprenderás */}
+                  <div className="lg:col-span-2">
+                    <label className={`block text-sm font-semibold mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      Lo que Aprenderás
+                    </label>
+                    <textarea
+                      name="lo_que_aprenderas"
+                      value={formData.lo_que_aprenderas}
+                      onChange={handleInputChange}
+                      rows="4"
+                      className={`w-full px-4 py-2 rounded-lg border transition-all resize-none ${
+                        isDarkMode
+                          ? 'bg-[#0f1117] border-[#8c5cff]/20 text-white placeholder-gray-500'
+                          : 'bg-white border-purple-200 text-gray-900 placeholder-gray-400'
+                      } focus:outline-none focus:border-[#8c5cff]`}
+                      placeholder="Describe los puntos clave que los estudiantes aprenderán en este curso. Cada punto en una línea."
+                    />
+                  </div>
+
+                  {/* Requisitos */}
+                  <div className="lg:col-span-2">
+                    <label className={`block text-sm font-semibold mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      Requisitos Previos
+                    </label>
+                    <textarea
+                      name="requisitos"
+                      value={formData.requisitos}
+                      onChange={handleInputChange}
+                      rows="4"
+                      className={`w-full px-4 py-2 rounded-lg border transition-all resize-none ${
+                        isDarkMode
+                          ? 'bg-[#0f1117] border-[#8c5cff]/20 text-white placeholder-gray-500'
+                          : 'bg-white border-purple-200 text-gray-900 placeholder-gray-400'
+                      } focus:outline-none focus:border-[#8c5cff]`}
+                      placeholder="Describe los requisitos necesarios para tomar este curso. Cada requisito en una línea."
                     />
                   </div>
 
