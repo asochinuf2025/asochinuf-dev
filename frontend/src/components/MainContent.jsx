@@ -13,7 +13,7 @@ const GestionPlantelesSection = lazy(() => import('../pages/GestionPlantelesSect
 const MiPerfil = lazy(() => import('../pages/PerfilSection/MiPerfil'));
 const CuotasSection = lazy(() => import('../pages/CuotasSection/CuotasSection'));
 const DocumentosSection = lazy(() => import('../pages/DocumentosSection/DocumentosSection'));
-const CursoDetallePage = lazy(() => import('../pages/CursoDetallePage'));
+const CursoDetallePage = lazy(() => import('../pages/CursosSection/CursoDetallePage'));
 
 // Loading fallback component
 const SectionLoadingFallback = () => (
