@@ -460,3 +460,52 @@ export const eliminarDocumento = async (req, res) => {
     });
   }
 };
+
+// Regenerar todas las miniaturas (admin solo)
+export const regenerarMiniaturas = async (req, res) => {
+  try {
+    // Verificar que sea admin
+    if (req.usuario?.tipo_perfil !== 'admin') {
+      return res.status(403).json({ error: 'Solo administradores pueden regenerar miniaturas' });
+    }
+
+    // Obtener todos los eventos con su contenido
+    const result = await pool.query(`
+      SELECT id, archivo_contenido, archivo_nombre, archivo_tipo
+      FROM t_eventos
+      WHERE visible = true
+    `);
+
+    let regenerados = 0;
+    let errores = 0;
+
+    // Regenerar miniatura para cada evento
+    for (const doc of result.rows) {
+      try {
+        const miniaturaBuffer = await generarMiniatura(doc.archivo_contenido, doc.archivo_tipo, doc.archivo_nombre);
+
+        await pool.query(
+          'UPDATE t_eventos SET miniatura = $1 WHERE id = $2',
+          [miniaturaBuffer, doc.id]
+        );
+        regenerados++;
+      } catch (error) {
+        console.error(`Error regenerando miniatura para evento ${doc.id}:`, error);
+        errores++;
+      }
+    }
+
+    res.json({
+      mensaje: 'Regeneración de miniaturas completada',
+      regenerados,
+      errores,
+      total: result.rows.length
+    });
+  } catch (error) {
+    console.error('Error al regenerar miniaturas:', error);
+    res.status(500).json({
+      error: 'Error al regenerar miniaturas',
+      detail: error.message
+    });
+  }
+};

@@ -6,7 +6,8 @@ import {
   crearDocumento,
   actualizarDocumento,
   eliminarDocumento,
-  inicializarTabla
+  inicializarTabla,
+  regenerarMiniaturas
 } from '../controllers/documentosController.js';
 import { verificarToken, verificarAdmin } from '../middleware/auth.js';
 
@@ -24,5 +25,8 @@ router.delete('/:id', verificarToken, verificarAdmin, eliminarDocumento);
 
 // Ruta de inicialización (solo admin)
 router.post('/admin/init-table', verificarToken, verificarAdmin, inicializarTabla);
+
+// Ruta para regenerar miniaturas (solo admin)
+router.post('/admin/regenerar-miniaturas', verificarToken, verificarAdmin, regenerarMiniaturas);
 
 export default router;
