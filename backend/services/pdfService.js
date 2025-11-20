@@ -52,96 +52,28 @@ const generarMiniaturaImagen = async (archivoBuffer, tipoArchivo) => {
 
 /**
  * Generar miniatura para PDF
- * Intenta renderizar la primera página. Si falla, usa miniatura inteligente.
+ * Usa miniatura inteligente con información del PDF (más rápido y confiable en Railway)
  */
 const generarMiniaturaPDF = async (archivoBuffer, nombreArchivo) => {
   console.log(`📄 PDF detectado: ${nombreArchivo}`);
 
+  // Obtener número de páginas si es posible
+  let numPaginas = '?';
   try {
-    // Cargar el documento PDF con timeout
-    console.log('📖 Cargando PDF...');
+    console.log('📖 Leyendo metadatos del PDF...');
     const pdf = await Promise.race([
       pdfjsLib.getDocument({ data: archivoBuffer }).promise,
-      new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout cargando PDF')), 5000))
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000))
     ]);
-
-    const numPaginas = pdf.numPages;
-    console.log(`✓ PDF cargado: ${numPaginas} páginas`);
-
-    if (numPaginas === 0) {
-      throw new Error('PDF sin páginas');
-    }
-
-    // Obtener la primera página
-    console.log('🔍 Obteniendo primera página...');
-    const page = await pdf.getPage(1);
-
-    // Configurar viewport con escala más pequeña para ser más rápido
-    const scale = 0.75; // Escala reducida para velocidad
-    const viewport = page.getViewport({ scale });
-
-    const width = Math.round(viewport.width);
-    const height = Math.round(viewport.height);
-
-    // Limitar dimensiones máximas para evitar consumo excesivo de memoria
-    const maxWidth = 600;
-    const maxHeight = 800;
-    const finalWidth = Math.min(width, maxWidth);
-    const finalHeight = Math.min(height, maxHeight);
-
-    console.log(`📐 Dimensiones: ${finalWidth}x${finalHeight}`);
-
-    // Crear canvas
-    const canvas = createCanvas(finalWidth, finalHeight);
-    const context = canvas.getContext('2d');
-
-    // Llenar fondo blanco
-    context.fillStyle = 'white';
-    context.fillRect(0, 0, finalWidth, finalHeight);
-
-    // Renderizar la página en el canvas con timeout
-    console.log(`🎨 Renderizando página...`);
-    const renderContext = {
-      canvasContext: context,
-      viewport: viewport
-    };
-
-    await Promise.race([
-      page.render(renderContext).promise,
-      new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout renderizando PDF')), 8000))
-    ]);
-
-    console.log(`✓ Página renderizada correctamente`);
-
-    const buffer = canvas.toBuffer('image/png');
-
-    // Validar que el buffer sea válido
-    if (!buffer || buffer.length < 67) {
-      throw new Error('Buffer de imagen inválido');
-    }
-
-    console.log(`✅ Miniatura de PDF renderizada: ${buffer.length} bytes`);
-    return buffer;
-
-  } catch (error) {
-    console.error(`❌ Error renderizando PDF: ${error.message}`);
-    console.log(`⚠️ Usando miniatura inteligente como fallback...`);
-
-    // Obtener número de páginas si es posible
-    let numPaginas = '?';
-    try {
-      const pdf = await Promise.race([
-        pdfjsLib.getDocument({ data: archivoBuffer }).promise,
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000))
-      ]);
-      numPaginas = pdf.numPages;
-    } catch (e) {
-      // Ignorar errores al leer número de páginas
-    }
-
-    // Fallback: generar miniatura inteligente
-    return generarMiniaturaPDFInteligente(archivoBuffer, nombreArchivo, numPaginas);
+    numPaginas = pdf.numPages;
+    console.log(`✓ PDF leído: ${numPaginas} páginas`);
+  } catch (e) {
+    console.warn(`⚠️ No se pudo leer metadatos: ${e.message}`);
   }
+
+  // Generar miniatura inteligente (rápido y confiable)
+  console.log(`📎 Generando miniatura inteligente...`);
+  return generarMiniaturaPDFInteligente(archivoBuffer, nombreArchivo, numPaginas);
 };
 
 /**
