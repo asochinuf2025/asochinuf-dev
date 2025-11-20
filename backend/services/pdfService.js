@@ -58,9 +58,13 @@ const generarMiniaturaPDF = async (archivoBuffer, nombreArchivo) => {
   console.log(`📄 PDF detectado: ${nombreArchivo}`);
 
   try {
-    // Cargar el documento PDF
+    // Cargar el documento PDF con timeout
     console.log('📖 Cargando PDF...');
-    const pdf = await pdfjsLib.getDocument({ data: archivoBuffer }).promise;
+    const pdf = await Promise.race([
+      pdfjsLib.getDocument({ data: archivoBuffer }).promise,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout cargando PDF')), 5000))
+    ]);
+
     const numPaginas = pdf.numPages;
     console.log(`✓ PDF cargado: ${numPaginas} páginas`);
 
@@ -72,30 +76,41 @@ const generarMiniaturaPDF = async (archivoBuffer, nombreArchivo) => {
     console.log('🔍 Obteniendo primera página...');
     const page = await pdf.getPage(1);
 
-    // Configurar viewport para una miniatura de buena calidad
-    const scale = 1.5; // Aumentar escala para mejor calidad
+    // Configurar viewport con escala más pequeña para ser más rápido
+    const scale = 0.75; // Escala reducida para velocidad
     const viewport = page.getViewport({ scale });
 
     const width = Math.round(viewport.width);
     const height = Math.round(viewport.height);
-    console.log(`📐 Dimensiones: ${width}x${height}`);
+
+    // Limitar dimensiones máximas para evitar consumo excesivo de memoria
+    const maxWidth = 600;
+    const maxHeight = 800;
+    const finalWidth = Math.min(width, maxWidth);
+    const finalHeight = Math.min(height, maxHeight);
+
+    console.log(`📐 Dimensiones: ${finalWidth}x${finalHeight}`);
 
     // Crear canvas
-    const canvas = createCanvas(width, height);
+    const canvas = createCanvas(finalWidth, finalHeight);
     const context = canvas.getContext('2d');
 
     // Llenar fondo blanco
     context.fillStyle = 'white';
-    context.fillRect(0, 0, width, height);
+    context.fillRect(0, 0, finalWidth, finalHeight);
 
-    // Renderizar la página en el canvas
+    // Renderizar la página en el canvas con timeout
     console.log(`🎨 Renderizando página...`);
     const renderContext = {
       canvasContext: context,
       viewport: viewport
     };
 
-    await page.render(renderContext).promise;
+    await Promise.race([
+      page.render(renderContext).promise,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout renderizando PDF')), 8000))
+    ]);
+
     console.log(`✓ Página renderizada correctamente`);
 
     const buffer = canvas.toBuffer('image/png');
@@ -115,7 +130,10 @@ const generarMiniaturaPDF = async (archivoBuffer, nombreArchivo) => {
     // Obtener número de páginas si es posible
     let numPaginas = '?';
     try {
-      const pdf = await pdfjsLib.getDocument({ data: archivoBuffer }).promise;
+      const pdf = await Promise.race([
+        pdfjsLib.getDocument({ data: archivoBuffer }).promise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000))
+      ]);
       numPaginas = pdf.numPages;
     } catch (e) {
       // Ignorar errores al leer número de páginas
