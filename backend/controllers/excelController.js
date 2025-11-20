@@ -151,16 +151,21 @@ export const uploadExcelFile = async (req, res) => {
 
       let pacienteId;
       if (pacienteResult.rows.length === 0) {
-        // Crear nuevo paciente
+        // Crear nuevo paciente con sesion_medicion_id
         const createPacienteResult = await pool.query(
-          `INSERT INTO t_pacientes (nombre, activo, fecha_registro)
-           VALUES ($1, true, NOW())
+          `INSERT INTO t_pacientes (nombre, sesion_medicion_id, activo, fecha_registro)
+           VALUES ($1, $2, true, NOW())
            RETURNING id`,
-          [measurement.nombre_paciente]
+          [measurement.nombre_paciente, sesionId]
         );
         pacienteId = createPacienteResult.rows[0].id;
       } else {
         pacienteId = pacienteResult.rows[0].id;
+        // Actualizar sesion_medicion_id si es NULL (para pacientes existentes sin sesión)
+        await pool.query(
+          `UPDATE t_pacientes SET sesion_medicion_id = $1 WHERE id = $2 AND sesion_medicion_id IS NULL`,
+          [sesionId, pacienteId]
+        );
       }
 
       // Verificar si ya existe un registro para este paciente con esta fecha_medicion
