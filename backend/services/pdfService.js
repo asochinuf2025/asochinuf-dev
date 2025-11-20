@@ -102,8 +102,8 @@ const generarMiniaturaPDF = async (archivoBuffer, nombreArchivo) => {
  */
 const generarMiniaturaPorTipo = (archivoBuffer, tipoArchivo, nombreArchivo) => {
   try {
-    const width = 200;
-    const height = 250;
+    const width = 400;
+    const height = 500;
 
     const canvas = createCanvas(width, height);
     const context = canvas.getContext('2d');
@@ -164,17 +164,17 @@ const generarMiniaturaPorTipo = (archivoBuffer, tipoArchivo, nombreArchivo) => {
     context.strokeRect(10, 10, width - 20, height - 20);
 
     // Icono grande
-    context.font = 'bold 60px Arial';
+    context.font = 'bold 120px Arial';
     context.textAlign = 'center';
     context.fillText(icono, width / 2, height / 3);
 
     // Tipo de archivo
     context.fillStyle = '#ffffff';
-    context.font = 'bold 20px Arial';
-    context.fillText(tipo, width / 2, height / 2 + 10);
+    context.font = 'bold 40px Arial';
+    context.fillText(tipo, width / 2, height / 2 + 20);
 
     // Nombre del archivo (truncado)
-    context.font = '12px Arial';
+    context.font = '24px Arial';
     context.fillStyle = 'rgba(255, 255, 255, 0.9)';
     const nombreLimpio = nombreArchivo
       .replace(/\.[^/.]+$/, '') // Quitar extensión
@@ -193,10 +193,10 @@ const generarMiniaturaPorTipo = (archivoBuffer, tipoArchivo, nombreArchivo) => {
       while (pos > 0 && texto[pos] !== ' ') pos--;
       const linea1 = texto.substring(0, pos);
       const linea2 = texto.substring(pos + 1);
-      context.fillText(linea1, width / 2, height - 40);
-      if (linea2) context.fillText(linea2, width / 2, height - 20);
+      context.fillText(linea1, width / 2, height - 80);
+      if (linea2) context.fillText(linea2, width / 2, height - 40);
     } else {
-      context.fillText(texto, width / 2, height - 30);
+      context.fillText(texto, width / 2, height - 60);
     }
 
     // Tamaño del archivo (abajo)
@@ -210,9 +210,9 @@ const generarMiniaturaPorTipo = (archivoBuffer, tipoArchivo, nombreArchivo) => {
       tamañoTexto = tamaño + ' B';
     }
 
-    context.font = '10px Arial';
+    context.font = '20px Arial';
     context.fillStyle = 'rgba(255, 255, 255, 0.7)';
-    context.fillText(tamañoTexto, width / 2, height - 5);
+    context.fillText(tamañoTexto, width / 2, height - 10);
 
     const buffer = canvas.toBuffer('image/png');
     return buffer || Buffer.alloc(0);
