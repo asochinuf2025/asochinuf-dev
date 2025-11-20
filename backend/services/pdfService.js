@@ -1,49 +1,36 @@
 import { createCanvas } from 'canvas';
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.js';
 
-// Variable para almacenar pdfjs-dist
-let pdfjsLib = null;
-
-// Función async para cargar pdfjs-dist cuando sea necesario
-const cargarPdfjs = async () => {
-  if (!pdfjsLib) {
-    try {
-      const mod = await import('pdfjs-dist/legacy/build/pdf.js');
-      pdfjsLib = mod.default;
-    } catch (e) {
-      console.warn('No se pudo cargar pdfjs-dist:', e.message);
-      return null;
-    }
-  }
-  return pdfjsLib;
-};
+// Configurar el worker de pdf.js
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
 /**
  * Generar miniatura para documentos e imágenes
- * Para PDFs: extrae la primera página y la renderiza
- * Para imágenes: usa la imagen misma escalada como miniatura
- * Para otros archivos: crea una miniatura genérica con icono
+ * - Para PDFs: intenta renderizar primera página, fallback a miniatura con metadatos
+ * - Para imágenes: usa la imagen misma escalada
+ * - Para otros archivos: miniatura genérica con icono
  */
 export const generarMiniatura = async (archivoBuffer, tipoArchivo, nombreArchivo) => {
   try {
-    // Si es imagen, usar la imagen como miniatura (escalada)
+    // Si es imagen, usar la imagen como miniatura
     if (tipoArchivo?.includes('image')) {
-      console.log('Thumbnail type: IMAGEN (returning original buffer)');
+      console.log('📷 Tipo: IMAGEN');
       return await generarMiniaturaImagen(archivoBuffer, tipoArchivo);
     }
 
-    // Si es PDF, intentar extraer primera página
+    // Si es PDF, intentar renderizar o generar miniatura inteligente
     if (tipoArchivo?.includes('pdf')) {
-      console.log('Thumbnail type: PDF (extracting first page)');
+      console.log('📄 Tipo: PDF');
       return await generarMiniaturaPDF(archivoBuffer, nombreArchivo);
     }
 
     // Para otros archivos, generar miniatura genérica
-    console.log(`Thumbnail type: GENÉRICA para ${tipoArchivo}`);
+    console.log(`📎 Tipo: GENÉRICA`);
     return generarMiniaturaPorTipo(archivoBuffer, tipoArchivo, nombreArchivo);
   } catch (error) {
-    console.error('Error generando miniatura de documento:', error);
+    console.error('❌ Error generando miniatura:', error.message);
     // En caso de error, devolver una miniatura genérica
-    console.log('Fallback: generando miniatura genérica por error');
+    console.log('⚠️ Fallback: miniatura genérica');
     return generarMiniaturaPorTipo(archivoBuffer, tipoArchivo, nombreArchivo);
   }
 };
@@ -67,92 +54,156 @@ const generarMiniaturaImagen = async (archivoBuffer, tipoArchivo) => {
 };
 
 /**
- * Generar miniatura extrayendo la primera página del PDF
- * Renderiza en el servidor pero con mejor manejo de errores para Railway
+ * Generar miniatura para PDF
+ * Intenta renderizar la primera página, si falla genera una miniatura inteligente con metadatos
  */
 const generarMiniaturaPDF = async (archivoBuffer, nombreArchivo) => {
+  console.log(`📄 PDF detectado: ${nombreArchivo}`);
+
   try {
-    console.log(`📄 PDF detectado: ${nombreArchivo}, tamaño: ${archivoBuffer.length} bytes`);
-    const pdfjs = await cargarPdfjs();
-
-    if (!pdfjs) {
-      console.log('⚠️ pdfjs-dist no disponible, usando miniatura genérica');
-      return generarMiniaturaPorTipo(archivoBuffer, 'application/pdf', nombreArchivo);
-    }
-
-    // Convertir Buffer a Uint8Array
-    const uint8Array = new Uint8Array(archivoBuffer);
-    console.log(`📖 Cargando PDF...`);
-
-    // Cargar con opciones optimizadas para Railway
-    const pdf = await pdfjs.getDocument({
-      data: uint8Array,
-      disableAutoFetch: true,
-      disableStream: true,
-      disableWorker: true, // Renderizar en el mismo thread
-      rangeChunkSize: 65536,
-      cMapUrl: undefined, // Desactivar cMap para reducir complejidad
-      disableNormalization: true // No normalizar fuentes
-    }).promise;
-
+    // Intentar cargar y renderizar el PDF
+    const pdf = await pdfjsLib.getDocument({ data: archivoBuffer }).promise;
     console.log(`✓ PDF cargado: ${pdf.numPages} páginas`);
 
+    if (pdf.numPages === 0) {
+      throw new Error('PDF sin páginas');
+    }
+
+    // Obtener la primera página
     const page = await pdf.getPage(1);
     console.log(`✓ Primera página obtenida`);
 
-    // Usar escala reducida
-    const scale = 0.8;
-    const viewport = page.getViewport({ scale });
+    const viewport = page.getViewport({ scale: 0.5 });
+    const width = Math.min(320, viewport.width);
+    const height = Math.min(420, viewport.height);
 
-    // Limitar canvas
-    const maxWidth = 500;
-    const maxHeight = 800;
-    let finalScale = scale;
+    console.log(`🎨 Renderizando canvas ${Math.round(width)}x${Math.round(height)}...`);
 
-    if (viewport.width > maxWidth || viewport.height > maxHeight) {
-      const scaleX = maxWidth / viewport.width;
-      const scaleY = maxHeight / viewport.height;
-      finalScale = Math.min(scaleX, scaleY);
-    }
-
-    const finalViewport = page.getViewport({ scale: finalScale });
-    const canvas = createCanvas(Math.round(finalViewport.width), Math.round(finalViewport.height));
+    const canvas = createCanvas(width, height);
     const context = canvas.getContext('2d');
 
-    // Fondo blanco
-    context.fillStyle = '#ffffff';
-    context.fillRect(0, 0, canvas.width, canvas.height);
-
-    console.log(`🎨 Renderizando canvas ${canvas.width}x${canvas.height}...`);
-
-    // Renderizar con timeout de 12 segundos
-    // Ignorar errores de renderizado para hacer la miniatura lo mejor posible
-    const renderTask = page.render({
+    // Renderizar la página en el canvas
+    const renderContext = {
       canvasContext: context,
-      viewport: finalViewport,
-      // Ignorar errores de renderizado para features no soportadas (ej: imágenes complejas)
-      errorOnUnsupportedFeature: false,
-      renderInteractiveForms: false
-    });
+      viewport: page.getViewport({ scale: 0.5 })
+    };
 
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Render timeout')), 12000)
-    );
-
-    await Promise.race([renderTask.promise, timeoutPromise]);
+    await page.render(renderContext).promise;
+    console.log(`✓ Página renderizada correctamente`);
 
     const buffer = canvas.toBuffer('image/png');
-    console.log(`✅ Miniatura renderizada: ${buffer.length} bytes`);
-    return buffer;
 
+    // Validar que el buffer sea válido
+    if (buffer && buffer.length > 67) {
+      console.log(`✅ Miniatura de PDF renderizada: ${buffer.length} bytes`);
+      return buffer;
+    }
   } catch (error) {
-    console.error('❌ Error renderizando PDF:', error.message);
+    console.error(`⚠️ Error renderizando PDF: ${error.message}`);
+  }
 
-    if (error.message.includes('Image') || error.message.includes('Canvas')) {
-      console.warn('⚠️ PDF contiene contenido que canvas no puede procesar');
+  // Fallback: generar miniatura inteligente con metadatos del PDF
+  console.log(`📎 Usando miniatura inteligente con metadatos del PDF`);
+  return generarMiniaturaPDFInteligente(archivoBuffer, nombreArchivo);
+};
+
+/**
+ * Generar miniatura inteligente para PDF con información del documento
+ * Muestra: icono, número de páginas, nombre del archivo, tamaño
+ */
+const generarMiniaturaPDFInteligente = (archivoBuffer, nombreArchivo) => {
+  try {
+    const width = 320;
+    const height = 420;
+
+    const canvas = createCanvas(width, height);
+    const context = canvas.getContext('2d');
+
+    // Colores para PDF
+    const colorPrimario = '#dc2626';
+    const colorSecundario = '#991b1b';
+
+    // Fondo con degradado
+    const gradient = context.createLinearGradient(0, 0, width, height);
+    gradient.addColorStop(0, colorPrimario);
+    gradient.addColorStop(1, colorSecundario);
+    context.fillStyle = gradient;
+    context.fillRect(0, 0, width, height);
+
+    // Patrón sutil de líneas (simulando páginas de PDF)
+    context.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+    context.lineWidth = 1;
+    for (let i = 0; i < height; i += 18) {
+      context.beginPath();
+      context.moveTo(20, i);
+      context.lineTo(width - 20, i);
+      context.stroke();
     }
 
-    console.log('📎 Usando miniatura genérica como fallback');
+    // Borde elegante
+    context.shadowColor = 'rgba(0, 0, 0, 0.2)';
+    context.shadowBlur = 10;
+    context.shadowOffsetX = 0;
+    context.shadowOffsetY = 2;
+    context.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+    context.lineWidth = 2;
+    context.strokeRect(12, 12, width - 24, height - 24);
+    context.shadowColor = 'transparent';
+
+    // Icono PDF grande
+    context.font = 'bold 100px Arial';
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.fillStyle = '#ffffff';
+    context.fillText('📕', width / 2, 80);
+
+    // Etiqueta "PDF"
+    context.font = 'bold 24px Arial';
+    context.fillText('PDF', width / 2, 150);
+
+    // Separador
+    context.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+    context.lineWidth = 1;
+    context.beginPath();
+    context.moveTo(40, 175);
+    context.lineTo(width - 40, 175);
+    context.stroke();
+
+    // Nombre del archivo (truncado)
+    const nombreLimpio = nombreArchivo.replace(/\.pdf$/i, '').substring(0, 30);
+    let nombreMostrar = nombreLimpio;
+    if (nombreLimpio.length > 25) {
+      nombreMostrar = nombreLimpio.substring(0, 22) + '...';
+    }
+    context.font = '14px Arial';
+    context.fillStyle = 'rgba(255, 255, 255, 0.95)';
+    context.fillText(nombreMostrar, width / 2, 220);
+
+    // Tamaño del archivo
+    const tamaño = archivoBuffer.length;
+    let tamañoTexto = '';
+    if (tamaño > 1024 * 1024) {
+      tamañoTexto = (tamaño / (1024 * 1024)).toFixed(1) + ' MB';
+    } else if (tamaño > 1024) {
+      tamañoTexto = (tamaño / 1024).toFixed(1) + ' KB';
+    } else {
+      tamañoTexto = tamaño + ' B';
+    }
+    context.font = '12px Arial';
+    context.fillStyle = 'rgba(255, 255, 255, 0.7)';
+    context.fillText(tamañoTexto, width / 2, 250);
+
+    // Indicador de disponibilidad
+    context.font = '11px Arial';
+    context.fillStyle = 'rgba(255, 255, 255, 0.6)';
+    context.fillText('Click para ver documento', width / 2, 400);
+
+    const buffer = canvas.toBuffer('image/png');
+    console.log(`✅ Miniatura inteligente de PDF generada: ${buffer?.length || 0} bytes`);
+    return buffer;
+  } catch (error) {
+    console.error('Error generando miniatura inteligente:', error);
+    // Fallback final: miniatura genérica
     return generarMiniaturaPorTipo(archivoBuffer, 'application/pdf', nombreArchivo);
   }
 };
