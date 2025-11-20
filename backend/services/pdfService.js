@@ -1,5 +1,4 @@
 import { createCanvas } from 'canvas';
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.js';
 
 /**
  * Generar miniatura para documentos e imágenes
@@ -52,28 +51,14 @@ const generarMiniaturaImagen = async (archivoBuffer, tipoArchivo) => {
 
 /**
  * Generar miniatura para PDF
- * Usa miniatura inteligente con información del PDF (más rápido y confiable en Railway)
+ * Genera miniatura inteligente sin depender de pdfjs
  */
 const generarMiniaturaPDF = async (archivoBuffer, nombreArchivo) => {
   console.log(`📄 PDF detectado: ${nombreArchivo}`);
-
-  // Obtener número de páginas si es posible
-  let numPaginas = '?';
-  try {
-    console.log('📖 Leyendo metadatos del PDF...');
-    const pdf = await Promise.race([
-      pdfjsLib.getDocument({ data: archivoBuffer }).promise,
-      new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000))
-    ]);
-    numPaginas = pdf.numPages;
-    console.log(`✓ PDF leído: ${numPaginas} páginas`);
-  } catch (e) {
-    console.warn(`⚠️ No se pudo leer metadatos: ${e.message}`);
-  }
-
-  // Generar miniatura inteligente (rápido y confiable)
   console.log(`📎 Generando miniatura inteligente...`);
-  return generarMiniaturaPDFInteligente(archivoBuffer, nombreArchivo, numPaginas);
+
+  // Generar miniatura inteligente sin leer el PDF
+  return generarMiniaturaPDFInteligente(archivoBuffer, nombreArchivo, '?');
 };
 
 /**
