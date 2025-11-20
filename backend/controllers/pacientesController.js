@@ -25,25 +25,42 @@ export const obtenerPosiciones = async (req, res) => {
   }
 };
 
-// Obtener todos los pacientes
+// Obtener todos los pacientes con información de sesión, plantel, categoría y liga
 export const obtenerPacientes = async (req, res) => {
   try {
     const { busqueda, posicion } = req.query;
 
-    let query = 'SELECT * FROM t_pacientes WHERE activo = true';
+    let query = `
+      SELECT
+        p.*,
+        sm.id as sesion_id,
+        sm.fecha_sesion,
+        pt.id as plantel_id,
+        pt.nombre as plantel_nombre,
+        cat.id as categoria_id,
+        cat.nombre as categoria_nombre,
+        lg.id as liga_id,
+        lg.nombre as liga_nombre
+      FROM t_pacientes p
+      LEFT JOIN t_sesion_mediciones sm ON p.sesion_medicion_id = sm.id
+      LEFT JOIN t_planteles pt ON sm.plantel_id = pt.id
+      LEFT JOIN t_categorias cat ON sm.categoria_id = cat.id
+      LEFT JOIN t_ligas lg ON cat.liga_id = lg.id
+      WHERE p.activo = true
+    `;
     const params = [];
 
     if (busqueda) {
-      query += ' AND (nombre ILIKE $' + (params.length + 1) + ' OR apellido ILIKE $' + (params.length + 1) + ' OR cedula = $' + (params.length + 2) + ')';
+      query += ' AND (p.nombre ILIKE $' + (params.length + 1) + ' OR p.apellido ILIKE $' + (params.length + 1) + ' OR p.cedula = $' + (params.length + 2) + ')';
       params.push('%' + busqueda + '%', busqueda);
     }
 
     if (posicion && posicion !== 'todas') {
-      query += ' AND posicion_juego = $' + (params.length + 1);
+      query += ' AND p.posicion_juego = $' + (params.length + 1);
       params.push(posicion);
     }
 
-    query += ' ORDER BY nombre, apellido';
+    query += ' ORDER BY p.nombre, p.apellido';
 
     const result = await pool.query(query, params);
 
@@ -60,15 +77,29 @@ export const obtenerPacientes = async (req, res) => {
   }
 };
 
-// Obtener paciente por ID
+// Obtener paciente por ID con información de sesión, plantel, categoría y liga
 export const obtenerPaciente = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const result = await pool.query(
-      'SELECT * FROM t_pacientes WHERE id = $1 AND activo = true',
-      [id]
-    );
+    const result = await pool.query(`
+      SELECT
+        p.*,
+        sm.id as sesion_id,
+        sm.fecha_sesion,
+        pt.id as plantel_id,
+        pt.nombre as plantel_nombre,
+        cat.id as categoria_id,
+        cat.nombre as categoria_nombre,
+        lg.id as liga_id,
+        lg.nombre as liga_nombre
+      FROM t_pacientes p
+      LEFT JOIN t_sesion_mediciones sm ON p.sesion_medicion_id = sm.id
+      LEFT JOIN t_planteles pt ON sm.plantel_id = pt.id
+      LEFT JOIN t_categorias cat ON sm.categoria_id = cat.id
+      LEFT JOIN t_ligas lg ON cat.liga_id = lg.id
+      WHERE p.id = $1 AND p.activo = true
+    `, [id]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Paciente no encontrado' });

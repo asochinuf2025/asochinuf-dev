@@ -42,9 +42,11 @@ const inicializarBD = async () => {
         telefono VARCHAR(20),
         fecha_nacimiento DATE,
         posicion_juego VARCHAR(50),
+        sesion_medicion_id INTEGER,
         activo BOOLEAN DEFAULT true,
         fecha_registro TIMESTAMP DEFAULT NOW(),
-        CONSTRAINT cedula_unique UNIQUE(cedula)
+        CONSTRAINT cedula_unique UNIQUE(cedula),
+        CONSTRAINT fk_pacientes_sesion_medicion FOREIGN KEY (sesion_medicion_id) REFERENCES t_sesion_mediciones(id) ON DELETE SET NULL
       );
     `);
     console.log('✓ Tabla t_pacientes creada');
@@ -53,6 +55,7 @@ const inicializarBD = async () => {
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_pacientes_nombre ON t_pacientes(nombre);`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_pacientes_cedula ON t_pacientes(cedula);`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_pacientes_email ON t_pacientes(email);`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_pacientes_sesion_medicion_id ON t_pacientes(sesion_medicion_id);`);
     console.log('✓ Índices en t_pacientes creados\\n');
 
     // ========== TABLA t_clientes ==========
