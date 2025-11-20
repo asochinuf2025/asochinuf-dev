@@ -71,6 +71,8 @@ const generarMiniaturaImagen = async (archivoBuffer, tipoArchivo) => {
  * Maneja PDFs complejos con timeout y fallback
  */
 const generarMiniaturaPDF = async (archivoBuffer, nombreArchivo) => {
+  let intentoSimple = false;
+
   try {
     console.log(`Intentando extraer página de PDF: ${nombreArchivo}, tamaño: ${archivoBuffer.length} bytes`);
     const pdfjs = await cargarPdfjs();
@@ -83,14 +85,19 @@ const generarMiniaturaPDF = async (archivoBuffer, nombreArchivo) => {
     // Convertir Buffer a Uint8Array para pdfjs-dist
     const uint8Array = new Uint8Array(archivoBuffer);
     console.log(`Cargando documento PDF...`);
-    const pdf = await pdfjs.getDocument({ data: uint8Array }).promise;
+
+    // Intentar carga con rendering de imágenes deshabilitado para PDFs complejos
+    const pdf = await pdfjs.getDocument({
+      data: uint8Array,
+      disableAutoFetch: true
+    }).promise;
     console.log(`PDF cargado, número de páginas: ${pdf.numPages}`);
 
     const page = await pdf.getPage(1);
     console.log(`Primera página obtenida`);
 
     // Para PDFs complejos, usar escala más pequeña (menos demanda de memoria)
-    const scale = archivoBuffer.length > 500000 ? 1.0 : 1.5;
+    const scale = archivoBuffer.length > 500000 ? 0.8 : 1.5;
     console.log(`Escala de renderizado: ${scale} (tamaño archivo: ${archivoBuffer.length} bytes)`);
 
     // Calcular dimensiones manteniendo aspecto 3/4
@@ -98,11 +105,11 @@ const generarMiniaturaPDF = async (archivoBuffer, nombreArchivo) => {
     console.log(`Viewport: ${viewport.width}x${viewport.height}`);
 
     // Limitar tamaño máximo de canvas para evitar problemas de memoria
-    const maxCanvasWidth = 1000;
-    const maxCanvasHeight = 1414;
+    const maxCanvasWidth = 800;
+    const maxCanvasHeight = 1200;
 
-    let finalWidth = viewport.width;
-    let finalHeight = viewport.height;
+    let finalWidth = Math.round(viewport.width);
+    let finalHeight = Math.round(viewport.height);
     let finalScale = scale;
 
     if (viewport.width > maxCanvasWidth || viewport.height > maxCanvasHeight) {
@@ -110,22 +117,29 @@ const generarMiniaturaPDF = async (archivoBuffer, nombreArchivo) => {
       const scaleY = maxCanvasHeight / viewport.height;
       finalScale = Math.min(scaleX, scaleY, scale);
       const finalViewport = page.getViewport({ scale: finalScale });
-      finalWidth = finalViewport.width;
-      finalHeight = finalViewport.height;
+      finalWidth = Math.round(finalViewport.width);
+      finalHeight = Math.round(finalViewport.height);
       console.log(`Canvas ajustado: ${finalWidth}x${finalHeight} (escala reducida a ${finalScale})`);
     }
 
     const canvas = createCanvas(finalWidth, finalHeight);
     const context = canvas.getContext('2d');
 
-    // Renderizar con timeout de 10 segundos
+    // Llenar fondo blanco para mejor compatibilidad
+    context.fillStyle = '#ffffff';
+    context.fillRect(0, 0, finalWidth, finalHeight);
+
+    console.log(`Iniciando renderizado del PDF con canvas ${finalWidth}x${finalHeight}...`);
+    intentoSimple = true;
+
+    // Renderizar con timeout de 15 segundos
     const renderPromise = page.render({
       canvasContext: context,
       viewport: page.getViewport({ scale: finalScale })
     }).promise;
 
     const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Render timeout - PDF demasiado complejo')), 10000)
+      setTimeout(() => reject(new Error('Render timeout - PDF demasiado complejo')), 15000)
     );
 
     await Promise.race([renderPromise, timeoutPromise]);
@@ -137,8 +151,9 @@ const generarMiniaturaPDF = async (archivoBuffer, nombreArchivo) => {
     console.error('Error al renderizar PDF para miniatura:', error.message);
 
     // Detectar si es error de imagen o timeout
-    if (error.message.includes('Image') || error.message.includes('Canvas') || error.message.includes('timeout')) {
-      console.warn(`PDF con contenido complejo (${error.message}). Intentando con librería alternativa...`);
+    if (intentoSimple && (error.message.includes('Image') || error.message.includes('Canvas'))) {
+      console.warn(`PDF contiene imágenes o contenido que Node.js canvas no puede procesar (${error.message})`);
+      console.log('Este es un PDF con contenido visual complejo - se usará miniatura genérica');
     }
 
     console.error('Stack:', error.stack);
