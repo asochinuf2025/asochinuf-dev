@@ -65,6 +65,7 @@ export const obtenerDocumentos = async (req, res) => {
         d.fecha_evento,
         d.hora_evento,
         d.ubicacion,
+        d.expositores,
         d.fecha_creacion,
         d.fecha_actualizacion,
         d.visible,
@@ -135,6 +136,7 @@ export const obtenerDocumentoPorId = async (req, res) => {
         d.fecha_evento,
         d.hora_evento,
         d.ubicacion,
+        d.expositores,
         d.fecha_creacion,
         d.fecha_actualizacion,
         d.visible,
@@ -175,6 +177,7 @@ export const obtenerDocumentoPorId = async (req, res) => {
         fecha_evento: doc.fecha_evento,
         hora_evento: doc.hora_evento,
         ubicacion: doc.ubicacion,
+        expositores: doc.expositores,
         fecha_creacion: doc.fecha_creacion,
         fecha_actualizacion: doc.fecha_actualizacion,
         usuario: {
@@ -217,7 +220,7 @@ export const obtenerCategorias = async (req, res) => {
 };
 
 // Crear nuevo evento (admin y nutricionista solo)
-// Espera: titulo, descripcion, archivo_base64, archivo_nombre, archivo_tipo, categoria, fecha_evento, hora_evento, ubicacion
+// Espera: titulo, descripcion, archivo_base64, archivo_nombre, archivo_tipo, categoria, fecha_evento, hora_evento, ubicacion, expositores
 export const crearDocumento = async (req, res) => {
   try {
     const {
@@ -229,7 +232,8 @@ export const crearDocumento = async (req, res) => {
       categoria,
       fecha_evento,
       hora_evento,
-      ubicacion
+      ubicacion,
+      expositores
     } = req.body;
     const usuarioId = req.usuario?.id;
 
@@ -263,11 +267,12 @@ export const crearDocumento = async (req, res) => {
         fecha_evento,
         hora_evento,
         ubicacion,
+        expositores,
         usuario_creacion,
         visible
       )
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, true)
-       RETURNING id, titulo, descripcion, archivo_nombre, archivo_tipo, archivo_tamaño, categoria, fecha_evento, hora_evento, ubicacion, fecha_creacion`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, true)
+       RETURNING id, titulo, descripcion, archivo_nombre, archivo_tipo, archivo_tamaño, categoria, fecha_evento, hora_evento, ubicacion, expositores, fecha_creacion`,
       [
         titulo,
         descripcion || null,
@@ -280,6 +285,7 @@ export const crearDocumento = async (req, res) => {
         fecha_evento || null,
         hora_evento || null,
         ubicacion || null,
+        expositores || null,
         usuarioId
       ]
     );
@@ -311,6 +317,7 @@ export const actualizarDocumento = async (req, res) => {
       fecha_evento,
       hora_evento,
       ubicacion,
+      expositores,
       visible
     } = req.body;
 
@@ -389,13 +396,19 @@ export const actualizarDocumento = async (req, res) => {
       paramCount++;
     }
 
+    if (expositores !== undefined) {
+      updateQuery += `, expositores = $${paramCount}`;
+      params.push(expositores || null);
+      paramCount++;
+    }
+
     if (visible !== undefined) {
       updateQuery += `, visible = $${paramCount}`;
       params.push(visible);
       paramCount++;
     }
 
-    updateQuery += ` WHERE id = $${paramCount} RETURNING id, titulo, descripcion, archivo_nombre, archivo_tipo, archivo_tamaño, categoria, fecha_evento, hora_evento, ubicacion, fecha_actualizacion`;
+    updateQuery += ` WHERE id = $${paramCount} RETURNING id, titulo, descripcion, archivo_nombre, archivo_tipo, archivo_tamaño, categoria, fecha_evento, hora_evento, ubicacion, expositores, fecha_actualizacion`;
     params.push(id);
 
     const result = await pool.query(updateQuery, params);

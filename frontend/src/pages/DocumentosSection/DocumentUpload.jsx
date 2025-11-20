@@ -29,6 +29,7 @@ const DocumentUpload = ({ onSuccess, onCancel }) => {
   const [fechaEvento, setFechaEvento] = useState('');
   const [horaEvento, setHoraEvento] = useState('');
   const [ubicacion, setUbicacion] = useState('');
+  const [expositores, setExpositores] = useState('');
 
   const handleArchivoSelect = (e) => {
     const file = e.target.files?.[0];
@@ -93,7 +94,8 @@ const DocumentUpload = ({ onSuccess, onCancel }) => {
               categoria: categoria,
               fecha_evento: fechaEvento || null,
               hora_evento: horaEvento || null,
-              ubicacion: ubicacion.trim() || null
+              ubicacion: ubicacion.trim() || null,
+              expositores: expositores.trim() || null
             },
             config
           );
@@ -242,6 +244,27 @@ const DocumentUpload = ({ onSuccess, onCancel }) => {
           value={ubicacion}
           onChange={(e) => setUbicacion(e.target.value)}
           placeholder="Ej: Auditorio Central, Santiago"
+          className={`w-full px-4 py-2 rounded-lg border ${
+            isDarkMode
+              ? 'bg-[#1a1c22] border-[#8c5cff]/20 text-white placeholder-gray-500'
+              : 'bg-white border-purple-200 text-gray-900 placeholder-gray-400'
+          } focus:outline-none focus:border-[#8c5cff]`}
+          disabled={uploading}
+        />
+      </div>
+
+      {/* Expositores */}
+      <div>
+        <label className={`block text-sm font-semibold mb-2 ${
+          isDarkMode ? 'text-gray-300' : 'text-gray-700'
+        }`}>
+          Expositores
+        </label>
+        <input
+          type="text"
+          value={expositores}
+          onChange={(e) => setExpositores(e.target.value)}
+          placeholder="Ej: Dr. Juan Pérez, Dra. María García"
           className={`w-full px-4 py-2 rounded-lg border ${
             isDarkMode
               ? 'bg-[#1a1c22] border-[#8c5cff]/20 text-white placeholder-gray-500'

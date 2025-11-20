@@ -661,6 +661,7 @@ const inicializarBD = async () => {
         fecha_evento DATE,
         hora_evento TIME,
         ubicacion VARCHAR(500),
+        expositores TEXT,
         fecha_creacion TIMESTAMP DEFAULT NOW(),
         fecha_actualizacion TIMESTAMP DEFAULT NOW(),
         visible BOOLEAN DEFAULT true,
