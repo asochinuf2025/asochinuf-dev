@@ -45,65 +45,20 @@ export const generarMiniatura = async (archivoBuffer, tipoArchivo, nombreArchivo
 };
 
 /**
- * Generar miniatura escalando una imagen
+ * Generar miniatura para imágenes
+ * Para imágenes, devolvemos la imagen original como miniatura
+ * (el navegador la escalará al tamaño del card automáticamente)
  */
 const generarMiniaturaImagen = async (archivoBuffer, tipoArchivo) => {
   try {
-    const { Image } = await import('canvas');
-
-    const image = new Image();
-    image.src = archivoBuffer;
-
-    // Esperar a que la imagen cargue
-    await new Promise((resolve, reject) => {
-      image.onload = resolve;
-      image.onerror = reject;
-    });
-
-    // Crear canvas con aspecto 16:9 (igual al card)
-    const width = 200;
-    const height = 112; // 200 * 9 / 16 = 112.5
-
-    const canvas = createCanvas(width, height);
-    const context = canvas.getContext('2d');
-
-    // Calcular dimensiones para cubrir todo el canvas manteniendo aspecto
-    const imgRatio = image.width / image.height;
-    const canvasRatio = width / height;
-
-    let sourceX = 0;
-    let sourceY = 0;
-    let sourceWidth = image.width;
-    let sourceHeight = image.height;
-
-    if (imgRatio > canvasRatio) {
-      // Imagen más ancha que canvas
-      sourceWidth = image.height * canvasRatio;
-      sourceX = (image.width - sourceWidth) / 2;
-    } else {
-      // Imagen más alta que canvas
-      sourceHeight = image.width / canvasRatio;
-      sourceY = (image.height - sourceHeight) / 2;
-    }
-
-    // Dibujar imagen escalada en el canvas
-    context.drawImage(
-      image,
-      sourceX,
-      sourceY,
-      sourceWidth,
-      sourceHeight,
-      0,
-      0,
-      width,
-      height
-    );
-
-    return canvas.toBuffer('image/png');
+    // Simplemente devolver el buffer original
+    // El navegador escalará la imagen al tamaño del card (aspect-video)
+    // Esto es más eficiente que procesar la imagen en Node.js
+    return archivoBuffer;
   } catch (error) {
-    console.error('Error generando miniatura de imagen:', error);
+    console.error('Error procesando miniatura de imagen:', error);
     // Si falla, devolver miniatura genérica
-    return generarMiniaturaPorTipo(archivoBuffer, 'image/jpeg', 'imagen.jpg');
+    return generarMiniaturaPorTipo(archivoBuffer, tipoArchivo, 'imagen.jpg');
   }
 };
 

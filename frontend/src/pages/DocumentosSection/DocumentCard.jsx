@@ -55,7 +55,7 @@ const DocumentCard = ({ documento, onOpen, isDarkMode, esAdmin, onDeleted }) => 
         <div className="relative w-full aspect-video overflow-hidden bg-gradient-to-br">
           {documento.miniatura ? (
             <img
-              src={`data:image/png;base64,${documento.miniatura}`}
+              src={`data:${documento.archivo_tipo || 'image/png'};base64,${documento.miniatura}`}
               alt={documento.titulo}
               className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
             />
