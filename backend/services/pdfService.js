@@ -126,9 +126,13 @@ const generarMiniaturaPDF = async (archivoBuffer, nombreArchivo) => {
     console.log(`🎨 Renderizando canvas ${canvas.width}x${canvas.height}...`);
 
     // Renderizar con timeout de 12 segundos
+    // Ignorar errores de renderizado para hacer la miniatura lo mejor posible
     const renderTask = page.render({
       canvasContext: context,
-      viewport: finalViewport
+      viewport: finalViewport,
+      // Ignorar errores de renderizado para features no soportadas (ej: imágenes complejas)
+      errorOnUnsupportedFeature: false,
+      renderInteractiveForms: false
     });
 
     const timeoutPromise = new Promise((_, reject) =>
