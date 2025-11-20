@@ -97,6 +97,15 @@ export const API_ENDPOINTS = {
     UPDATE: (id) => `${API_URL}/api/documentos/${id}`,
     DELETE: (id) => `${API_URL}/api/documentos/${id}`,
   },
+  // Pacientes
+  PACIENTES: {
+    GET_POSICIONES: `${API_URL}/api/pacientes/posiciones`,
+    GET_ALL: `${API_URL}/api/pacientes`,
+    GET_ONE: (id) => `${API_URL}/api/pacientes/${id}`,
+    CREATE: `${API_URL}/api/pacientes`,
+    UPDATE: (id) => `${API_URL}/api/pacientes/${id}`,
+    DELETE: (id) => `${API_URL}/api/pacientes/${id}`,
+  },
 };
 
 export const BASE = API_URL;

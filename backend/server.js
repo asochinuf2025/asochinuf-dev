@@ -16,6 +16,7 @@ import inscripcionesRoutes from './routes/inscripciones.js';
 import cloudinaryRoutes from './routes/cloudinary.js';
 import documentosRoutes from './routes/documentos.js';
 import detallesCursosRoutes from './routes/detallesCursos.js';
+import pacientesRoutes from './routes/pacientes.js';
 
 dotenv.config();
 
@@ -79,6 +80,7 @@ app.use('/api/inscripciones', inscripcionesRoutes);
 app.use('/api/cloudinary', cloudinaryRoutes);
 app.use('/api/documentos', documentosRoutes);
 app.use('/api/detalles-cursos', detallesCursosRoutes);
+app.use('/api/pacientes', pacientesRoutes);
 
 // Health check
 app.get('/api/health', async (req, res) => {

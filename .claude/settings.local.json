@@ -82,7 +82,8 @@
       "Bash(yarn build)",
       "Bash(for file in \"c:\\MisProyectosReact\\asochinuf-dev\\frontend\\src\\pages\"/*/*.jsx)",
       "Bash(done)",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "Bash(yarn dev)"
     ],
     "deny": [],
     "ask": []

@@ -41,6 +41,7 @@ const inicializarBD = async () => {
         email VARCHAR(255),
         telefono VARCHAR(20),
         fecha_nacimiento DATE,
+        posicion_juego VARCHAR(50),
         activo BOOLEAN DEFAULT true,
         fecha_registro TIMESTAMP DEFAULT NOW(),
         CONSTRAINT cedula_unique UNIQUE(cedula)

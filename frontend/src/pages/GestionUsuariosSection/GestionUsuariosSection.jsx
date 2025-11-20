@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
 import UsuarioModal from './UsuarioModal';
 import ConfirmDialog from '../../components/ConfirmDialog';
+import GestionPacientes from './GestionPacientes';
 import { API_ENDPOINTS } from '../../config/apiConfig';
 
 const GestionUsuariosSection = ({ containerVariants }) => {
@@ -17,6 +18,7 @@ const GestionUsuariosSection = ({ containerVariants }) => {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [usuarioAEliminar, setUsuarioAEliminar] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState('usuarios');
   const [formData, setFormData] = useState({
     nombre: '',
     apellido: '',
@@ -206,224 +208,262 @@ const GestionUsuariosSection = ({ containerVariants }) => {
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h2 className={`text-3xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-            Gestión de Usuarios
+            Administración
           </h2>
           <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>
-            Total de usuarios: <span className="font-bold">{usuarios.length}</span> • Mostrando: <span className="font-bold">{usuariosFiltrados.length}</span>
+            {activeTab === 'usuarios' ? `Total de usuarios: ${usuarios.length} • Mostrando: ${usuariosFiltrados.length}` : 'Gestión de pacientes y jugadores'}
           </p>
         </div>
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={handleAbrirModalNuevo}
-          disabled={showModal}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all ${
-            showModal
-              ? 'bg-gray-400 cursor-not-allowed'
-              : isDarkMode
-              ? 'bg-gradient-to-r from-[#8c5cff] to-[#6a3dcf] text-white hover:shadow-lg hover:shadow-[#8c5cff]/50'
-              : 'bg-gradient-to-r from-purple-500 to-purple-600 text-white hover:shadow-lg'
+        {activeTab === 'usuarios' && (
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleAbrirModalNuevo}
+            disabled={showModal}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all ${
+              showModal
+                ? 'bg-gray-400 cursor-not-allowed'
+                : isDarkMode
+                ? 'bg-gradient-to-r from-[#8c5cff] to-[#6a3dcf] text-white hover:shadow-lg hover:shadow-[#8c5cff]/50'
+                : 'bg-gradient-to-r from-purple-500 to-purple-600 text-white hover:shadow-lg'
+            }`}
+          >
+            <Plus size={20} />
+            Nuevo Usuario
+          </motion.button>
+        )}
+      </div>
+
+      {/* Tabs */}
+      <div className={`flex gap-4 border-b ${
+        isDarkMode ? 'border-[#8c5cff]/20' : 'border-purple-200'
+      }`}>
+        <button
+          onClick={() => setActiveTab('usuarios')}
+          className={`px-4 py-2 font-semibold transition-all border-b-2 ${
+            activeTab === 'usuarios'
+              ? `border-[#8c5cff] ${isDarkMode ? 'text-[#8c5cff]' : 'text-purple-600'}`
+              : `border-transparent ${isDarkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-600 hover:text-gray-900'}`
           }`}
         >
-          <Plus size={20} />
-          Nuevo Usuario
-        </motion.button>
-      </div>
-
-      {/* Search Filter */}
-      <div className="relative">
-        <Search
-          size={20}
-          className={`absolute left-4 top-1/2 transform -translate-y-1/2 ${
-            isDarkMode ? 'text-gray-400' : 'text-gray-500'
+          Usuarios
+        </button>
+        <button
+          onClick={() => setActiveTab('pacientes')}
+          className={`px-4 py-2 font-semibold transition-all border-b-2 ${
+            activeTab === 'pacientes'
+              ? `border-[#8c5cff] ${isDarkMode ? 'text-[#8c5cff]' : 'text-purple-600'}`
+              : `border-transparent ${isDarkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-600 hover:text-gray-900'}`
           }`}
-        />
-        <input
-          type="text"
-          placeholder="Buscar por nombre, apellido o email..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className={`w-full pl-12 pr-4 py-2 rounded-lg border transition-all ${
-            isDarkMode
-              ? 'bg-[#1a1c22]/50 border-[#8c5cff]/20 text-white placeholder-gray-500 focus:border-[#8c5cff]/40'
-              : 'bg-white/50 border-purple-200 text-gray-900 placeholder-gray-400 focus:border-purple-400'
-          } focus:outline-none`}
-        />
+        >
+          Pacientes/Jugadores
+        </button>
       </div>
 
-      {/* Error Message */}
-      <AnimatePresence>
-        {error && !showModal && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="bg-red-500/20 border border-red-500 text-red-600 p-4 rounded-lg flex items-center justify-between"
-          >
-            <span>{error}</span>
-            <button onClick={() => setError('')}>
-              <X size={20} />
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Tab Content */}
+      {activeTab === 'usuarios' && (
+        <>
+          {/* Search Filter */}
+          <div className="relative">
+            <Search
+              size={20}
+              className={`absolute left-4 top-1/2 transform -translate-y-1/2 ${
+                isDarkMode ? 'text-gray-400' : 'text-gray-500'
+              }`}
+            />
+            <input
+              type="text"
+              placeholder="Buscar por nombre, apellido o email..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className={`w-full pl-12 pr-4 py-2 rounded-lg border transition-all ${
+                isDarkMode
+                  ? 'bg-[#1a1c22]/50 border-[#8c5cff]/20 text-white placeholder-gray-500 focus:border-[#8c5cff]/40'
+                  : 'bg-white/50 border-purple-200 text-gray-900 placeholder-gray-400 focus:border-purple-400'
+              } focus:outline-none`}
+            />
+          </div>
 
-      {/* Modal */}
-      <UsuarioModal
-        isOpen={showModal}
-        isEditing={!!editingId}
-        formData={formData}
-        setFormData={setFormData}
-        onSubmit={editingId ? handleActualizarUsuario : handleCrearUsuario}
-        onCancel={handleCerrarModal}
-        error={error}
-        setError={setError}
-      />
+          {/* Error Message */}
+          <AnimatePresence>
+            {error && !showModal && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="bg-red-500/20 border border-red-500 text-red-600 p-4 rounded-lg flex items-center justify-between"
+              >
+                <span>{error}</span>
+                <button onClick={() => setError('')}>
+                  <X size={20} />
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-      {/* Usuarios Table */}
-      <div className={`rounded-xl border overflow-hidden ${isDarkMode ? 'border-[#8c5cff]/20' : 'border-purple-200'}`}>
-        {loading ? (
-          <div
-            className={`p-8 text-center ${
-              isDarkMode ? 'bg-[#1a1c22]/50' : 'bg-white/50'
-            }`}
-          >
-            <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Cargando usuarios...</p>
-          </div>
-        ) : usuarios.length === 0 ? (
-          <div
-            className={`p-8 text-center ${
-              isDarkMode ? 'bg-[#1a1c22]/50' : 'bg-white/50'
-            }`}
-          >
-            <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>
-              No hay usuarios registrados aún. Crea uno para empezar.
-            </p>
-          </div>
-        ) : usuariosFiltrados.length === 0 ? (
-          <div
-            className={`p-8 text-center ${
-              isDarkMode ? 'bg-[#1a1c22]/50' : 'bg-white/50'
-            }`}
-          >
-            <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>
-              No hay resultados que coincidan con tu búsqueda.
-            </p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr
-                  className={`${
-                    isDarkMode
-                      ? 'bg-[#1a1c22]/50 border-b border-[#8c5cff]/20'
-                      : 'bg-purple-50 border-b border-purple-200'
-                  }`}
-                >
-                  <th className={`px-4 py-3 text-left font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                    Nombre
-                  </th>
-                  <th className={`px-4 py-3 text-left font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                    Email
-                  </th>
-                  <th className={`px-4 py-3 text-center font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                    Tipo
-                  </th>
-                  <th className={`px-4 py-3 text-center font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                    Acciones
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {usuariosFiltrados.map((usuario) => (
-                  <motion.tr
-                    key={usuario.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className={`border-b transition-colors ${
-                      isDarkMode
-                        ? 'border-[#8c5cff]/10 hover:bg-[#1a1c22]/30'
-                        : 'border-purple-100 hover:bg-purple-50/50'
-                    }`}
-                  >
-                    <td className={`px-4 py-3 font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                      {usuario.nombre} {usuario.apellido}
-                    </td>
-                    <td className={`px-4 py-3 text-xs truncate ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                      {usuario.email}
-                    </td>
-                    <td className={`px-4 py-3 text-center`}>
-                      <span
-                        className={`text-xs px-3 py-1 rounded-full font-semibold inline-block ${
-                          usuario.tipo_perfil === 'admin'
-                            ? isDarkMode
-                              ? 'bg-red-500/20 text-red-400'
-                              : 'bg-red-100 text-red-600'
-                            : usuario.tipo_perfil === 'nutricionista'
-                            ? isDarkMode
-                              ? 'bg-blue-500/20 text-blue-400'
-                              : 'bg-blue-100 text-blue-600'
-                            : isDarkMode
-                            ? 'bg-purple-500/20 text-purple-400'
-                            : 'bg-purple-100 text-purple-600'
+          {/* Modal */}
+          <UsuarioModal
+            isOpen={showModal}
+            isEditing={!!editingId}
+            formData={formData}
+            setFormData={setFormData}
+            onSubmit={editingId ? handleActualizarUsuario : handleCrearUsuario}
+            onCancel={handleCerrarModal}
+            error={error}
+            setError={setError}
+          />
+
+          {/* Usuarios Table */}
+          <div className={`rounded-xl border overflow-hidden ${isDarkMode ? 'border-[#8c5cff]/20' : 'border-purple-200'}`}>
+            {loading ? (
+              <div
+                className={`p-8 text-center ${
+                  isDarkMode ? 'bg-[#1a1c22]/50' : 'bg-white/50'
+                }`}
+              >
+                <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Cargando usuarios...</p>
+              </div>
+            ) : usuarios.length === 0 ? (
+              <div
+                className={`p-8 text-center ${
+                  isDarkMode ? 'bg-[#1a1c22]/50' : 'bg-white/50'
+                }`}
+              >
+                <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>
+                  No hay usuarios registrados aún. Crea uno para empezar.
+                </p>
+              </div>
+            ) : usuariosFiltrados.length === 0 ? (
+              <div
+                className={`p-8 text-center ${
+                  isDarkMode ? 'bg-[#1a1c22]/50' : 'bg-white/50'
+                }`}
+              >
+                <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>
+                  No hay resultados que coincidan con tu búsqueda.
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr
+                      className={`${
+                        isDarkMode
+                          ? 'bg-[#1a1c22]/50 border-b border-[#8c5cff]/20'
+                          : 'bg-purple-50 border-b border-purple-200'
+                      }`}
+                    >
+                      <th className={`px-4 py-3 text-left font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                        Nombre
+                      </th>
+                      <th className={`px-4 py-3 text-left font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                        Email
+                      </th>
+                      <th className={`px-4 py-3 text-center font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                        Tipo
+                      </th>
+                      <th className={`px-4 py-3 text-center font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                        Acciones
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {usuariosFiltrados.map((usuario) => (
+                      <motion.tr
+                        key={usuario.id}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className={`border-b transition-colors ${
+                          isDarkMode
+                            ? 'border-[#8c5cff]/10 hover:bg-[#1a1c22]/30'
+                            : 'border-purple-100 hover:bg-purple-50/50'
                         }`}
                       >
-                        {usuario.tipo_perfil === 'admin'
-                          ? 'Admin'
-                          : usuario.tipo_perfil === 'nutricionista'
-                          ? 'Nutricionista'
-                          : 'Cliente'}
-                      </span>
-                    </td>
-                    <td className={`px-4 py-3 text-center`}>
-                      <div className="flex gap-2 justify-center">
-                        <motion.button
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => handleEditarUsuario(usuario)}
-                          className={`p-2 rounded-lg transition-colors ${
-                            isDarkMode ? 'text-blue-400 hover:bg-blue-500/20' : 'text-blue-600 hover:bg-blue-100'
-                          }`}
-                          title="Editar usuario"
-                        >
-                          <Edit2 size={18} />
-                        </motion.button>
-                        <motion.button
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => handleAbrirConfirmDialog(usuario)}
-                          className={`p-2 rounded-lg transition-colors ${
-                            isDarkMode ? 'text-red-400 hover:bg-red-500/20' : 'text-red-600 hover:bg-red-100'
-                          }`}
-                          title="Eliminar usuario"
-                        >
-                          <Trash2 size={18} />
-                        </motion.button>
-                      </div>
-                    </td>
-                  </motion.tr>
-                ))}
-              </tbody>
-            </table>
+                        <td className={`px-4 py-3 font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                          {usuario.nombre} {usuario.apellido}
+                        </td>
+                        <td className={`px-4 py-3 text-xs truncate ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                          {usuario.email}
+                        </td>
+                        <td className={`px-4 py-3 text-center`}>
+                          <span
+                            className={`text-xs px-3 py-1 rounded-full font-semibold inline-block ${
+                              usuario.tipo_perfil === 'admin'
+                                ? isDarkMode
+                                  ? 'bg-red-500/20 text-red-400'
+                                  : 'bg-red-100 text-red-600'
+                                : usuario.tipo_perfil === 'nutricionista'
+                                ? isDarkMode
+                                  ? 'bg-blue-500/20 text-blue-400'
+                                  : 'bg-blue-100 text-blue-600'
+                                : isDarkMode
+                                ? 'bg-purple-500/20 text-purple-400'
+                                : 'bg-purple-100 text-purple-600'
+                            }`}
+                          >
+                            {usuario.tipo_perfil === 'admin'
+                              ? 'Admin'
+                              : usuario.tipo_perfil === 'nutricionista'
+                              ? 'Nutricionista'
+                              : 'Cliente'}
+                          </span>
+                        </td>
+                        <td className={`px-4 py-3 text-center`}>
+                          <div className="flex gap-2 justify-center">
+                            <motion.button
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.95 }}
+                              onClick={() => handleEditarUsuario(usuario)}
+                              className={`p-2 rounded-lg transition-colors ${
+                                isDarkMode ? 'text-blue-400 hover:bg-blue-500/20' : 'text-blue-600 hover:bg-blue-100'
+                              }`}
+                              title="Editar usuario"
+                            >
+                              <Edit2 size={18} />
+                            </motion.button>
+                            <motion.button
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.95 }}
+                              onClick={() => handleAbrirConfirmDialog(usuario)}
+                              className={`p-2 rounded-lg transition-colors ${
+                                isDarkMode ? 'text-red-400 hover:bg-red-500/20' : 'text-red-600 hover:bg-red-100'
+                              }`}
+                              title="Eliminar usuario"
+                            >
+                              <Trash2 size={18} />
+                            </motion.button>
+                          </div>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
-        )}
-      </div>
 
-      {/* Confirm Delete Dialog */}
-      <ConfirmDialog
-        isOpen={showConfirmDialog}
-        title="Eliminar Usuario"
-        message={`¿Está seguro de que desea eliminar a ${usuarioAEliminar?.nombre} ${usuarioAEliminar?.apellido}? Esta acción no se puede deshacer.`}
-        onConfirm={handleConfirmarEliminar}
-        onCancel={() => {
-          setShowConfirmDialog(false);
-          setUsuarioAEliminar(null);
-        }}
-        confirmText="Eliminar"
-        cancelText="Cancelar"
-        isDanger={true}
-      />
+          {/* Confirm Delete Dialog */}
+          <ConfirmDialog
+            isOpen={showConfirmDialog}
+            title="Eliminar Usuario"
+            message={`¿Está seguro de que desea eliminar a ${usuarioAEliminar?.nombre} ${usuarioAEliminar?.apellido}? Esta acción no se puede deshacer.`}
+            onConfirm={handleConfirmarEliminar}
+            onCancel={() => {
+              setShowConfirmDialog(false);
+              setUsuarioAEliminar(null);
+            }}
+            confirmText="Eliminar"
+            cancelText="Cancelar"
+            isDanger={true}
+          />
+        </>
+      )}
+
+      {/* Pacientes/Jugadores Tab */}
+      {activeTab === 'pacientes' && (
+        <GestionPacientes isDarkMode={isDarkMode} />
+      )}
     </motion.div>
   );
 };
