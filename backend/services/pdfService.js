@@ -107,9 +107,12 @@ const generarMiniaturaPDF = async (archivoBuffer, nombreArchivo) => {
 const generarMiniaturaPorTipo = (archivoBuffer, tipoArchivo, nombreArchivo) => {
   try {
     console.log(`Generando miniatura genérica: archivo=${nombreArchivo}, tipo=${tipoArchivo}, buffer=${archivoBuffer?.length || 0} bytes`);
-    const width = 400;
-    const height = 500;
 
+    // Usar dimensiones más pequeñas y simples para mayor compatibilidad
+    const width = 300;
+    const height = 400;
+
+    console.log(`Canvas: ${width}x${height}`);
     const canvas = createCanvas(width, height);
     const context = canvas.getContext('2d');
 
@@ -169,14 +172,14 @@ const generarMiniaturaPorTipo = (archivoBuffer, tipoArchivo, nombreArchivo) => {
     context.strokeRect(10, 10, width - 20, height - 20);
 
     // Icono grande
-    context.font = 'bold 120px Arial';
+    context.font = 'bold 90px Arial';
     context.textAlign = 'center';
     context.fillText(icono, width / 2, height / 3);
 
     // Tipo de archivo
     context.fillStyle = '#ffffff';
-    context.font = 'bold 40px Arial';
-    context.fillText(tipo, width / 2, height / 2 + 20);
+    context.font = 'bold 32px Arial';
+    context.fillText(tipo, width / 2, height / 2 + 15);
 
     // Nombre del archivo (truncado)
     context.font = '24px Arial';
@@ -198,10 +201,10 @@ const generarMiniaturaPorTipo = (archivoBuffer, tipoArchivo, nombreArchivo) => {
       while (pos > 0 && texto[pos] !== ' ') pos--;
       const linea1 = texto.substring(0, pos);
       const linea2 = texto.substring(pos + 1);
-      context.fillText(linea1, width / 2, height - 80);
-      if (linea2) context.fillText(linea2, width / 2, height - 40);
+      context.fillText(linea1, width / 2, height - 60);
+      if (linea2) context.fillText(linea2, width / 2, height - 30);
     } else {
-      context.fillText(texto, width / 2, height - 60);
+      context.fillText(texto, width / 2, height - 50);
     }
 
     // Tamaño del archivo (abajo)
@@ -215,13 +218,32 @@ const generarMiniaturaPorTipo = (archivoBuffer, tipoArchivo, nombreArchivo) => {
       tamañoTexto = tamaño + ' B';
     }
 
-    context.font = '20px Arial';
+    context.font = '16px Arial';
     context.fillStyle = 'rgba(255, 255, 255, 0.7)';
-    context.fillText(tamañoTexto, width / 2, height - 10);
+    context.fillText(tamañoTexto, width / 2, height - 8);
 
     const buffer = canvas.toBuffer('image/png');
     console.log(`Miniatura genérica generada correctamente: ${buffer?.length || 0} bytes`);
-    return buffer || Buffer.alloc(0);
+
+    // Validar que el buffer sea válido (un PNG debe tener al menos 67 bytes)
+    if (!buffer || buffer.length < 67) {
+      console.warn(`Buffer inválido o muy pequeño: ${buffer?.length || 0} bytes. Usando fallback.`);
+      // Si el buffer es inválido, crear uno pequeño como fallback
+      try {
+        const fallbackCanvas = createCanvas(200, 250);
+        const fallbackContext = fallbackCanvas.getContext('2d');
+        fallbackContext.fillStyle = '#8c5cff';
+        fallbackContext.fillRect(0, 0, 200, 250);
+        const fallbackBuffer = fallbackCanvas.toBuffer('image/png');
+        console.log(`Fallback canvas generado: ${fallbackBuffer?.length || 0} bytes`);
+        return fallbackBuffer;
+      } catch (e) {
+        console.error('Error creando fallback canvas:', e);
+        return Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64');
+      }
+    }
+
+    return buffer;
   } catch (error) {
     console.error('Error generando miniatura genérica:', error);
     // Crear una miniatura vacía pero válida como fallback
