@@ -1,5 +1,5 @@
 import pool from '../config/database.js';
-import { generarMiniatura } from '../services/pdfService.js';
+import { generarMiniatura, generarMiniaturaPorTipo } from '../services/pdfService.js';
 
 // Inicializar tabla (solo admin)
 export const inicializarTabla = async (req, res) => {
@@ -272,16 +272,28 @@ export const crearDocumento = async (req, res) => {
     const archivoBuffer = Buffer.from(archivo_base64.split(',')[1] || archivo_base64, 'base64');
 
     // Generar miniatura automáticamente
-    console.log(`Generando miniatura para: ${archivo_nombre}, tipo original: ${archivo_tipo}, tipo normalizado: ${tipoArchivoNormalizado}, tamaño archivo: ${archivoBuffer.length} bytes`);
-    let miniaturaBuffer = await generarMiniatura(archivoBuffer, tipoArchivoNormalizado, archivo_nombre);
-    console.log(`Miniatura generada, tamaño: ${miniaturaBuffer?.length || 0} bytes`);
+    console.log(`📎 Generando miniatura para: ${archivo_nombre}`);
+    console.log(`   - Tipo original: ${archivo_tipo}`);
+    console.log(`   - Tipo normalizado: ${tipoArchivoNormalizado}`);
+    console.log(`   - Tamaño archivo: ${archivoBuffer.length} bytes`);
+
+    let miniaturaBuffer;
+    try {
+      miniaturaBuffer = await generarMiniatura(archivoBuffer, tipoArchivoNormalizado, archivo_nombre);
+      console.log(`✅ Miniatura generada exitosamente: ${miniaturaBuffer?.length || 0} bytes`);
+    } catch (thumbnailError) {
+      console.error('❌ Error inesperado al generar miniatura:', thumbnailError.message);
+      // Usar miniatura genérica como fallback
+      miniaturaBuffer = generarMiniaturaPorTipo(archivoBuffer, tipoArchivoNormalizado, archivo_nombre);
+      console.log(`✅ Miniatura genérica usada como fallback: ${miniaturaBuffer?.length || 0} bytes`);
+    }
 
     // Validar que la miniatura es válida
     if (!miniaturaBuffer || miniaturaBuffer.length === 0) {
-      console.error('ERROR: miniaturaBuffer está vacío o undefined');
+      console.error('⚠️ miniaturaBuffer está vacío o undefined');
       // Si por alguna razón falla, usar una miniatura por defecto
       miniaturaBuffer = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64');
-      console.log('Usando miniatura por defecto: 1x1 PNG');
+      console.log('⚠️ Usando miniatura por defecto: 1x1 PNG');
     }
 
     const result = await pool.query(
