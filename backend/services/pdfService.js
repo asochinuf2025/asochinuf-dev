@@ -89,8 +89,10 @@ const generarMiniaturaPDF = async (archivoBuffer, nombreArchivo) => {
       data: uint8Array,
       disableAutoFetch: true,
       disableStream: true,
+      disableWorker: true, // Renderizar en el mismo thread
       rangeChunkSize: 65536,
-      cMapUrl: undefined // Desactivar cMap para reducir complejidad
+      cMapUrl: undefined, // Desactivar cMap para reducir complejidad
+      disableNormalization: true // No normalizar fuentes
     }).promise;
 
     console.log(`✓ PDF cargado: ${pdf.numPages} páginas`);

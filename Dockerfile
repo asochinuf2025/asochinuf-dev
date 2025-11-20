@@ -46,6 +46,9 @@ ENV PORT=5001
 # ============================================================================
 RUN apt-get update && apt-get install -y \
     build-essential \
+    g++ \
+    gcc \
+    make \
     python3 \
     libcairo2-dev \
     libpango1.0-dev \
@@ -57,9 +60,12 @@ RUN apt-get update && apt-get install -y \
 
 # ============================================================================
 # Copiar código y dependencias del backend
+# Compilar canvas desde fuente
 # ============================================================================
 COPY backend/package*.json ./backend/
-RUN cd backend && npm install --production --legacy-peer-deps
+RUN cd backend && \
+    npm install --production --legacy-peer-deps && \
+    npm rebuild canvas --verbose 2>&1 | tail -20
 
 COPY backend/ ./backend/
 
