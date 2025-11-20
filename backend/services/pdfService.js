@@ -88,7 +88,7 @@ const generarMiniaturaPorTipo = (archivoBuffer, tipoArchivo, nombreArchivo) => {
     let colorPrimario = '#8c5cff';
     let colorSecundario = '#6a3adb';
     let icono = '📄';
-    let tipo = 'DOCUMENTO';
+    let tipo = 'ARCHIVO';
 
     if (tipoArchivo?.includes('pdf')) {
       colorPrimario = '#dc2626';
@@ -185,9 +185,20 @@ const generarMiniaturaPorTipo = (archivoBuffer, tipoArchivo, nombreArchivo) => {
     context.fillStyle = 'rgba(255, 255, 255, 0.7)';
     context.fillText(tamañoTexto, width / 2, height - 5);
 
-    return canvas.toBuffer('image/png');
+    const buffer = canvas.toBuffer('image/png');
+    return buffer || Buffer.alloc(0);
   } catch (error) {
     console.error('Error generando miniatura genérica:', error);
-    return null;
+    // Crear una miniatura vacía pero válida como fallback
+    try {
+      const canvas = createCanvas(200, 250);
+      const context = canvas.getContext('2d');
+      context.fillStyle = '#8c5cff';
+      context.fillRect(0, 0, 200, 250);
+      return canvas.toBuffer('image/png');
+    } catch (e) {
+      // Si todo falla, retornar un buffer mínimo válido
+      return Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64');
+    }
   }
 };

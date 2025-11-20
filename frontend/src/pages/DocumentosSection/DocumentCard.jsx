@@ -78,13 +78,17 @@ const DocumentCard = ({ documento, onOpen, isDarkMode, esAdmin, onDeleted }) => 
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
           {documento.categoria && (
             <span className={`text-xs font-semibold px-2 py-1 rounded inline-block ${
-              documento.categoria === 'Actualización'
+              documento.categoria === 'Congreso'
                 ? 'bg-blue-500'
-                : documento.categoria === 'Reglamento'
+                : documento.categoria === 'Jornada'
                   ? 'bg-red-500'
-                  : documento.categoria === 'Guía'
+                  : documento.categoria === 'Articulo'
                     ? 'bg-green-500'
-                    : 'bg-[#8c5cff]'
+                    : documento.categoria === 'Circular'
+                      ? 'bg-yellow-600'
+                      : documento.categoria === 'Workshop'
+                        ? 'bg-indigo-500'
+                        : 'bg-[#8c5cff]'
             } text-white`}>
               {documento.categoria}
             </span>

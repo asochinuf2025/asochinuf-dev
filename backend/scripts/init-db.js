@@ -641,14 +641,14 @@ const inicializarBD = async () => {
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_pagos_fecha_pago ON t_pagos_cuotas(fecha_pago);`);
     console.log('✓ Índices en t_pagos_cuotas creados\\n');
 
-    // ========== TABLA t_documentos ==========
-    console.log('Creando tabla t_documentos...');
+    // ========== TABLA t_eventos ==========
+    console.log('Creando tabla t_eventos...');
 
     // Primero eliminar tabla existente si existe
-    await pool.query(`DROP TABLE IF EXISTS t_documentos CASCADE;`);
+    await pool.query(`DROP TABLE IF EXISTS t_eventos CASCADE;`);
 
     await pool.query(`
-      CREATE TABLE t_documentos (
+      CREATE TABLE t_eventos (
         id SERIAL PRIMARY KEY,
         titulo VARCHAR(255) NOT NULL,
         descripcion TEXT,
@@ -658,19 +658,23 @@ const inicializarBD = async () => {
         archivo_tamaño INTEGER,
         miniatura BYTEA,
         categoria VARCHAR(100),
+        fecha_evento DATE,
+        hora_evento TIME,
+        ubicacion VARCHAR(500),
         fecha_creacion TIMESTAMP DEFAULT NOW(),
         fecha_actualizacion TIMESTAMP DEFAULT NOW(),
         visible BOOLEAN DEFAULT true,
         usuario_creacion INTEGER REFERENCES t_usuarios(id) ON DELETE SET NULL
       );
     `);
-    console.log('✓ Tabla t_documentos creada (con almacenamiento de PDF en binario)');
+    console.log('✓ Tabla t_eventos creada (con almacenamiento de PDF en binario + campos de evento)');
 
-    // Índices para t_documentos
-    await pool.query(`CREATE INDEX IF NOT EXISTS idx_documentos_categoria ON t_documentos(categoria);`);
-    await pool.query(`CREATE INDEX IF NOT EXISTS idx_documentos_visible ON t_documentos(visible);`);
-    await pool.query(`CREATE INDEX IF NOT EXISTS idx_documentos_fecha_creacion ON t_documentos(fecha_creacion);`);
-    console.log('✓ Índices en t_documentos creados\\n');
+    // Índices para t_eventos
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_eventos_categoria ON t_eventos(categoria);`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_eventos_visible ON t_eventos(visible);`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_eventos_fecha_creacion ON t_eventos(fecha_creacion);`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_eventos_fecha_evento ON t_eventos(fecha_evento);`);
+    console.log('✓ Índices en t_eventos creados\\n');
 
     // ========== TABLA t_detalles_cursos ==========
     console.log('Creando tabla t_detalles_cursos...');

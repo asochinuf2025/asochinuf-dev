@@ -18,13 +18,17 @@ const DocumentUpload = ({ onSuccess, onCancel }) => {
   const fileInputRef = useRef(null);
 
   const categorias = [
-    'Actualización',
-    'Reglamento',
-    'Guía',
-    'Comunicado',
-    'Manual',
-    'Circular'
+    'Congreso',
+    'Jornada',
+    'Articulo',
+    'Circular',
+    'Workshop',
+    'Seminario'
   ];
+
+  const [fechaEvento, setFechaEvento] = useState('');
+  const [horaEvento, setHoraEvento] = useState('');
+  const [ubicacion, setUbicacion] = useState('');
 
   const handleArchivoSelect = (e) => {
     const file = e.target.files?.[0];
@@ -76,7 +80,7 @@ const DocumentUpload = ({ onSuccess, onCancel }) => {
         try {
           const base64Data = e.target.result;
 
-          // Crear documento en la BD (enviar PDF directamente)
+          // Crear evento en la BD (enviar PDF directamente)
           const config = { headers: { Authorization: `Bearer ${token}` } };
           await axios.post(
             API_ENDPOINTS.DOCUMENTOS.CREATE,
@@ -86,17 +90,20 @@ const DocumentUpload = ({ onSuccess, onCancel }) => {
               archivo_base64: base64Data,
               archivo_nombre: archivo.name,
               archivo_tipo: archivo.type,
-              categoria: categoria
+              categoria: categoria,
+              fecha_evento: fechaEvento || null,
+              hora_evento: horaEvento || null,
+              ubicacion: ubicacion.trim() || null
             },
             config
           );
 
-          toast.success('Documento subido correctamente');
+          toast.success('Evento subido correctamente');
           onSuccess();
         } catch (err) {
           console.error('Error:', err);
-          setError(err.response?.data?.error || 'Error al crear documento');
-          toast.error('Error al subir documento');
+          setError(err.response?.data?.error || 'Error al crear evento');
+          toast.error('Error al subir evento');
         } finally {
           setUploading(false);
         }
@@ -181,6 +188,67 @@ const DocumentUpload = ({ onSuccess, onCancel }) => {
             <option key={cat} value={cat}>{cat}</option>
           ))}
         </select>
+      </div>
+
+      {/* Fecha del Evento */}
+      <div>
+        <label className={`block text-sm font-semibold mb-2 ${
+          isDarkMode ? 'text-gray-300' : 'text-gray-700'
+        }`}>
+          Fecha del Evento
+        </label>
+        <input
+          type="date"
+          value={fechaEvento}
+          onChange={(e) => setFechaEvento(e.target.value)}
+          className={`w-full px-4 py-2 rounded-lg border ${
+            isDarkMode
+              ? 'bg-[#1a1c22] border-[#8c5cff]/20 text-white'
+              : 'bg-white border-purple-200 text-gray-900'
+          } focus:outline-none focus:border-[#8c5cff]`}
+          disabled={uploading}
+        />
+      </div>
+
+      {/* Hora del Evento */}
+      <div>
+        <label className={`block text-sm font-semibold mb-2 ${
+          isDarkMode ? 'text-gray-300' : 'text-gray-700'
+        }`}>
+          Hora del Evento
+        </label>
+        <input
+          type="time"
+          value={horaEvento}
+          onChange={(e) => setHoraEvento(e.target.value)}
+          className={`w-full px-4 py-2 rounded-lg border ${
+            isDarkMode
+              ? 'bg-[#1a1c22] border-[#8c5cff]/20 text-white'
+              : 'bg-white border-purple-200 text-gray-900'
+          } focus:outline-none focus:border-[#8c5cff]`}
+          disabled={uploading}
+        />
+      </div>
+
+      {/* Ubicación */}
+      <div>
+        <label className={`block text-sm font-semibold mb-2 ${
+          isDarkMode ? 'text-gray-300' : 'text-gray-700'
+        }`}>
+          Ubicación
+        </label>
+        <input
+          type="text"
+          value={ubicacion}
+          onChange={(e) => setUbicacion(e.target.value)}
+          placeholder="Ej: Auditorio Central, Santiago"
+          className={`w-full px-4 py-2 rounded-lg border ${
+            isDarkMode
+              ? 'bg-[#1a1c22] border-[#8c5cff]/20 text-white placeholder-gray-500'
+              : 'bg-white border-purple-200 text-gray-900 placeholder-gray-400'
+          } focus:outline-none focus:border-[#8c5cff]`}
+          disabled={uploading}
+        />
       </div>
 
       {/* Selector de Archivo */}
@@ -295,7 +363,7 @@ const DocumentUpload = ({ onSuccess, onCancel }) => {
           ) : (
             <>
               <Upload size={18} />
-              Subir Documento
+              Subir Evento
             </>
           )}
         </motion.button>

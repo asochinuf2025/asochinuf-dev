@@ -11,12 +11,19 @@ export const inicializarTabla = async (req, res) => {
 
     // Crear tabla si no existe
     await pool.query(`
-      CREATE TABLE IF NOT EXISTS t_documentos (
+      CREATE TABLE IF NOT EXISTS t_eventos (
         id SERIAL PRIMARY KEY,
         titulo VARCHAR(255) NOT NULL,
         descripcion TEXT,
-        archivo_url VARCHAR(255) NOT NULL,
+        archivo_contenido BYTEA NOT NULL,
+        archivo_nombre VARCHAR(255) NOT NULL,
+        archivo_tipo VARCHAR(100) NOT NULL,
+        archivo_tamaño INTEGER,
+        miniatura BYTEA,
         categoria VARCHAR(100),
+        fecha_evento DATE,
+        hora_evento TIME,
+        ubicacion VARCHAR(500),
         fecha_creacion TIMESTAMP DEFAULT NOW(),
         fecha_actualizacion TIMESTAMP DEFAULT NOW(),
         visible BOOLEAN DEFAULT true,
@@ -25,11 +32,12 @@ export const inicializarTabla = async (req, res) => {
     `);
 
     // Crear índices
-    await pool.query(`CREATE INDEX IF NOT EXISTS idx_documentos_categoria ON t_documentos(categoria);`);
-    await pool.query(`CREATE INDEX IF NOT EXISTS idx_documentos_visible ON t_documentos(visible);`);
-    await pool.query(`CREATE INDEX IF NOT EXISTS idx_documentos_fecha_creacion ON t_documentos(fecha_creacion);`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_eventos_categoria ON t_eventos(categoria);`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_eventos_visible ON t_eventos(visible);`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_eventos_fecha_creacion ON t_eventos(fecha_creacion);`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_eventos_fecha_evento ON t_eventos(fecha_evento);`);
 
-    res.json({ mensaje: 'Tabla t_documentos inicializada correctamente' });
+    res.json({ mensaje: 'Tabla t_eventos inicializada correctamente' });
   } catch (error) {
     console.error('Error al inicializar tabla:', error);
     res.status(500).json({
@@ -39,7 +47,7 @@ export const inicializarTabla = async (req, res) => {
   }
 };
 
-// Obtener todos los documentos visibles (SIN contenido binario, solo metadatos y miniatura)
+// Obtener todos los eventos visibles (SIN contenido binario, solo metadatos y miniatura)
 export const obtenerDocumentos = async (req, res) => {
   try {
     const { categoria } = req.query;
@@ -54,12 +62,15 @@ export const obtenerDocumentos = async (req, res) => {
         d.archivo_tamaño,
         d.miniatura,
         d.categoria,
+        d.fecha_evento,
+        d.hora_evento,
+        d.ubicacion,
         d.fecha_creacion,
         d.fecha_actualizacion,
         d.visible,
         u.nombre,
         u.apellido
-      FROM t_documentos d
+      FROM t_eventos d
       LEFT JOIN t_usuarios u ON d.usuario_creacion = u.id
       WHERE d.visible = true
     `;
@@ -71,30 +82,42 @@ export const obtenerDocumentos = async (req, res) => {
       params.push(categoria);
     }
 
-    query += ` ORDER BY d.fecha_creacion DESC`;
+    query += ` ORDER BY d.fecha_evento DESC NULLS LAST, d.fecha_creacion DESC`;
 
     const result = await pool.query(query, params);
 
     // Convertir miniatura BYTEA a base64 si existe
-    const documentos = result.rows.map(doc => ({
-      ...doc,
-      miniatura: doc.miniatura ? Buffer.from(doc.miniatura).toString('base64') : null
-    }));
+    const documentos = result.rows.map(doc => {
+      let miniatura = null;
+      if (doc.miniatura) {
+        try {
+          // doc.miniatura already comes as Buffer from postgres
+          const bufferData = Buffer.isBuffer(doc.miniatura) ? doc.miniatura : Buffer.from(doc.miniatura);
+          miniatura = bufferData.toString('base64');
+        } catch (e) {
+          console.error('Error converting miniatura to base64:', e);
+        }
+      }
+      return {
+        ...doc,
+        miniatura: miniatura
+      };
+    });
 
     res.json({
       documentos,
       total: documentos.length
     });
   } catch (error) {
-    console.error('Error al obtener documentos:', error);
+    console.error('Error al obtener eventos:', error);
     res.status(500).json({
-      error: 'Error al obtener documentos',
+      error: 'Error al obtener eventos',
       detail: error.message
     });
   }
 };
 
-// Obtener documento completo por ID (para descargar)
+// Obtener evento completo por ID (para descargar)
 export const obtenerDocumentoPorId = async (req, res) => {
   try {
     const { id } = req.params;
@@ -109,19 +132,22 @@ export const obtenerDocumentoPorId = async (req, res) => {
         d.archivo_tipo,
         d.archivo_tamaño,
         d.categoria,
+        d.fecha_evento,
+        d.hora_evento,
+        d.ubicacion,
         d.fecha_creacion,
         d.fecha_actualizacion,
         d.visible,
         u.nombre,
         u.apellido
-      FROM t_documentos d
+      FROM t_eventos d
       LEFT JOIN t_usuarios u ON d.usuario_creacion = u.id
       WHERE d.id = $1 AND d.visible = true`,
       [id]
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Documento no encontrado' });
+      return res.status(404).json({ error: 'Evento no encontrado' });
     }
 
     const doc = result.rows[0];
@@ -146,6 +172,9 @@ export const obtenerDocumentoPorId = async (req, res) => {
         archivo_tipo: doc.archivo_tipo,
         archivo_tamaño: doc.archivo_tamaño,
         categoria: doc.categoria,
+        fecha_evento: doc.fecha_evento,
+        hora_evento: doc.hora_evento,
+        ubicacion: doc.ubicacion,
         fecha_creacion: doc.fecha_creacion,
         fecha_actualizacion: doc.fecha_actualizacion,
         usuario: {
@@ -155,9 +184,9 @@ export const obtenerDocumentoPorId = async (req, res) => {
       });
     }
   } catch (error) {
-    console.error('Error al obtener documento:', error);
+    console.error('Error al obtener evento:', error);
     res.status(500).json({
-      error: 'Error al obtener documento',
+      error: 'Error al obtener evento',
       detail: error.message
     });
   }
@@ -167,7 +196,7 @@ export const obtenerDocumentoPorId = async (req, res) => {
 export const obtenerCategorias = async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT DISTINCT categoria FROM t_documentos
+      `SELECT DISTINCT categoria FROM t_eventos
        WHERE visible = true AND categoria IS NOT NULL
        ORDER BY categoria`
     );
@@ -187,8 +216,8 @@ export const obtenerCategorias = async (req, res) => {
   }
 };
 
-// Crear nuevo documento (admin y nutricionista solo)
-// Espera: titulo, descripcion, archivo_base64, archivo_nombre, archivo_tipo, categoria, miniatura_base64
+// Crear nuevo evento (admin y nutricionista solo)
+// Espera: titulo, descripcion, archivo_base64, archivo_nombre, archivo_tipo, categoria, fecha_evento, hora_evento, ubicacion
 export const crearDocumento = async (req, res) => {
   try {
     const {
@@ -198,13 +227,15 @@ export const crearDocumento = async (req, res) => {
       archivo_nombre,
       archivo_tipo,
       categoria,
-      miniatura_base64
+      fecha_evento,
+      hora_evento,
+      ubicacion
     } = req.body;
     const usuarioId = req.usuario?.id;
 
     // Validar que el usuario sea admin o nutricionista
     if (req.usuario?.tipo_perfil !== 'admin' && req.usuario?.tipo_perfil !== 'nutricionista') {
-      return res.status(403).json({ error: 'No tienes permiso para crear documentos' });
+      return res.status(403).json({ error: 'No tienes permiso para crear eventos' });
     }
 
     if (!titulo || !archivo_base64 || !archivo_nombre) {
@@ -216,17 +247,11 @@ export const crearDocumento = async (req, res) => {
     // Convertir base64 a Buffer
     const archivoBuffer = Buffer.from(archivo_base64.split(',')[1] || archivo_base64, 'base64');
 
-    // Generar miniatura automáticamente si no se proporciona
-    let miniaturaBuffer = null;
-    if (miniatura_base64) {
-      miniaturaBuffer = Buffer.from(miniatura_base64.split(',')[1] || miniatura_base64, 'base64');
-    } else {
-      // Generar miniatura automáticamente desde el PDF
-      miniaturaBuffer = await generarMiniatura(archivoBuffer, archivo_tipo, archivo_nombre);
-    }
+    // Generar miniatura automáticamente
+    const miniaturaBuffer = await generarMiniatura(archivoBuffer, archivo_tipo, archivo_nombre);
 
     const result = await pool.query(
-      `INSERT INTO t_documentos (
+      `INSERT INTO t_eventos (
         titulo,
         descripcion,
         archivo_contenido,
@@ -235,11 +260,14 @@ export const crearDocumento = async (req, res) => {
         archivo_tamaño,
         miniatura,
         categoria,
+        fecha_evento,
+        hora_evento,
+        ubicacion,
         usuario_creacion,
         visible
       )
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, true)
-       RETURNING id, titulo, descripcion, archivo_nombre, archivo_tipo, archivo_tamaño, categoria, fecha_creacion`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, true)
+       RETURNING id, titulo, descripcion, archivo_nombre, archivo_tipo, archivo_tamaño, categoria, fecha_evento, hora_evento, ubicacion, fecha_creacion`,
       [
         titulo,
         descripcion || null,
@@ -249,24 +277,27 @@ export const crearDocumento = async (req, res) => {
         archivoBuffer.length,
         miniaturaBuffer,
         categoria || null,
+        fecha_evento || null,
+        hora_evento || null,
+        ubicacion || null,
         usuarioId
       ]
     );
 
     res.status(201).json({
-      mensaje: 'Documento creado exitosamente',
+      mensaje: 'Evento creado exitosamente',
       documento: result.rows[0]
     });
   } catch (error) {
-    console.error('Error al crear documento:', error);
+    console.error('Error al crear evento:', error);
     res.status(500).json({
-      error: 'Error al crear documento',
+      error: 'Error al crear evento',
       detail: error.message
     });
   }
 };
 
-// Actualizar documento (admin y nutricionista solo)
+// Actualizar evento (admin y nutricionista solo)
 export const actualizarDocumento = async (req, res) => {
   try {
     const { id } = req.params;
@@ -277,27 +308,29 @@ export const actualizarDocumento = async (req, res) => {
       archivo_nombre,
       archivo_tipo,
       categoria,
-      visible,
-      miniatura_base64
+      fecha_evento,
+      hora_evento,
+      ubicacion,
+      visible
     } = req.body;
 
     // Validar que el usuario sea admin o nutricionista
     if (req.usuario?.tipo_perfil !== 'admin' && req.usuario?.tipo_perfil !== 'nutricionista') {
-      return res.status(403).json({ error: 'No tienes permiso para actualizar documentos' });
+      return res.status(403).json({ error: 'No tienes permiso para actualizar eventos' });
     }
 
-    // Verificar que el documento existe
+    // Verificar que el evento existe
     const existing = await pool.query(
-      'SELECT * FROM t_documentos WHERE id = $1',
+      'SELECT * FROM t_eventos WHERE id = $1',
       [id]
     );
 
     if (existing.rows.length === 0) {
-      return res.status(404).json({ error: 'Documento no encontrado' });
+      return res.status(404).json({ error: 'Evento no encontrado' });
     }
 
     // Preparar valores para actualizar
-    let updateQuery = `UPDATE t_documentos SET fecha_actualizacion = NOW()`;
+    let updateQuery = `UPDATE t_eventos SET fecha_actualizacion = NOW()`;
     const params = [];
     let paramCount = 1;
 
@@ -332,16 +365,27 @@ export const actualizarDocumento = async (req, res) => {
       }
     }
 
-    if (miniatura_base64) {
-      const miniaturaBuffer = Buffer.from(miniatura_base64.split(',')[1] || miniatura_base64, 'base64');
-      updateQuery += `, miniatura = $${paramCount}`;
-      params.push(miniaturaBuffer);
-      paramCount++;
-    }
-
     if (categoria !== undefined) {
       updateQuery += `, categoria = $${paramCount}`;
       params.push(categoria || null);
+      paramCount++;
+    }
+
+    if (fecha_evento !== undefined) {
+      updateQuery += `, fecha_evento = $${paramCount}`;
+      params.push(fecha_evento || null);
+      paramCount++;
+    }
+
+    if (hora_evento !== undefined) {
+      updateQuery += `, hora_evento = $${paramCount}`;
+      params.push(hora_evento || null);
+      paramCount++;
+    }
+
+    if (ubicacion !== undefined) {
+      updateQuery += `, ubicacion = $${paramCount}`;
+      params.push(ubicacion || null);
       paramCount++;
     }
 
@@ -351,54 +395,54 @@ export const actualizarDocumento = async (req, res) => {
       paramCount++;
     }
 
-    updateQuery += ` WHERE id = $${paramCount} RETURNING id, titulo, descripcion, archivo_nombre, archivo_tipo, archivo_tamaño, categoria, fecha_actualizacion`;
+    updateQuery += ` WHERE id = $${paramCount} RETURNING id, titulo, descripcion, archivo_nombre, archivo_tipo, archivo_tamaño, categoria, fecha_evento, hora_evento, ubicacion, fecha_actualizacion`;
     params.push(id);
 
     const result = await pool.query(updateQuery, params);
 
     res.json({
-      mensaje: 'Documento actualizado exitosamente',
+      mensaje: 'Evento actualizado exitosamente',
       documento: result.rows[0]
     });
   } catch (error) {
-    console.error('Error al actualizar documento:', error);
+    console.error('Error al actualizar evento:', error);
     res.status(500).json({
-      error: 'Error al actualizar documento',
+      error: 'Error al actualizar evento',
       detail: error.message
     });
   }
 };
 
-// Eliminar documento (admin solo)
+// Eliminar evento (admin solo)
 export const eliminarDocumento = async (req, res) => {
   try {
     const { id } = req.params;
 
     // Validar que el usuario sea admin
     if (req.usuario?.tipo_perfil !== 'admin') {
-      return res.status(403).json({ error: 'Solo administradores pueden eliminar documentos' });
+      return res.status(403).json({ error: 'Solo administradores pueden eliminar eventos' });
     }
 
-    // Verificar que el documento existe
+    // Verificar que el evento existe
     const existing = await pool.query(
-      'SELECT * FROM t_documentos WHERE id = $1',
+      'SELECT * FROM t_eventos WHERE id = $1',
       [id]
     );
 
     if (existing.rows.length === 0) {
-      return res.status(404).json({ error: 'Documento no encontrado' });
+      return res.status(404).json({ error: 'Evento no encontrado' });
     }
 
     await pool.query(
-      'DELETE FROM t_documentos WHERE id = $1',
+      'DELETE FROM t_eventos WHERE id = $1',
       [id]
     );
 
-    res.json({ mensaje: 'Documento eliminado exitosamente' });
+    res.json({ mensaje: 'Evento eliminado exitosamente' });
   } catch (error) {
-    console.error('Error al eliminar documento:', error);
+    console.error('Error al eliminar evento:', error);
     res.status(500).json({
-      error: 'Error al eliminar documento',
+      error: 'Error al eliminar evento',
       detail: error.message
     });
   }

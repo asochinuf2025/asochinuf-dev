@@ -50,13 +50,13 @@ const DocumentosSection = ({ containerVariants, itemVariants }) => {
   const handleDocumentoCreado = () => {
     setShowUpload(false);
     cargarDatos();
-    toast.success('Documento creado exitosamente');
+    toast.success('Evento creado exitosamente');
   };
 
   const handleDocumentoEliminado = (id) => {
     setDocumentos(documentos.filter(d => d.id !== id));
     setIsViewerOpen(false);
-    toast.success('Documento eliminado');
+    toast.success('Evento eliminado');
   };
 
   const handleOpenDocument = (doc) => {
@@ -86,10 +86,10 @@ const DocumentosSection = ({ containerVariants, itemVariants }) => {
           <FileText size={32} className="text-[#8c5cff]" />
           <div>
             <h1 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-              Documentos
+              Eventos
             </h1>
             <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              Accede a los últimos documentos y actualizaciones
+              Accede a los últimos eventos y seminarios
             </p>
           </div>
         </div>
@@ -102,7 +102,7 @@ const DocumentosSection = ({ containerVariants, itemVariants }) => {
             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#8c5cff] text-white font-semibold hover:bg-[#7a4cde] transition-colors"
           >
             <Plus size={20} />
-            Subir Documento
+            Subir Evento
           </motion.button>
         )}
       </motion.div>
@@ -131,10 +131,10 @@ const DocumentosSection = ({ containerVariants, itemVariants }) => {
               {/* Header del Modal */}
               <div className="mb-6">
                 <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                  Subir Documento
+                  Subir Evento
                 </h2>
                 <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  Carga un nuevo documento a la biblioteca
+                  Carga un nuevo evento con sus detalles
                 </p>
               </div>
 
@@ -159,7 +159,7 @@ const DocumentosSection = ({ containerVariants, itemVariants }) => {
           <Search className="absolute left-3 top-3 text-gray-400" size={20} />
           <input
             type="text"
-            placeholder="Buscar documentos..."
+            placeholder="Buscar eventos..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className={`w-full pl-10 pr-4 py-2 rounded-lg border-0 outline-none ${
@@ -215,10 +215,10 @@ const DocumentosSection = ({ containerVariants, itemVariants }) => {
         >
           <FileText size={48} className="mx-auto text-gray-400 mb-3" />
           <p className={`text-lg font-semibold ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-            No hay documentos
+            No hay eventos
           </p>
           <p className={`text-sm ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>
-            {searchTerm ? 'Intenta con otro término de búsqueda' : 'Los documentos aparecerán aquí'}
+            {searchTerm ? 'Intenta con otro término de búsqueda' : 'Los eventos aparecerán aquí'}
           </p>
         </motion.div>
       ) : (

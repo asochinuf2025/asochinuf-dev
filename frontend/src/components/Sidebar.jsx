@@ -17,8 +17,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeTab, setActiveTab, handleL
     ? [{ id: 'excel', label: 'Cargar Excel', icon: Upload }]
     : [];
 
-  // Documentos para todos
-  const documentosItem = [{ id: 'documentos', label: 'Documentos', icon: FileText }];
+  // Eventos para todos
+  const documentosItem = [{ id: 'documentos', label: 'Eventos', icon: FileText }];
 
   // Cuotas para nutricionistas y admins
   const cuotasItem = usuario?.tipo_perfil !== 'cliente'
