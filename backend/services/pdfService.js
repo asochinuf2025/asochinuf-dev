@@ -2,7 +2,7 @@ import { createCanvas } from 'canvas';
 
 /**
  * Generar miniatura para documentos e imágenes
- * - Para PDFs: renderiza la primera página como imagen PNG
+ * - Para PDFs: miniatura inteligente con metadatos
  * - Para imágenes: usa la imagen misma como miniatura
  * - Para otros archivos: miniatura genérica con icono
  */
@@ -14,10 +14,10 @@ export const generarMiniatura = async (archivoBuffer, tipoArchivo, nombreArchivo
       return await generarMiniaturaImagen(archivoBuffer, tipoArchivo);
     }
 
-    // Si es PDF, renderizar primera página
+    // Si es PDF, generar miniatura inteligente
     if (tipoArchivo?.includes('pdf')) {
       console.log('📄 Tipo: PDF');
-      return await generarMiniaturaPDF(archivoBuffer, nombreArchivo);
+      return generarMiniaturaPDF(archivoBuffer, nombreArchivo);
     }
 
     // Para otros archivos, generar miniatura genérica
@@ -33,39 +33,34 @@ export const generarMiniatura = async (archivoBuffer, tipoArchivo, nombreArchivo
 
 /**
  * Generar miniatura para imágenes
- * Para imágenes, devolvemos la imagen original como miniatura
- * (el navegador la escalará al tamaño del card automáticamente)
  */
 const generarMiniaturaImagen = async (archivoBuffer, tipoArchivo) => {
   try {
-    // Simplemente devolver el buffer original
-    // El navegador escalará la imagen al tamaño del card (aspect-video)
-    // Esto es más eficiente que procesar la imagen en Node.js
+    // Devolver la imagen original como miniatura
     return archivoBuffer;
   } catch (error) {
     console.error('Error procesando miniatura de imagen:', error);
-    // Si falla, devolver miniatura genérica
     return generarMiniaturaPorTipo(archivoBuffer, tipoArchivo, 'imagen.jpg');
   }
 };
 
 /**
  * Generar miniatura para PDF
- * Genera miniatura inteligente sin depender de pdfjs
+ * Miniatura inteligente sin dependencias externas
  */
-const generarMiniaturaPDF = async (archivoBuffer, nombreArchivo) => {
+const generarMiniaturaPDF = (archivoBuffer, nombreArchivo) => {
   console.log(`📄 PDF detectado: ${nombreArchivo}`);
   console.log(`📎 Generando miniatura inteligente...`);
 
-  // Generar miniatura inteligente sin leer el PDF
-  return generarMiniaturaPDFInteligente(archivoBuffer, nombreArchivo, '?');
+  // Generar miniatura inteligente del PDF
+  return generarMiniaturaPDFInteligente(archivoBuffer, nombreArchivo);
 };
 
 /**
- * Generar miniatura inteligente para PDF con información del documento
- * Muestra: icono, número de páginas, nombre del archivo, tamaño
+ * Generar miniatura inteligente para PDF
+ * Muestra: icono, nombre del archivo, tamaño
  */
-const generarMiniaturaPDFInteligente = (archivoBuffer, nombreArchivo, numPaginas = '?') => {
+const generarMiniaturaPDFInteligente = (archivoBuffer, nombreArchivo) => {
   try {
     const width = 320;
     const height = 420;
@@ -133,11 +128,6 @@ const generarMiniaturaPDFInteligente = (archivoBuffer, nombreArchivo, numPaginas
     context.fillStyle = 'rgba(255, 255, 255, 0.95)';
     context.fillText(nombreMostrar, width / 2, 220);
 
-    // Número de páginas
-    context.font = '12px Arial';
-    context.fillStyle = 'rgba(255, 255, 255, 0.8)';
-    context.fillText(`${numPaginas} páginas`, width / 2, 245);
-
     // Tamaño del archivo
     const tamaño = archivoBuffer.length;
     let tamañoTexto = '';
@@ -150,7 +140,7 @@ const generarMiniaturaPDFInteligente = (archivoBuffer, nombreArchivo, numPaginas
     }
     context.font = '12px Arial';
     context.fillStyle = 'rgba(255, 255, 255, 0.7)';
-    context.fillText(tamañoTexto, width / 2, 265);
+    context.fillText(tamañoTexto, width / 2, 245);
 
     // Indicador de disponibilidad
     context.font = '11px Arial';
@@ -193,7 +183,7 @@ export const generarMiniaturaPorTipo = (archivoBuffer, tipoArchivo, nombreArchiv
       colorSecundario = '#991b1b';
       icono = '📕';
       tipo = 'PDF';
-      bgPattern = 'lines'; // Líneas para PDF
+      bgPattern = 'lines';
     } else if (tipoArchivo?.includes('word') || tipoArchivo?.includes('document')) {
       colorPrimario = '#2563eb';
       colorSecundario = '#1e40af';
@@ -216,7 +206,7 @@ export const generarMiniaturaPorTipo = (archivoBuffer, tipoArchivo, nombreArchiv
       tipo = 'IMAGEN';
     }
 
-    // Fondo con degradado más elegante
+    // Fondo con degradado
     const gradient = context.createLinearGradient(0, 0, width, height);
     gradient.addColorStop(0, colorPrimario);
     gradient.addColorStop(1, colorSecundario);
@@ -245,13 +235,13 @@ export const generarMiniaturaPorTipo = (archivoBuffer, tipoArchivo, nombreArchiv
     context.strokeRect(12, 12, width - 24, height - 24);
     context.shadowColor = 'transparent';
 
-    // Icono grande (más grande para mejor visibilidad)
+    // Icono grande
     context.font = 'bold 100px Arial';
     context.textAlign = 'center';
     context.textBaseline = 'middle';
     context.fillText(icono, width / 2, height / 3 - 10);
 
-    // Tipo de archivo (más visible)
+    // Tipo de archivo
     context.fillStyle = '#ffffff';
     context.font = 'bold 36px Arial';
     context.textBaseline = 'middle';
@@ -270,17 +260,16 @@ export const generarMiniaturaPorTipo = (archivoBuffer, tipoArchivo, nombreArchiv
     context.fillStyle = 'rgba(255, 255, 255, 0.95)';
     context.textAlign = 'center';
     const nombreLimpio = nombreArchivo
-      .replace(/\.[^/.]+$/, '') // Quitar extensión
+      .replace(/\.[^/.]+$/, '')
       .substring(0, 30);
 
-    // Truncar nombre muy largo
     let nombreMostrar = nombreLimpio;
     if (nombreLimpio.length > 25) {
       nombreMostrar = nombreLimpio.substring(0, 22) + '...';
     }
     context.fillText(nombreMostrar, width / 2, height / 2 + 60);
 
-    // Tamaño del archivo (más discreto)
+    // Tamaño del archivo
     const tamaño = archivoBuffer.length;
     let tamañoTexto = '';
     if (tamaño > 1024 * 1024) {
@@ -298,10 +287,9 @@ export const generarMiniaturaPorTipo = (archivoBuffer, tipoArchivo, nombreArchiv
     const buffer = canvas.toBuffer('image/png');
     console.log(`Miniatura genérica generada correctamente: ${buffer?.length || 0} bytes`);
 
-    // Validar que el buffer sea válido (un PNG debe tener al menos 67 bytes)
+    // Validar que el buffer sea válido
     if (!buffer || buffer.length < 67) {
       console.warn(`Buffer inválido o muy pequeño: ${buffer?.length || 0} bytes. Usando fallback.`);
-      // Si el buffer es inválido, crear uno pequeño como fallback
       try {
         const fallbackCanvas = createCanvas(200, 250);
         const fallbackContext = fallbackCanvas.getContext('2d');
