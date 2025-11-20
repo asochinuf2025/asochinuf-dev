@@ -240,10 +240,16 @@ const GestionPacientes = ({ isDarkMode }) => {
                     Cédula
                   </th>
                   <th className={`px-6 py-3 text-left text-sm font-semibold ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>
-                    Nacimiento
+                    Posición
                   </th>
                   <th className={`px-6 py-3 text-left text-sm font-semibold ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>
-                    Posición
+                    Plantel
+                  </th>
+                  <th className={`px-6 py-3 text-left text-sm font-semibold ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>
+                    Categoría
+                  </th>
+                  <th className={`px-6 py-3 text-left text-sm font-semibold ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>
+                    Liga
                   </th>
                   <th className={`px-6 py-3 text-left text-sm font-semibold ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>
                     Acciones
@@ -261,25 +267,31 @@ const GestionPacientes = ({ isDarkMode }) => {
                     <td className={`px-6 py-4 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                       {paciente.cedula || '-'}
                     </td>
-                    <td className={`px-6 py-4 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                      {paciente.fecha_nacimiento ? new Date(paciente.fecha_nacimiento).toLocaleDateString('es-CL') : '-'}
-                    </td>
                     <td className={`px-6 py-4 text-sm`}>
                       {paciente.posicion_juego ? (
                         <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                           paciente.posicion_juego === 'Portero'
-                            ? 'bg-blue-100 text-blue-800'
+                            ? isDarkMode ? 'bg-blue-500/30 text-blue-300' : 'bg-blue-100 text-blue-800'
                             : paciente.posicion_juego.includes('Defensa')
-                            ? 'bg-green-100 text-green-800'
+                            ? isDarkMode ? 'bg-green-500/30 text-green-300' : 'bg-green-100 text-green-800'
                             : paciente.posicion_juego.includes('Volante')
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-red-100 text-red-800'
+                            ? isDarkMode ? 'bg-yellow-500/30 text-yellow-300' : 'bg-yellow-100 text-yellow-800'
+                            : isDarkMode ? 'bg-red-500/30 text-red-300' : 'bg-red-100 text-red-800'
                         }`}>
                           {paciente.posicion_juego}
                         </span>
                       ) : (
                         <span className={isDarkMode ? 'text-gray-500' : 'text-gray-400'}>-</span>
                       )}
+                    </td>
+                    <td className={`px-6 py-4 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      {paciente.plantel_nombre || '-'}
+                    </td>
+                    <td className={`px-6 py-4 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      {paciente.categoria_nombre || '-'}
+                    </td>
+                    <td className={`px-6 py-4 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      {paciente.liga_nombre || '-'}
                     </td>
                     <td className={`px-6 py-4 text-sm`}>
                       <div className="flex gap-2">
