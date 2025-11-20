@@ -115,21 +115,51 @@ const DocumentCard = ({ documento, onOpen, isDarkMode, esAdmin, onDeleted }) => 
           </h3>
 
           {/* Meta información */}
-          <div className="flex flex-col gap-0.5 text-xs">
+          <div className="flex flex-col gap-1.5 text-xs">
             {documento.fecha_evento && (
-              <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                📅 {new Date(documento.fecha_evento).toLocaleDateString('es-CL')}
-              </p>
+              <div className="flex items-start gap-2">
+                <div className="text-[#8c5cff] flex-shrink-0 mt-0.5">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v2h16V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Fecha</p>
+                  <p className={`text-xs truncate ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    {new Date(documento.fecha_evento).toLocaleDateString('es-CL')}
+                  </p>
+                </div>
+              </div>
             )}
             {documento.ubicacion && (
-              <p className={`truncate ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                📍 {documento.ubicacion}
-              </p>
+              <div className="flex items-start gap-2">
+                <div className="text-[#8c5cff] flex-shrink-0 mt-0.5">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Ubicación</p>
+                  <p className={`text-xs truncate ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    {documento.ubicacion}
+                  </p>
+                </div>
+              </div>
             )}
             {documento.expositores && (
-              <p className={`truncate ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                👤 {documento.expositores}
-              </p>
+              <div className="flex items-start gap-2">
+                <div className="text-[#8c5cff] flex-shrink-0 mt-0.5">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v2h8v-2zM16 15v2h4v-2zM2 8a2 2 0 11-4 0 2 2 0 014 0zM6 15v2H2v-2z" />
+                  </svg>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Expositores</p>
+                  <p className={`text-xs truncate ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    {documento.expositores}
+                  </p>
+                </div>
+              </div>
             )}
           </div>
 
