@@ -42,92 +42,123 @@ const DocumentCard = ({ documento, onOpen, isDarkMode, esAdmin, onDeleted }) => 
   return (
     <>
       <motion.div
-        whileHover={{ y: -8, scale: 1.02 }}
+        whileHover={{ y: -6, scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         onClick={() => onOpen(documento)}
-        className={`cursor-pointer rounded-xl overflow-hidden transition-all duration-300 shadow-md hover:shadow-xl ${
+        className={`cursor-pointer rounded-lg overflow-hidden transition-all duration-300 shadow-sm hover:shadow-lg ${
           isDarkMode
             ? 'bg-[#0f1117] border border-[#8c5cff]/20 hover:border-[#8c5cff]/50'
             : 'bg-white border border-purple-200 hover:border-purple-400'
         }`}
       >
-      {/* Miniatura */}
-      <div className="relative w-full aspect-[3/4] overflow-hidden bg-gradient-to-br">
-        {documento.miniatura ? (
-          <img
-            src={`data:image/png;base64,${documento.miniatura}`}
-            alt={documento.titulo}
-            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-          />
-        ) : (
-          <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${
-            isDarkMode
-              ? 'from-[#8c5cff]/30 to-[#6a3adb]/30'
-              : 'from-purple-100 to-purple-200'
-          }`}>
-            <div className="text-center">
-              <div className="text-5xl mb-2">📄</div>
-              <p className={`text-xs font-semibold ${isDarkMode ? 'text-purple-300' : 'text-purple-700'}`}>
-                {documento.archivo_nombre?.split('.').pop()?.toUpperCase() || 'DOC'}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Overlay con categoría */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-          {documento.categoria && (
-            <span className={`text-xs font-semibold px-2 py-1 rounded inline-block ${
+        {/* Miniatura más pequeña */}
+        <div className="relative w-full aspect-video overflow-hidden bg-gradient-to-br">
+          {documento.miniatura ? (
+            <img
+              src={`data:image/png;base64,${documento.miniatura}`}
+              alt={documento.titulo}
+              className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+            />
+          ) : (
+            <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${
               documento.categoria === 'Congreso'
-                ? 'bg-blue-500'
+                ? isDarkMode ? 'from-blue-900 to-blue-800' : 'from-blue-100 to-blue-200'
                 : documento.categoria === 'Jornada'
-                  ? 'bg-red-500'
+                  ? isDarkMode ? 'from-red-900 to-red-800' : 'from-red-100 to-red-200'
                   : documento.categoria === 'Articulo'
-                    ? 'bg-green-500'
+                    ? isDarkMode ? 'from-green-900 to-green-800' : 'from-green-100 to-green-200'
                     : documento.categoria === 'Circular'
-                      ? 'bg-yellow-600'
+                      ? isDarkMode ? 'from-yellow-900 to-yellow-800' : 'from-yellow-100 to-yellow-200'
                       : documento.categoria === 'Workshop'
-                        ? 'bg-indigo-500'
-                        : 'bg-[#8c5cff]'
-            } text-white`}>
-              {documento.categoria}
-            </span>
+                        ? isDarkMode ? 'from-indigo-900 to-indigo-800' : 'from-indigo-100 to-indigo-200'
+                        : documento.categoria === 'Seminario'
+                          ? isDarkMode ? 'from-purple-900 to-purple-800' : 'from-purple-100 to-purple-200'
+                          : isDarkMode ? 'from-[#8c5cff]/30 to-[#6a3adb]/30' : 'from-purple-100 to-purple-200'
+            }`}>
+              <div className="text-center">
+                <div className="text-3xl mb-1">📄</div>
+                <p className={`text-xs font-semibold ${isDarkMode ? 'text-white/70' : 'text-gray-700'}`}>
+                  {documento.archivo_nombre?.split('.').pop()?.toUpperCase() || 'DOC'}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Badge de categoría superpuesto */}
+          {documento.categoria && (
+            <div className="absolute top-2 left-2">
+              <span className={`text-xs font-bold px-2 py-1 rounded inline-block ${
+                documento.categoria === 'Congreso'
+                  ? 'bg-blue-500'
+                  : documento.categoria === 'Jornada'
+                    ? 'bg-red-500'
+                    : documento.categoria === 'Articulo'
+                      ? 'bg-green-500'
+                      : documento.categoria === 'Circular'
+                        ? 'bg-yellow-600'
+                        : documento.categoria === 'Workshop'
+                          ? 'bg-indigo-500'
+                          : 'bg-purple-600'
+              } text-white`}>
+                {documento.categoria}
+              </span>
+            </div>
           )}
         </div>
-      </div>
 
-      {/* Título y Botones */}
-      <div className="p-3 flex flex-col gap-2">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className={`font-bold text-sm leading-tight line-clamp-2 flex-1 ${
+        {/* Info compacta */}
+        <div className="p-2 flex flex-col gap-1.5">
+          <h3 className={`font-bold text-xs leading-tight line-clamp-2 ${
             isDarkMode ? 'text-white' : 'text-gray-900'
           }`}>
             {documento.titulo}
           </h3>
-          {/* Action Buttons - Icon Only */}
-          <div className="flex gap-1 flex-shrink-0">
+
+          {/* Meta información */}
+          <div className="flex flex-col gap-0.5 text-xs">
+            {documento.fecha_evento && (
+              <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                📅 {new Date(documento.fecha_evento).toLocaleDateString('es-CL')}
+              </p>
+            )}
+            {documento.ubicacion && (
+              <p className={`truncate ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                📍 {documento.ubicacion}
+              </p>
+            )}
+            {documento.expositores && (
+              <p className={`truncate ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                👤 {documento.expositores}
+              </p>
+            )}
+          </div>
+
+          {/* Botones de acciones */}
+          <div className="flex gap-1 pt-1 border-t" style={{
+            borderColor: isDarkMode ? 'rgba(140, 92, 255, 0.1)' : 'rgba(168, 85, 247, 0.2)'
+          }}>
             <motion.button
-              whileHover={{ scale: 1.1 }}
+              whileHover={{ scale: 1.08 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleDescargar}
-              title="Descargar documento"
-              className={`p-1.5 rounded-lg transition-colors flex-shrink-0 ${
+              title="Descargar"
+              className={`flex-1 px-2 py-1 rounded text-xs font-semibold transition-colors ${
                 isDarkMode
                   ? 'hover:bg-[#8c5cff]/20 text-[#8c5cff]'
                   : 'hover:bg-purple-100 text-purple-700'
               }`}
             >
-              <Download size={16} />
+              ⬇ Descargar
             </motion.button>
 
             {esAdmin && (
               <motion.button
-                whileHover={{ scale: 1.1 }}
+                whileHover={{ scale: 1.08 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleEliminar}
                 disabled={deleting}
-                title="Eliminar documento"
-                className={`p-1.5 rounded-lg transition-colors flex-shrink-0 ${
+                title="Eliminar"
+                className={`flex-1 px-2 py-1 rounded text-xs font-semibold transition-colors ${
                   deleting
                     ? 'opacity-50 cursor-not-allowed'
                     : isDarkMode
@@ -135,12 +166,11 @@ const DocumentCard = ({ documento, onOpen, isDarkMode, esAdmin, onDeleted }) => 
                       : 'hover:bg-red-100 text-red-600'
                 }`}
               >
-                <Trash2 size={16} />
+                🗑 Eliminar
               </motion.button>
             )}
           </div>
         </div>
-      </div>
       </motion.div>
 
       {/* Confirm Dialog - Fuera del card para que sea modal global */}

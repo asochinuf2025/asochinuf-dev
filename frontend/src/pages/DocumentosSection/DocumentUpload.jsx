@@ -125,10 +125,10 @@ const DocumentUpload = ({ onSuccess, onCancel }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-3">
       {/* Título */}
       <div>
-        <label className={`block text-sm font-semibold mb-2 ${
+        <label className={`block text-xs font-semibold mb-1 ${
           isDarkMode ? 'text-gray-300' : 'text-gray-700'
         }`}>
           Título del Documento *
@@ -138,7 +138,7 @@ const DocumentUpload = ({ onSuccess, onCancel }) => {
           value={titulo}
           onChange={(e) => setTitulo(e.target.value)}
           placeholder="Ej: Nuevas normas de nutrición"
-          className={`w-full px-4 py-2 rounded-lg border ${
+          className={`w-full px-3 py-1.5 rounded-lg border text-sm ${
             isDarkMode
               ? 'bg-[#1a1c22] border-[#8c5cff]/20 text-white placeholder-gray-500'
               : 'bg-white border-purple-200 text-gray-900 placeholder-gray-400'
@@ -149,7 +149,7 @@ const DocumentUpload = ({ onSuccess, onCancel }) => {
 
       {/* Descripción */}
       <div>
-        <label className={`block text-sm font-semibold mb-2 ${
+        <label className={`block text-xs font-semibold mb-1 ${
           isDarkMode ? 'text-gray-300' : 'text-gray-700'
         }`}>
           Descripción (opcional)
@@ -157,9 +157,9 @@ const DocumentUpload = ({ onSuccess, onCancel }) => {
         <textarea
           value={descripcion}
           onChange={(e) => setDescripcion(e.target.value)}
-          placeholder="Describe brevemente el contenido del documento"
-          rows="3"
-          className={`w-full px-4 py-2 rounded-lg border resize-none ${
+          placeholder="Describe brevemente el contenido"
+          rows="2"
+          className={`w-full px-3 py-1.5 rounded-lg border resize-none text-sm ${
             isDarkMode
               ? 'bg-[#1a1c22] border-[#8c5cff]/20 text-white placeholder-gray-500'
               : 'bg-white border-purple-200 text-gray-900 placeholder-gray-400'
@@ -168,94 +168,100 @@ const DocumentUpload = ({ onSuccess, onCancel }) => {
         />
       </div>
 
-      {/* Categoría */}
-      <div>
-        <label className={`block text-sm font-semibold mb-2 ${
-          isDarkMode ? 'text-gray-300' : 'text-gray-700'
-        }`}>
-          Categoría *
-        </label>
-        <select
-          value={categoria}
-          onChange={(e) => setCategoria(e.target.value)}
-          className={`w-full px-4 py-2 rounded-lg border ${
-            isDarkMode
-              ? 'bg-[#1a1c22] border-[#8c5cff]/20 text-white'
-              : 'bg-white border-purple-200 text-gray-900'
-          } focus:outline-none focus:border-[#8c5cff]`}
-          disabled={uploading}
-        >
-          <option value="">Selecciona una categoría</option>
-          {categorias.map(cat => (
-            <option key={cat} value={cat}>{cat}</option>
-          ))}
-        </select>
+      {/* Grid de 2 columnas para categoría y fecha */}
+      <div className="grid grid-cols-2 gap-3">
+        {/* Categoría */}
+        <div>
+          <label className={`block text-xs font-semibold mb-1 ${
+            isDarkMode ? 'text-gray-300' : 'text-gray-700'
+          }`}>
+            Categoría *
+          </label>
+          <select
+            value={categoria}
+            onChange={(e) => setCategoria(e.target.value)}
+            className={`w-full px-3 py-1.5 rounded-lg border text-sm ${
+              isDarkMode
+                ? 'bg-[#1a1c22] border-[#8c5cff]/20 text-white'
+                : 'bg-white border-purple-200 text-gray-900'
+            } focus:outline-none focus:border-[#8c5cff]`}
+            disabled={uploading}
+          >
+            <option value="">Selecciona</option>
+            {categorias.map(cat => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Fecha del Evento */}
+        <div>
+          <label className={`block text-xs font-semibold mb-1 ${
+            isDarkMode ? 'text-gray-300' : 'text-gray-700'
+          }`}>
+            Fecha
+          </label>
+          <input
+            type="date"
+            value={fechaEvento}
+            onChange={(e) => setFechaEvento(e.target.value)}
+            className={`w-full px-3 py-1.5 rounded-lg border text-sm ${
+              isDarkMode
+                ? 'bg-[#1a1c22] border-[#8c5cff]/20 text-white'
+                : 'bg-white border-purple-200 text-gray-900'
+            } focus:outline-none focus:border-[#8c5cff]`}
+            disabled={uploading}
+          />
+        </div>
       </div>
 
-      {/* Fecha del Evento */}
-      <div>
-        <label className={`block text-sm font-semibold mb-2 ${
-          isDarkMode ? 'text-gray-300' : 'text-gray-700'
-        }`}>
-          Fecha del Evento
-        </label>
-        <input
-          type="date"
-          value={fechaEvento}
-          onChange={(e) => setFechaEvento(e.target.value)}
-          className={`w-full px-4 py-2 rounded-lg border ${
-            isDarkMode
-              ? 'bg-[#1a1c22] border-[#8c5cff]/20 text-white'
-              : 'bg-white border-purple-200 text-gray-900'
-          } focus:outline-none focus:border-[#8c5cff]`}
-          disabled={uploading}
-        />
-      </div>
+      {/* Grid de 2 columnas para hora y ubicación */}
+      <div className="grid grid-cols-2 gap-3">
+        {/* Hora del Evento */}
+        <div>
+          <label className={`block text-xs font-semibold mb-1 ${
+            isDarkMode ? 'text-gray-300' : 'text-gray-700'
+          }`}>
+            Hora
+          </label>
+          <input
+            type="time"
+            value={horaEvento}
+            onChange={(e) => setHoraEvento(e.target.value)}
+            className={`w-full px-3 py-1.5 rounded-lg border text-sm ${
+              isDarkMode
+                ? 'bg-[#1a1c22] border-[#8c5cff]/20 text-white'
+                : 'bg-white border-purple-200 text-gray-900'
+            } focus:outline-none focus:border-[#8c5cff]`}
+            disabled={uploading}
+          />
+        </div>
 
-      {/* Hora del Evento */}
-      <div>
-        <label className={`block text-sm font-semibold mb-2 ${
-          isDarkMode ? 'text-gray-300' : 'text-gray-700'
-        }`}>
-          Hora del Evento
-        </label>
-        <input
-          type="time"
-          value={horaEvento}
-          onChange={(e) => setHoraEvento(e.target.value)}
-          className={`w-full px-4 py-2 rounded-lg border ${
-            isDarkMode
-              ? 'bg-[#1a1c22] border-[#8c5cff]/20 text-white'
-              : 'bg-white border-purple-200 text-gray-900'
-          } focus:outline-none focus:border-[#8c5cff]`}
-          disabled={uploading}
-        />
-      </div>
-
-      {/* Ubicación */}
-      <div>
-        <label className={`block text-sm font-semibold mb-2 ${
-          isDarkMode ? 'text-gray-300' : 'text-gray-700'
-        }`}>
-          Ubicación
-        </label>
-        <input
-          type="text"
-          value={ubicacion}
-          onChange={(e) => setUbicacion(e.target.value)}
-          placeholder="Ej: Auditorio Central, Santiago"
-          className={`w-full px-4 py-2 rounded-lg border ${
-            isDarkMode
-              ? 'bg-[#1a1c22] border-[#8c5cff]/20 text-white placeholder-gray-500'
-              : 'bg-white border-purple-200 text-gray-900 placeholder-gray-400'
-          } focus:outline-none focus:border-[#8c5cff]`}
-          disabled={uploading}
-        />
+        {/* Ubicación */}
+        <div>
+          <label className={`block text-xs font-semibold mb-1 ${
+            isDarkMode ? 'text-gray-300' : 'text-gray-700'
+          }`}>
+            Ubicación
+          </label>
+          <input
+            type="text"
+            value={ubicacion}
+            onChange={(e) => setUbicacion(e.target.value)}
+            placeholder="Ej: Auditorio"
+            className={`w-full px-3 py-1.5 rounded-lg border text-sm ${
+              isDarkMode
+                ? 'bg-[#1a1c22] border-[#8c5cff]/20 text-white placeholder-gray-500'
+                : 'bg-white border-purple-200 text-gray-900 placeholder-gray-400'
+            } focus:outline-none focus:border-[#8c5cff]`}
+            disabled={uploading}
+          />
+        </div>
       </div>
 
       {/* Expositores */}
       <div>
-        <label className={`block text-sm font-semibold mb-2 ${
+        <label className={`block text-xs font-semibold mb-1 ${
           isDarkMode ? 'text-gray-300' : 'text-gray-700'
         }`}>
           Expositores
@@ -264,8 +270,8 @@ const DocumentUpload = ({ onSuccess, onCancel }) => {
           type="text"
           value={expositores}
           onChange={(e) => setExpositores(e.target.value)}
-          placeholder="Ej: Dr. Juan Pérez, Dra. María García"
-          className={`w-full px-4 py-2 rounded-lg border ${
+          placeholder="Ej: Dr. Pérez, Dra. García"
+          className={`w-full px-3 py-1.5 rounded-lg border text-sm ${
             isDarkMode
               ? 'bg-[#1a1c22] border-[#8c5cff]/20 text-white placeholder-gray-500'
               : 'bg-white border-purple-200 text-gray-900 placeholder-gray-400'
@@ -276,15 +282,15 @@ const DocumentUpload = ({ onSuccess, onCancel }) => {
 
       {/* Selector de Archivo */}
       <div>
-        <label className={`block text-sm font-semibold mb-2 ${
+        <label className={`block text-xs font-semibold mb-1 ${
           isDarkMode ? 'text-gray-300' : 'text-gray-700'
         }`}>
-          Archivo (PDF, Word, Texto) *
+          Archivo *
         </label>
         <motion.div
-          whileHover={{ scale: uploading ? 1 : 1.02 }}
+          whileHover={{ scale: uploading ? 1 : 1.01 }}
           onClick={() => !uploading && fileInputRef.current?.click()}
-          className={`p-6 rounded-lg border-2 border-dashed cursor-pointer transition-all ${
+          className={`p-3 rounded-lg border-2 border-dashed cursor-pointer transition-all ${
             archivo
               ? isDarkMode
                 ? 'border-green-500 bg-green-500/10'
@@ -303,27 +309,24 @@ const DocumentUpload = ({ onSuccess, onCancel }) => {
             disabled={uploading}
           />
 
-          <div className="flex flex-col items-center gap-2 text-center">
-            <Upload size={24} className={archivo ? 'text-green-500' : 'text-[#8c5cff]'} />
+          <div className="flex flex-col items-center gap-1 text-center">
+            <Upload size={18} className={archivo ? 'text-green-500' : 'text-[#8c5cff]'} />
             {archivo ? (
               <>
-                <p className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                <p className={`font-semibold text-xs ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                   ✓ {archivoNombre}
                 </p>
-                <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  Haz clic para cambiar
+                <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Clic para cambiar
                 </p>
               </>
             ) : (
               <>
-                <p className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                  Arrastra tu archivo aquí
-                </p>
-                <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  o haz clic para seleccionar
+                <p className={`font-semibold text-xs ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                  Click para seleccionar
                 </p>
                 <p className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>
-                  Máximo 10MB
+                  Máx 10MB
                 </p>
               </>
             )}
@@ -347,14 +350,14 @@ const DocumentUpload = ({ onSuccess, onCancel }) => {
       )}
 
       {/* Botones */}
-      <div className="flex gap-3 pt-4">
+      <div className="flex gap-2 pt-2">
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           type="button"
           onClick={onCancel}
           disabled={uploading}
-          className={`flex-1 px-4 py-2 rounded-lg border font-semibold transition-colors ${
+          className={`flex-1 px-3 py-1.5 rounded-lg border text-sm font-semibold transition-colors ${
             uploading
               ? 'opacity-50 cursor-not-allowed'
               : ''
@@ -372,7 +375,7 @@ const DocumentUpload = ({ onSuccess, onCancel }) => {
           whileTap={{ scale: uploading ? 1 : 0.98 }}
           type="submit"
           disabled={uploading || !titulo.trim() || !archivo || !categoria}
-          className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-semibold text-white transition-colors ${
+          className={`flex-1 flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg text-sm font-semibold text-white transition-colors ${
             uploading || !titulo.trim() || !archivo || !categoria
               ? 'bg-[#8c5cff]/50 cursor-not-allowed'
               : 'bg-[#8c5cff] hover:bg-[#7a4cde]'
@@ -380,13 +383,13 @@ const DocumentUpload = ({ onSuccess, onCancel }) => {
         >
           {uploading ? (
             <>
-              <Loader size={18} className="animate-spin" />
+              <Loader size={16} className="animate-spin" />
               Subiendo...
             </>
           ) : (
             <>
-              <Upload size={18} />
-              Subir Evento
+              <Upload size={16} />
+              Subir
             </>
           )}
         </motion.button>

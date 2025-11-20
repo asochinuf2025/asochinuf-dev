@@ -183,6 +183,14 @@ const DocumentosSection = ({ containerVariants, itemVariants }) => {
               isDarkMode
                 ? 'bg-[#0f1117] text-white'
                 : 'bg-white text-gray-900'
+            } ${
+              selectedCategoria === 'Congreso' ? (isDarkMode ? '[&_*]:text-blue-400' : '[&_*]:text-blue-600')
+              : selectedCategoria === 'Jornada' ? (isDarkMode ? '[&_*]:text-red-400' : '[&_*]:text-red-600')
+              : selectedCategoria === 'Articulo' ? (isDarkMode ? '[&_*]:text-green-400' : '[&_*]:text-green-600')
+              : selectedCategoria === 'Circular' ? (isDarkMode ? '[&_*]:text-yellow-400' : '[&_*]:text-yellow-600')
+              : selectedCategoria === 'Workshop' ? (isDarkMode ? '[&_*]:text-indigo-400' : '[&_*]:text-indigo-600')
+              : selectedCategoria === 'Seminario' ? (isDarkMode ? '[&_*]:text-purple-400' : '[&_*]:text-purple-600')
+              : ''
             }`}
           >
             <option value="todas">Todas las categorías</option>
