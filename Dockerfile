@@ -55,6 +55,8 @@ RUN apt-get update && apt-get install -y \
     libjpeg-dev \
     libgif-dev \
     librsvg2-dev \
+    libfontconfig-dev \
+    libfreetype6-dev \
     pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
