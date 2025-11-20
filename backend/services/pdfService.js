@@ -1,8 +1,11 @@
 import { createCanvas } from 'canvas';
+import * as pdfjsModule from 'pdfjs-dist/build/pdf.js';
+
+const pdfjsLib = pdfjsModule.default || pdfjsModule;
 
 /**
  * Generar miniatura para documentos e imágenes
- * - Para PDFs: miniatura inteligente con metadatos
+ * - Para PDFs: renderizar la primera página del PDF
  * - Para imágenes: usa la imagen misma como miniatura
  * - Para otros archivos: miniatura genérica con icono
  */
@@ -14,10 +17,17 @@ export const generarMiniatura = async (archivoBuffer, tipoArchivo, nombreArchivo
       return await generarMiniaturaImagen(archivoBuffer, tipoArchivo);
     }
 
-    // Si es PDF, generar miniatura inteligente
+    // Si es PDF, renderizar la primera página
     if (tipoArchivo?.includes('pdf')) {
-      console.log('📄 Tipo: PDF');
-      return generarMiniaturaPDF(archivoBuffer, nombreArchivo);
+      console.log('📄 Tipo: PDF - Renderizando primera página');
+      try {
+        return await generarMiniaturaPDF(archivoBuffer, nombreArchivo);
+      } catch (pdfError) {
+        console.error('⚠️ Error renderizando PDF:', pdfError.message);
+        // Fallback a miniatura genérica si falla
+        console.log('📎 Fallback a miniatura genérica para PDF');
+        return generarMiniaturaPorTipo(archivoBuffer, tipoArchivo, nombreArchivo);
+      }
     }
 
     // Para otros archivos, generar miniatura genérica
@@ -46,14 +56,63 @@ const generarMiniaturaImagen = async (archivoBuffer, tipoArchivo) => {
 
 /**
  * Generar miniatura para PDF
- * Miniatura inteligente sin dependencias externas
+ * Renderiza la primera página del PDF como miniatura
  */
-const generarMiniaturaPDF = (archivoBuffer, nombreArchivo) => {
+const generarMiniaturaPDF = async (archivoBuffer, nombreArchivo) => {
   console.log(`📄 PDF detectado: ${nombreArchivo}`);
-  console.log(`📎 Generando miniatura inteligente...`);
+  console.log(`📎 Renderizando primera página...`);
 
-  // Generar miniatura inteligente del PDF
-  return generarMiniaturaPDFInteligente(archivoBuffer, nombreArchivo);
+  try {
+    // Intentar renderizar la primera página del PDF
+    return await renderizarPrimeraPagenaPDF(archivoBuffer);
+  } catch (error) {
+    console.error('Error renderizando primera página:', error.message);
+    // Si falla, usar miniatura inteligente como fallback
+    console.log('📎 Usando miniatura inteligente como fallback');
+    return generarMiniaturaPDFInteligente(archivoBuffer, nombreArchivo);
+  }
+};
+
+/**
+ * Renderizar la primera página de un PDF como imagen
+ */
+const renderizarPrimeraPagenaPDF = async (archivoBuffer) => {
+  try {
+    // Convertir Buffer a Uint8Array
+    const uint8Array = new Uint8Array(archivoBuffer);
+
+    // Cargar el PDF desde el buffer
+    const pdf = await pdfjsLib.getDocument({ data: uint8Array }).promise;
+
+    if (pdf.numPages === 0) {
+      throw new Error('PDF tiene 0 páginas');
+    }
+
+    // Obtener la primera página
+    const page = await pdf.getPage(1);
+
+    // Configurar viewport a 320x420 (tamaño de miniatura)
+    const viewport = page.getViewport({ scale: 1 });
+    const scale = Math.min(320 / viewport.width, 420 / viewport.height);
+    const scaledViewport = page.getViewport({ scale });
+
+    // Crear canvas
+    const canvas = createCanvas(scaledViewport.width, scaledViewport.height);
+    const context = canvas.getContext('2d');
+
+    // Renderizar página en canvas
+    await page.render({
+      canvasContext: context,
+      viewport: scaledViewport
+    }).promise;
+
+    const buffer = canvas.toBuffer('image/png');
+    console.log(`✅ Miniatura PDF renderizada: ${buffer?.length || 0} bytes`);
+    return buffer;
+  } catch (error) {
+    console.error('Error en renderizarPrimeraPagenaPDF:', error.message);
+    throw error;
+  }
 };
 
 /**

@@ -62,8 +62,12 @@ const DocumentViewer = ({ documento, isOpen, onClose, onDeleted, esAdmin }) => {
 
       // Lazy load pdfjs-dist only when PDF viewer is opened
       if (!pdfjsLib) {
-        pdfjsLib = await import('pdfjs-dist');
-        pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
+        const pdfModule = await import('pdfjs-dist');
+        pdfjsLib = pdfModule.default || pdfModule;
+        // Configurar worker source
+        if (pdfjsLib.GlobalWorkerOptions) {
+          pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
+        }
       }
 
       // Descargar el PDF
@@ -72,7 +76,9 @@ const DocumentViewer = ({ documento, isOpen, onClose, onDeleted, esAdmin }) => {
         responseType: 'arraybuffer'
       });
 
-      const pdf = await pdfjsLib.getDocument({ data: response.data }).promise;
+      // Convertir a Uint8Array
+      const uint8Array = new Uint8Array(response.data);
+      const pdf = await pdfjsLib.getDocument({ data: uint8Array }).promise;
       setPdfCache(pdf);
       setTotalPages(pdf.numPages);
 
