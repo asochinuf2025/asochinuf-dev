@@ -71,6 +71,7 @@ const generarMiniaturaImagen = async (archivoBuffer, tipoArchivo) => {
  */
 const generarMiniaturaPDF = async (archivoBuffer, nombreArchivo) => {
   try {
+    console.log(`Intentando extraer página de PDF: ${nombreArchivo}, tamaño: ${archivoBuffer.length} bytes`);
     const pdfjs = await cargarPdfjs();
 
     if (!pdfjs) {
@@ -80,11 +81,17 @@ const generarMiniaturaPDF = async (archivoBuffer, nombreArchivo) => {
 
     // Convertir Buffer a Uint8Array para pdfjs-dist
     const uint8Array = new Uint8Array(archivoBuffer);
+    console.log(`Cargando documento PDF...`);
     const pdf = await pdfjs.getDocument({ data: uint8Array }).promise;
+    console.log(`PDF cargado, número de páginas: ${pdf.numPages}`);
+
     const page = await pdf.getPage(1);
+    console.log(`Primera página obtenida`);
 
     // Calcular dimensiones manteniendo aspecto 3/4
     const viewport = page.getViewport({ scale: 1.5 });
+    console.log(`Viewport: ${viewport.width}x${viewport.height}`);
+
     const canvas = createCanvas(viewport.width, viewport.height);
     const context = canvas.getContext('2d');
 
@@ -93,10 +100,14 @@ const generarMiniaturaPDF = async (archivoBuffer, nombreArchivo) => {
       viewport: viewport
     }).promise;
 
-    return canvas.toBuffer('image/png');
+    const buffer = canvas.toBuffer('image/png');
+    console.log(`Miniatura PDF generada exitosamente: ${buffer.length} bytes`);
+    return buffer;
   } catch (error) {
     console.error('Error al renderizar PDF para miniatura:', error.message);
+    console.error('Stack:', error.stack);
     // Si falla, devolver miniatura genérica
+    console.log('Usando miniatura genérica para PDF');
     return generarMiniaturaPorTipo(archivoBuffer, 'application/pdf', nombreArchivo);
   }
 };
