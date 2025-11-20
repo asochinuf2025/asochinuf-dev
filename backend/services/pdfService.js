@@ -106,6 +106,7 @@ const generarMiniaturaPDF = async (archivoBuffer, nombreArchivo) => {
  */
 const generarMiniaturaPorTipo = (archivoBuffer, tipoArchivo, nombreArchivo) => {
   try {
+    console.log(`Generando miniatura genérica: archivo=${nombreArchivo}, tipo=${tipoArchivo}, buffer=${archivoBuffer?.length || 0} bytes`);
     const width = 400;
     const height = 500;
 
@@ -219,18 +220,23 @@ const generarMiniaturaPorTipo = (archivoBuffer, tipoArchivo, nombreArchivo) => {
     context.fillText(tamañoTexto, width / 2, height - 10);
 
     const buffer = canvas.toBuffer('image/png');
+    console.log(`Miniatura genérica generada correctamente: ${buffer?.length || 0} bytes`);
     return buffer || Buffer.alloc(0);
   } catch (error) {
     console.error('Error generando miniatura genérica:', error);
     // Crear una miniatura vacía pero válida como fallback
     try {
+      console.log('Intentando crear miniatura fallback en canvas más pequeño');
       const canvas = createCanvas(200, 250);
       const context = canvas.getContext('2d');
       context.fillStyle = '#8c5cff';
       context.fillRect(0, 0, 200, 250);
-      return canvas.toBuffer('image/png');
+      const buffer = canvas.toBuffer('image/png');
+      console.log(`Miniatura fallback generada: ${buffer?.length || 0} bytes`);
+      return buffer;
     } catch (e) {
       // Si todo falla, retornar un buffer mínimo válido
+      console.log('Usando miniatura genérica mínima (1x1 PNG)');
       return Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64');
     }
   }
