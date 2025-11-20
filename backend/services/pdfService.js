@@ -68,22 +68,11 @@ const generarMiniaturaImagen = async (archivoBuffer, tipoArchivo) => {
 
 /**
  * Generar miniatura extrayendo la primera página del PDF
- * En producción (Railway), usar miniatura genérica por defecto
- * En desarrollo, intentar renderizado real
+ * Renderiza en el servidor pero con mejor manejo de errores para Railway
  */
 const generarMiniaturaPDF = async (archivoBuffer, nombreArchivo) => {
-  const isProduction = process.env.NODE_ENV === 'production';
-  const isRailway = process.env.RAILWAY_ENVIRONMENT_NAME !== undefined;
-
-  // En Railway/Producción, usar miniatura genérica directamente
-  if (isProduction || isRailway) {
-    console.log(`🚀 Entorno de producción detectado (Railway). Usando miniatura genérica para PDF.`);
-    return generarMiniaturaPorTipo(archivoBuffer, 'application/pdf', nombreArchivo);
-  }
-
-  // En desarrollo, intentar renderizado real
   try {
-    console.log(`🔄 Desarrollo: Intentando extraer página de PDF: ${nombreArchivo}, tamaño: ${archivoBuffer.length} bytes`);
+    console.log(`📄 PDF detectado: ${nombreArchivo}, tamaño: ${archivoBuffer.length} bytes`);
     const pdfjs = await cargarPdfjs();
 
     if (!pdfjs) {
@@ -91,79 +80,70 @@ const generarMiniaturaPDF = async (archivoBuffer, nombreArchivo) => {
       return generarMiniaturaPorTipo(archivoBuffer, 'application/pdf', nombreArchivo);
     }
 
-    // Convertir Buffer a Uint8Array para pdfjs-dist
+    // Convertir Buffer a Uint8Array
     const uint8Array = new Uint8Array(archivoBuffer);
-    console.log(`📖 Cargando documento PDF...`);
+    console.log(`📖 Cargando PDF...`);
 
-    // Cargar PDF con opciones para manejar contenido complejo
+    // Cargar con opciones optimizadas para Railway
     const pdf = await pdfjs.getDocument({
       data: uint8Array,
       disableAutoFetch: true,
       disableStream: true,
-      rangeChunkSize: 65536
+      rangeChunkSize: 65536,
+      cMapUrl: undefined // Desactivar cMap para reducir complejidad
     }).promise;
-    console.log(`✓ PDF cargado, páginas: ${pdf.numPages}`);
+
+    console.log(`✓ PDF cargado: ${pdf.numPages} páginas`);
 
     const page = await pdf.getPage(1);
     console.log(`✓ Primera página obtenida`);
 
-    // Usar escala reducida para PDFs complejos
-    const scale = archivoBuffer.length > 500000 ? 0.6 : 1.2;
-
-    // Calcular dimensiones
+    // Usar escala reducida
+    const scale = 0.8;
     const viewport = page.getViewport({ scale });
 
-    // Limitar tamaño máximo de canvas para evitar problemas de memoria
-    const maxCanvasWidth = 600;
-    const maxCanvasHeight = 900;
-
-    let finalWidth = Math.round(viewport.width);
-    let finalHeight = Math.round(viewport.height);
+    // Limitar canvas
+    const maxWidth = 500;
+    const maxHeight = 800;
     let finalScale = scale;
 
-    // Ajustar escala si el canvas es demasiado grande
-    if (viewport.width > maxCanvasWidth || viewport.height > maxCanvasHeight) {
-      const scaleX = maxCanvasWidth / viewport.width;
-      const scaleY = maxCanvasHeight / viewport.height;
-      finalScale = Math.min(scaleX, scaleY, scale);
-      const finalViewport = page.getViewport({ scale: finalScale });
-      finalWidth = Math.round(finalViewport.width);
-      finalHeight = Math.round(finalViewport.height);
+    if (viewport.width > maxWidth || viewport.height > maxHeight) {
+      const scaleX = maxWidth / viewport.width;
+      const scaleY = maxHeight / viewport.height;
+      finalScale = Math.min(scaleX, scaleY);
     }
 
-    const canvas = createCanvas(finalWidth, finalHeight);
+    const finalViewport = page.getViewport({ scale: finalScale });
+    const canvas = createCanvas(Math.round(finalViewport.width), Math.round(finalViewport.height));
     const context = canvas.getContext('2d');
 
-    // Llenar fondo blanco
+    // Fondo blanco
     context.fillStyle = '#ffffff';
-    context.fillRect(0, 0, finalWidth, finalHeight);
+    context.fillRect(0, 0, canvas.width, canvas.height);
 
-    console.log(`🎨 Renderizando PDF...`);
+    console.log(`🎨 Renderizando canvas ${canvas.width}x${canvas.height}...`);
 
-    // Renderizar con timeout de 8 segundos
+    // Renderizar con timeout de 12 segundos
     const renderTask = page.render({
       canvasContext: context,
-      viewport: page.getViewport({ scale: finalScale })
+      viewport: finalViewport
     });
 
     const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Render timeout')), 8000)
+      setTimeout(() => reject(new Error('Render timeout')), 12000)
     );
 
     await Promise.race([renderTask.promise, timeoutPromise]);
 
     const buffer = canvas.toBuffer('image/png');
-    console.log(`✅ Miniatura PDF renderizada: ${buffer.length} bytes`);
+    console.log(`✅ Miniatura renderizada: ${buffer.length} bytes`);
     return buffer;
 
   } catch (error) {
-    console.error('❌ Error al renderizar PDF:', error.message);
+    console.error('❌ Error renderizando PDF:', error.message);
 
-    // Detectar tipo de error
-    if (error.message.includes('Image') || error.message.includes('Canvas expected')) {
-      console.warn('⚠️ PDF contiene imágenes o contenido que canvas no puede procesar');
-    } else if (error.message.includes('timeout')) {
-      console.warn('⚠️ PDF muy complejo - renderizado agotó el tiempo');
+    if (error.message.includes('Image') || error.message.includes('Canvas')) {
+      console.warn('⚠️ PDF contiene contenido que canvas no puede procesar');
     }
 
     console.log('📎 Usando miniatura genérica como fallback');

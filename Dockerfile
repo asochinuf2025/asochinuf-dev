@@ -42,6 +42,20 @@ ENV NODE_ENV=production
 ENV PORT=5001
 
 # ============================================================================
+# Instalar dependencias del sistema para canvas (PDF rendering)
+# ============================================================================
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    python3 \
+    libcairo2-dev \
+    libpango1.0-dev \
+    libjpeg-dev \
+    libgif-dev \
+    librsvg2-dev \
+    pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+
+# ============================================================================
 # Copiar código y dependencias del backend
 # ============================================================================
 COPY backend/package*.json ./backend/
