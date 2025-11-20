@@ -128,7 +128,7 @@ const DocumentCard = ({ documento, onOpen, isDarkMode, esAdmin, onDeleted }) => 
                   <p className={`text-xs truncate ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                     {documento.fecha_evento && new Date(documento.fecha_evento).toLocaleDateString('es-CL')}
                     {documento.fecha_evento && documento.hora_evento && ' • '}
-                    {documento.hora_evento && documento.hora_evento}
+                    {documento.hora_evento && `${documento.hora_evento.substring(0, 5)} hrs`}
                   </p>
                 </div>
               </div>
