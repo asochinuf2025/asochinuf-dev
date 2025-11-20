@@ -248,12 +248,32 @@ export const crearDocumento = async (req, res) => {
       });
     }
 
+    // Validar y normalizar el tipo de archivo
+    let tipoArchivoNormalizado = archivo_tipo;
+    if (!tipoArchivoNormalizado) {
+      // Inferir tipo MIME de la extensión si no está disponible
+      const extension = archivo_nombre.split('.').pop()?.toLowerCase();
+      const mimeTypes = {
+        'pdf': 'application/pdf',
+        'doc': 'application/msword',
+        'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'txt': 'text/plain',
+        'jpg': 'image/jpeg',
+        'jpeg': 'image/jpeg',
+        'png': 'image/png',
+        'gif': 'image/gif',
+        'webp': 'image/webp'
+      };
+      tipoArchivoNormalizado = mimeTypes[extension] || 'application/octet-stream';
+      console.log(`Backend: MIME type inferido de extensión: ${extension} -> ${tipoArchivoNormalizado}`);
+    }
+
     // Convertir base64 a Buffer
     const archivoBuffer = Buffer.from(archivo_base64.split(',')[1] || archivo_base64, 'base64');
 
     // Generar miniatura automáticamente
-    console.log(`Generando miniatura para: ${archivo_nombre}, tipo: ${archivo_tipo}, tamaño archivo: ${archivoBuffer.length} bytes`);
-    const miniaturaBuffer = await generarMiniatura(archivoBuffer, archivo_tipo, archivo_nombre);
+    console.log(`Generando miniatura para: ${archivo_nombre}, tipo original: ${archivo_tipo}, tipo normalizado: ${tipoArchivoNormalizado}, tamaño archivo: ${archivoBuffer.length} bytes`);
+    const miniaturaBuffer = await generarMiniatura(archivoBuffer, tipoArchivoNormalizado, archivo_nombre);
     console.log(`Miniatura generada, tamaño: ${miniaturaBuffer?.length || 0} bytes`);
 
     const result = await pool.query(
@@ -280,7 +300,7 @@ export const crearDocumento = async (req, res) => {
         descripcion || null,
         archivoBuffer,
         archivo_nombre,
-        archivo_tipo || 'application/octet-stream',
+        tipoArchivoNormalizado,
         archivoBuffer.length,
         miniaturaBuffer,
         categoria || null,

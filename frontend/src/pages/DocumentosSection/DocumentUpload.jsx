@@ -90,6 +90,25 @@ const DocumentUpload = ({ onSuccess, onCancel }) => {
         try {
           const base64Data = e.target.result;
 
+          // Inferir tipo MIME de la extensión si no está disponible
+          let tipoArchivo = archivo.type;
+          if (!tipoArchivo) {
+            const extension = archivo.name.split('.').pop()?.toLowerCase();
+            const mimeTypes = {
+              'pdf': 'application/pdf',
+              'doc': 'application/msword',
+              'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+              'txt': 'text/plain',
+              'jpg': 'image/jpeg',
+              'jpeg': 'image/jpeg',
+              'png': 'image/png',
+              'gif': 'image/gif',
+              'webp': 'image/webp'
+            };
+            tipoArchivo = mimeTypes[extension] || 'application/octet-stream';
+            console.log(`MIME type inferido de extensión: ${extension} -> ${tipoArchivo}`);
+          }
+
           // Crear evento en la BD (enviar PDF directamente)
           const config = { headers: { Authorization: `Bearer ${token}` } };
           await axios.post(
@@ -99,7 +118,7 @@ const DocumentUpload = ({ onSuccess, onCancel }) => {
               descripcion: descripcion.trim() || null,
               archivo_base64: base64Data,
               archivo_nombre: archivo.name,
-              archivo_tipo: archivo.type,
+              archivo_tipo: tipoArchivo,
               categoria: categoria,
               fecha_evento: fechaEvento || null,
               hora_evento: horaEvento || null,
