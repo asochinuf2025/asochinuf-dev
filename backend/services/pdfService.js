@@ -3,8 +3,8 @@ import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.js';
 
 /**
  * Generar miniatura para documentos e imágenes
- * - Para PDFs: intenta renderizar primera página, fallback a miniatura con metadatos
- * - Para imágenes: usa la imagen misma escalada
+ * - Para PDFs: renderiza la primera página como imagen PNG
+ * - Para imágenes: usa la imagen misma como miniatura
  * - Para otros archivos: miniatura genérica con icono
  */
 export const generarMiniatura = async (archivoBuffer, tipoArchivo, nombreArchivo) => {
@@ -15,7 +15,7 @@ export const generarMiniatura = async (archivoBuffer, tipoArchivo, nombreArchivo
       return await generarMiniaturaImagen(archivoBuffer, tipoArchivo);
     }
 
-    // Si es PDF, intentar renderizar o generar miniatura inteligente
+    // Si es PDF, renderizar primera página
     if (tipoArchivo?.includes('pdf')) {
       console.log('📄 Tipo: PDF');
       return await generarMiniaturaPDF(archivoBuffer, nombreArchivo);
@@ -52,26 +52,77 @@ const generarMiniaturaImagen = async (archivoBuffer, tipoArchivo) => {
 
 /**
  * Generar miniatura para PDF
- * Genera miniatura inteligente con información del documento (sin renderizar)
- *
- * Nota: En Railway y otros entornos, renderizar PDFs complejos causa errores
- * de dependencias gráficas. Por eso usamos miniatura inteligente que siempre funciona.
+ * Intenta renderizar la primera página. Si falla, usa miniatura inteligente.
  */
 const generarMiniaturaPDF = async (archivoBuffer, nombreArchivo) => {
   console.log(`📄 PDF detectado: ${nombreArchivo}`);
 
   try {
-    // Intentar obtener información del PDF (sin renderizar)
+    // Cargar el documento PDF
+    console.log('📖 Cargando PDF...');
     const pdf = await pdfjsLib.getDocument({ data: archivoBuffer }).promise;
-    const numPaginas = pdf.numPages || '?';
+    const numPaginas = pdf.numPages;
     console.log(`✓ PDF cargado: ${numPaginas} páginas`);
 
-    // Generar miniatura inteligente con información del documento
-    return generarMiniaturaPDFInteligente(archivoBuffer, nombreArchivo, numPaginas);
+    if (numPaginas === 0) {
+      throw new Error('PDF sin páginas');
+    }
+
+    // Obtener la primera página
+    console.log('🔍 Obteniendo primera página...');
+    const page = await pdf.getPage(1);
+
+    // Configurar viewport para una miniatura de buena calidad
+    const scale = 1.5; // Aumentar escala para mejor calidad
+    const viewport = page.getViewport({ scale });
+
+    const width = Math.round(viewport.width);
+    const height = Math.round(viewport.height);
+    console.log(`📐 Dimensiones: ${width}x${height}`);
+
+    // Crear canvas
+    const canvas = createCanvas(width, height);
+    const context = canvas.getContext('2d');
+
+    // Llenar fondo blanco
+    context.fillStyle = 'white';
+    context.fillRect(0, 0, width, height);
+
+    // Renderizar la página en el canvas
+    console.log(`🎨 Renderizando página...`);
+    const renderContext = {
+      canvasContext: context,
+      viewport: viewport
+    };
+
+    await page.render(renderContext).promise;
+    console.log(`✓ Página renderizada correctamente`);
+
+    const buffer = canvas.toBuffer('image/png');
+
+    // Validar que el buffer sea válido
+    if (!buffer || buffer.length < 67) {
+      throw new Error('Buffer de imagen inválido');
+    }
+
+    console.log(`✅ Miniatura de PDF renderizada: ${buffer.length} bytes`);
+    return buffer;
+
   } catch (error) {
-    console.error(`⚠️ No se pudo leer información del PDF: ${error.message}`);
-    // Si no podemos leer info, igual generamos la miniatura
-    return generarMiniaturaPDFInteligente(archivoBuffer, nombreArchivo, '?');
+    console.error(`❌ Error renderizando PDF: ${error.message}`);
+    console.log(`⚠️ Usando miniatura inteligente como fallback...`);
+
+    // Obtener número de páginas si es posible
+    let numPaginas = '?';
+    try {
+      const pdf = await pdfjsLib.getDocument({ data: archivoBuffer }).promise;
+      numPaginas = pdf.numPages;
+    } catch (e) {
+      // Ignorar errores al leer número de páginas
+    }
+
+    // Fallback: generar miniatura inteligente
+    return generarMiniaturaPDFInteligente(archivoBuffer, nombreArchivo, numPaginas);
   }
 };
 
