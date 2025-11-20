@@ -273,8 +273,16 @@ export const crearDocumento = async (req, res) => {
 
     // Generar miniatura automáticamente
     console.log(`Generando miniatura para: ${archivo_nombre}, tipo original: ${archivo_tipo}, tipo normalizado: ${tipoArchivoNormalizado}, tamaño archivo: ${archivoBuffer.length} bytes`);
-    const miniaturaBuffer = await generarMiniatura(archivoBuffer, tipoArchivoNormalizado, archivo_nombre);
+    let miniaturaBuffer = await generarMiniatura(archivoBuffer, tipoArchivoNormalizado, archivo_nombre);
     console.log(`Miniatura generada, tamaño: ${miniaturaBuffer?.length || 0} bytes`);
+
+    // Validar que la miniatura es válida
+    if (!miniaturaBuffer || miniaturaBuffer.length === 0) {
+      console.error('ERROR: miniaturaBuffer está vacío o undefined');
+      // Si por alguna razón falla, usar una miniatura por defecto
+      miniaturaBuffer = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64');
+      console.log('Usando miniatura por defecto: 1x1 PNG');
+    }
 
     const result = await pool.query(
       `INSERT INTO t_eventos (
