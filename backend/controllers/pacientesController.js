@@ -45,7 +45,7 @@ export const obtenerPacientes = async (req, res) => {
       LEFT JOIN t_sesion_mediciones sm ON p.sesion_medicion_id = sm.id
       LEFT JOIN t_planteles pt ON sm.plantel_id = pt.id
       LEFT JOIN t_categorias cat ON sm.categoria_id = cat.id
-      LEFT JOIN t_ligas lg ON cat.liga_id = lg.id
+      LEFT JOIN t_ligas lg ON sm.liga_id = lg.id
       WHERE p.activo = true
     `;
     const params = [];
@@ -97,7 +97,7 @@ export const obtenerPaciente = async (req, res) => {
       LEFT JOIN t_sesion_mediciones sm ON p.sesion_medicion_id = sm.id
       LEFT JOIN t_planteles pt ON sm.plantel_id = pt.id
       LEFT JOIN t_categorias cat ON sm.categoria_id = cat.id
-      LEFT JOIN t_ligas lg ON cat.liga_id = lg.id
+      LEFT JOIN t_ligas lg ON sm.liga_id = lg.id
       WHERE p.id = $1 AND p.activo = true
     `, [id]);
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Search, Edit2, Trash2, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -35,12 +35,7 @@ const GestionPacientes = ({ isDarkMode }) => {
     posicion_juego: ''
   });
 
-  // Cargar pacientes
-  useEffect(() => {
-    cargarPacientes();
-  }, [selectedPosicion]);
-
-  const cargarPacientes = async () => {
+  const cargarPacientes = useCallback(async () => {
     try {
       setLoading(true);
       const config = { headers: { Authorization: `Bearer ${token}` } };
@@ -62,7 +57,14 @@ const GestionPacientes = ({ isDarkMode }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token, selectedPosicion]);
+
+  // Cargar pacientes
+  useEffect(() => {
+    if (token) {
+      cargarPacientes();
+    }
+  }, [cargarPacientes, token]);
 
   const handleOpenModal = (paciente = null) => {
     if (paciente) {

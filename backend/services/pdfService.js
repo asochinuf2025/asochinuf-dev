@@ -3,6 +3,9 @@ import * as pdfjsModule from 'pdfjs-dist/build/pdf.js';
 
 const pdfjsLib = pdfjsModule.default || pdfjsModule;
 
+// Comentado: GlobalWorkerOptions no está disponible en este contexto
+// pdfjsLib.GlobalWorkerOptions.workerSrc = null;
+
 /**
  * Generar miniatura para documentos e imágenes
  * - Para PDFs: renderizar la primera página del PDF
