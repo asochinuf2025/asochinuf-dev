@@ -1,9 +1,6 @@
 import { createCanvas } from 'canvas';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.js';
 
-// Configurar el worker de pdf.js
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
 /**
  * Generar miniatura para documentos e imágenes
  * - Para PDFs: intenta renderizar primera página, fallback a miniatura con metadatos
@@ -55,63 +52,34 @@ const generarMiniaturaImagen = async (archivoBuffer, tipoArchivo) => {
 
 /**
  * Generar miniatura para PDF
- * Intenta renderizar la primera página, si falla genera una miniatura inteligente con metadatos
+ * Genera miniatura inteligente con información del documento (sin renderizar)
+ *
+ * Nota: En Railway y otros entornos, renderizar PDFs complejos causa errores
+ * de dependencias gráficas. Por eso usamos miniatura inteligente que siempre funciona.
  */
 const generarMiniaturaPDF = async (archivoBuffer, nombreArchivo) => {
   console.log(`📄 PDF detectado: ${nombreArchivo}`);
 
   try {
-    // Intentar cargar y renderizar el PDF
+    // Intentar obtener información del PDF (sin renderizar)
     const pdf = await pdfjsLib.getDocument({ data: archivoBuffer }).promise;
-    console.log(`✓ PDF cargado: ${pdf.numPages} páginas`);
+    const numPaginas = pdf.numPages || '?';
+    console.log(`✓ PDF cargado: ${numPaginas} páginas`);
 
-    if (pdf.numPages === 0) {
-      throw new Error('PDF sin páginas');
-    }
-
-    // Obtener la primera página
-    const page = await pdf.getPage(1);
-    console.log(`✓ Primera página obtenida`);
-
-    const viewport = page.getViewport({ scale: 0.5 });
-    const width = Math.min(320, viewport.width);
-    const height = Math.min(420, viewport.height);
-
-    console.log(`🎨 Renderizando canvas ${Math.round(width)}x${Math.round(height)}...`);
-
-    const canvas = createCanvas(width, height);
-    const context = canvas.getContext('2d');
-
-    // Renderizar la página en el canvas
-    const renderContext = {
-      canvasContext: context,
-      viewport: page.getViewport({ scale: 0.5 })
-    };
-
-    await page.render(renderContext).promise;
-    console.log(`✓ Página renderizada correctamente`);
-
-    const buffer = canvas.toBuffer('image/png');
-
-    // Validar que el buffer sea válido
-    if (buffer && buffer.length > 67) {
-      console.log(`✅ Miniatura de PDF renderizada: ${buffer.length} bytes`);
-      return buffer;
-    }
+    // Generar miniatura inteligente con información del documento
+    return generarMiniaturaPDFInteligente(archivoBuffer, nombreArchivo, numPaginas);
   } catch (error) {
-    console.error(`⚠️ Error renderizando PDF: ${error.message}`);
+    console.error(`⚠️ No se pudo leer información del PDF: ${error.message}`);
+    // Si no podemos leer info, igual generamos la miniatura
+    return generarMiniaturaPDFInteligente(archivoBuffer, nombreArchivo, '?');
   }
-
-  // Fallback: generar miniatura inteligente con metadatos del PDF
-  console.log(`📎 Usando miniatura inteligente con metadatos del PDF`);
-  return generarMiniaturaPDFInteligente(archivoBuffer, nombreArchivo);
 };
 
 /**
  * Generar miniatura inteligente para PDF con información del documento
  * Muestra: icono, número de páginas, nombre del archivo, tamaño
  */
-const generarMiniaturaPDFInteligente = (archivoBuffer, nombreArchivo) => {
+const generarMiniaturaPDFInteligente = (archivoBuffer, nombreArchivo, numPaginas = '?') => {
   try {
     const width = 320;
     const height = 420;
@@ -179,6 +147,11 @@ const generarMiniaturaPDFInteligente = (archivoBuffer, nombreArchivo) => {
     context.fillStyle = 'rgba(255, 255, 255, 0.95)';
     context.fillText(nombreMostrar, width / 2, 220);
 
+    // Número de páginas
+    context.font = '12px Arial';
+    context.fillStyle = 'rgba(255, 255, 255, 0.8)';
+    context.fillText(`${numPaginas} páginas`, width / 2, 245);
+
     // Tamaño del archivo
     const tamaño = archivoBuffer.length;
     let tamañoTexto = '';
@@ -191,7 +164,7 @@ const generarMiniaturaPDFInteligente = (archivoBuffer, nombreArchivo) => {
     }
     context.font = '12px Arial';
     context.fillStyle = 'rgba(255, 255, 255, 0.7)';
-    context.fillText(tamañoTexto, width / 2, 250);
+    context.fillText(tamañoTexto, width / 2, 265);
 
     // Indicador de disponibilidad
     context.font = '11px Arial';
