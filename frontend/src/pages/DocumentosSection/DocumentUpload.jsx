@@ -34,11 +34,20 @@ const DocumentUpload = ({ onSuccess, onCancel }) => {
   const handleArchivoSelect = (e) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validar que sea un documento (PDF, DOC, etc)
-      const tiposPermitidos = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
+      // Validar que sea un documento o imagen
+      const tiposPermitidos = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'text/plain',
+        'image/jpeg',
+        'image/png',
+        'image/gif',
+        'image/webp'
+      ];
 
       if (!tiposPermitidos.includes(file.type)) {
-        setError('Solo se permiten archivos PDF, Word o texto');
+        setError('Solo se permiten archivos PDF, Word, texto e imágenes (JPG, PNG, GIF, WebP)');
         return;
       }
 
@@ -285,7 +294,7 @@ const DocumentUpload = ({ onSuccess, onCancel }) => {
         <label className={`block text-xs font-semibold mb-1 ${
           isDarkMode ? 'text-gray-300' : 'text-gray-700'
         }`}>
-          Archivo *
+          Archivo (Documento o Imagen) *
         </label>
         <motion.div
           whileHover={{ scale: uploading ? 1 : 1.01 }}
@@ -304,7 +313,7 @@ const DocumentUpload = ({ onSuccess, onCancel }) => {
             ref={fileInputRef}
             type="file"
             onChange={handleArchivoSelect}
-            accept=".pdf,.doc,.docx,.txt"
+            accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif,.webp"
             className="hidden"
             disabled={uploading}
           />
@@ -326,7 +335,7 @@ const DocumentUpload = ({ onSuccess, onCancel }) => {
                   Click para seleccionar
                 </p>
                 <p className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>
-                  Máx 10MB
+                  PDF, Word, Imágenes • Máx 10MB
                 </p>
               </>
             )}

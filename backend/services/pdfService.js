@@ -18,12 +18,18 @@ const cargarPdfjs = async () => {
 };
 
 /**
- * Generar miniatura para documentos
+ * Generar miniatura para documentos e imágenes
  * Para PDFs: extrae la primera página y la renderiza
+ * Para imágenes: usa la imagen misma escalada como miniatura
  * Para otros archivos: crea una miniatura genérica con icono
  */
 export const generarMiniatura = async (archivoBuffer, tipoArchivo, nombreArchivo) => {
   try {
+    // Si es imagen, usar la imagen como miniatura (escalada)
+    if (tipoArchivo?.includes('image')) {
+      return await generarMiniaturaImagen(archivoBuffer, tipoArchivo);
+    }
+
     // Si es PDF, intentar extraer primera página
     if (tipoArchivo?.includes('pdf')) {
       return await generarMiniaturaPDF(archivoBuffer, nombreArchivo);
@@ -35,6 +41,69 @@ export const generarMiniatura = async (archivoBuffer, tipoArchivo, nombreArchivo
     console.error('Error generando miniatura de documento:', error);
     // En caso de error, devolver una miniatura genérica
     return generarMiniaturaPorTipo(archivoBuffer, tipoArchivo, nombreArchivo);
+  }
+};
+
+/**
+ * Generar miniatura escalando una imagen
+ */
+const generarMiniaturaImagen = async (archivoBuffer, tipoArchivo) => {
+  try {
+    const { Image } = await import('canvas');
+
+    const image = new Image();
+    image.src = archivoBuffer;
+
+    // Esperar a que la imagen cargue
+    await new Promise((resolve, reject) => {
+      image.onload = resolve;
+      image.onerror = reject;
+    });
+
+    // Crear canvas con aspecto 16:9 (igual al card)
+    const width = 200;
+    const height = 112; // 200 * 9 / 16 = 112.5
+
+    const canvas = createCanvas(width, height);
+    const context = canvas.getContext('2d');
+
+    // Calcular dimensiones para cubrir todo el canvas manteniendo aspecto
+    const imgRatio = image.width / image.height;
+    const canvasRatio = width / height;
+
+    let sourceX = 0;
+    let sourceY = 0;
+    let sourceWidth = image.width;
+    let sourceHeight = image.height;
+
+    if (imgRatio > canvasRatio) {
+      // Imagen más ancha que canvas
+      sourceWidth = image.height * canvasRatio;
+      sourceX = (image.width - sourceWidth) / 2;
+    } else {
+      // Imagen más alta que canvas
+      sourceHeight = image.width / canvasRatio;
+      sourceY = (image.height - sourceHeight) / 2;
+    }
+
+    // Dibujar imagen escalada en el canvas
+    context.drawImage(
+      image,
+      sourceX,
+      sourceY,
+      sourceWidth,
+      sourceHeight,
+      0,
+      0,
+      width,
+      height
+    );
+
+    return canvas.toBuffer('image/png');
+  } catch (error) {
+    console.error('Error generando miniatura de imagen:', error);
+    // Si falla, devolver miniatura genérica
+    return generarMiniaturaPorTipo(archivoBuffer, 'image/jpeg', 'imagen.jpg');
   }
 };
 
@@ -110,6 +179,11 @@ const generarMiniaturaPorTipo = (archivoBuffer, tipoArchivo, nombreArchivo) => {
       colorSecundario = '#047857';
       icono = '📙';
       tipo = 'SHEET';
+    } else if (tipoArchivo?.includes('image')) {
+      colorPrimario = '#d946ef';
+      colorSecundario = '#be185d';
+      icono = '🖼️';
+      tipo = 'IMAGEN';
     }
 
     // Fondo degradado
