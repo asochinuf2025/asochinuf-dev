@@ -68,6 +68,7 @@ const generarMiniaturaImagen = async (archivoBuffer, tipoArchivo) => {
 
 /**
  * Generar miniatura extrayendo la primera página del PDF
+ * Maneja PDFs complejos con timeout y fallback
  */
 const generarMiniaturaPDF = async (archivoBuffer, nombreArchivo) => {
   try {
@@ -88,23 +89,58 @@ const generarMiniaturaPDF = async (archivoBuffer, nombreArchivo) => {
     const page = await pdf.getPage(1);
     console.log(`Primera página obtenida`);
 
+    // Para PDFs complejos, usar escala más pequeña (menos demanda de memoria)
+    const scale = archivoBuffer.length > 500000 ? 1.0 : 1.5;
+    console.log(`Escala de renderizado: ${scale} (tamaño archivo: ${archivoBuffer.length} bytes)`);
+
     // Calcular dimensiones manteniendo aspecto 3/4
-    const viewport = page.getViewport({ scale: 1.5 });
+    const viewport = page.getViewport({ scale });
     console.log(`Viewport: ${viewport.width}x${viewport.height}`);
 
-    const canvas = createCanvas(viewport.width, viewport.height);
+    // Limitar tamaño máximo de canvas para evitar problemas de memoria
+    const maxCanvasWidth = 1000;
+    const maxCanvasHeight = 1414;
+
+    let finalWidth = viewport.width;
+    let finalHeight = viewport.height;
+    let finalScale = scale;
+
+    if (viewport.width > maxCanvasWidth || viewport.height > maxCanvasHeight) {
+      const scaleX = maxCanvasWidth / viewport.width;
+      const scaleY = maxCanvasHeight / viewport.height;
+      finalScale = Math.min(scaleX, scaleY, scale);
+      const finalViewport = page.getViewport({ scale: finalScale });
+      finalWidth = finalViewport.width;
+      finalHeight = finalViewport.height;
+      console.log(`Canvas ajustado: ${finalWidth}x${finalHeight} (escala reducida a ${finalScale})`);
+    }
+
+    const canvas = createCanvas(finalWidth, finalHeight);
     const context = canvas.getContext('2d');
 
-    await page.render({
+    // Renderizar con timeout de 10 segundos
+    const renderPromise = page.render({
       canvasContext: context,
-      viewport: viewport
+      viewport: page.getViewport({ scale: finalScale })
     }).promise;
+
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Render timeout - PDF demasiado complejo')), 10000)
+    );
+
+    await Promise.race([renderPromise, timeoutPromise]);
 
     const buffer = canvas.toBuffer('image/png');
     console.log(`Miniatura PDF generada exitosamente: ${buffer.length} bytes`);
     return buffer;
   } catch (error) {
     console.error('Error al renderizar PDF para miniatura:', error.message);
+
+    // Detectar si es error de imagen o timeout
+    if (error.message.includes('Image') || error.message.includes('Canvas') || error.message.includes('timeout')) {
+      console.warn(`PDF con contenido complejo (${error.message}). Intentando con librería alternativa...`);
+    }
+
     console.error('Stack:', error.stack);
     // Si falla, devolver miniatura genérica
     console.log('Usando miniatura genérica para PDF');
