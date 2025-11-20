@@ -252,7 +252,9 @@ export const crearDocumento = async (req, res) => {
     const archivoBuffer = Buffer.from(archivo_base64.split(',')[1] || archivo_base64, 'base64');
 
     // Generar miniatura automáticamente
+    console.log(`Generando miniatura para: ${archivo_nombre}, tipo: ${archivo_tipo}, tamaño archivo: ${archivoBuffer.length} bytes`);
     const miniaturaBuffer = await generarMiniatura(archivoBuffer, archivo_tipo, archivo_nombre);
+    console.log(`Miniatura generada, tamaño: ${miniaturaBuffer?.length || 0} bytes`);
 
     const result = await pool.query(
       `INSERT INTO t_eventos (

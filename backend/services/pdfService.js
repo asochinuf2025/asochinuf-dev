@@ -27,19 +27,23 @@ export const generarMiniatura = async (archivoBuffer, tipoArchivo, nombreArchivo
   try {
     // Si es imagen, usar la imagen como miniatura (escalada)
     if (tipoArchivo?.includes('image')) {
+      console.log('Thumbnail type: IMAGEN (returning original buffer)');
       return await generarMiniaturaImagen(archivoBuffer, tipoArchivo);
     }
 
     // Si es PDF, intentar extraer primera página
     if (tipoArchivo?.includes('pdf')) {
+      console.log('Thumbnail type: PDF (extracting first page)');
       return await generarMiniaturaPDF(archivoBuffer, nombreArchivo);
     }
 
     // Para otros archivos, generar miniatura genérica
+    console.log(`Thumbnail type: GENÉRICA para ${tipoArchivo}`);
     return generarMiniaturaPorTipo(archivoBuffer, tipoArchivo, nombreArchivo);
   } catch (error) {
     console.error('Error generando miniatura de documento:', error);
     // En caso de error, devolver una miniatura genérica
+    console.log('Fallback: generando miniatura genérica por error');
     return generarMiniaturaPorTipo(archivoBuffer, tipoArchivo, nombreArchivo);
   }
 };
