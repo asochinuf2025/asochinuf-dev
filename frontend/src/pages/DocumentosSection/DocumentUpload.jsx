@@ -34,7 +34,7 @@ const DocumentUpload = ({ onSuccess, onCancel }) => {
   const handleArchivoSelect = (e) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validar que sea un documento o imagen
+      // Validar que sea un documento o imagen por MIME type O extensión
       const tiposPermitidos = [
         'application/pdf',
         'application/msword',
@@ -46,7 +46,14 @@ const DocumentUpload = ({ onSuccess, onCancel }) => {
         'image/webp'
       ];
 
-      if (!tiposPermitidos.includes(file.type)) {
+      const extensionesPermitidas = ['pdf', 'doc', 'docx', 'txt', 'jpg', 'jpeg', 'png', 'gif', 'webp'];
+      const extension = file.name.split('.').pop()?.toLowerCase();
+
+      // Aceptar si tiene MIME type válido O extensión válida
+      const tipoValido = tiposPermitidos.includes(file.type);
+      const extensionValida = extensionesPermitidas.includes(extension);
+
+      if (!tipoValido && !extensionValida) {
         setError('Solo se permiten archivos PDF, Word, texto e imágenes (JPG, PNG, GIF, WebP)');
         return;
       }
