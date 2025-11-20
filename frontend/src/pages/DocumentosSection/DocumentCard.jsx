@@ -116,7 +116,7 @@ const DocumentCard = ({ documento, onOpen, isDarkMode, esAdmin, onDeleted }) => 
 
           {/* Meta información */}
           <div className="flex flex-col gap-1.5 text-xs">
-            {documento.fecha_evento && (
+            {(documento.fecha_evento || documento.hora_evento) && (
               <div className="flex items-start gap-2">
                 <div className="text-[#8c5cff] flex-shrink-0 mt-0.5">
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -126,7 +126,9 @@ const DocumentCard = ({ documento, onOpen, isDarkMode, esAdmin, onDeleted }) => 
                 <div className="min-w-0 flex-1">
                   <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Fecha</p>
                   <p className={`text-xs truncate ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                    {new Date(documento.fecha_evento).toLocaleDateString('es-CL')}
+                    {documento.fecha_evento && new Date(documento.fecha_evento).toLocaleDateString('es-CL')}
+                    {documento.fecha_evento && documento.hora_evento && ' • '}
+                    {documento.hora_evento && documento.hora_evento}
                   </p>
                 </div>
               </div>
