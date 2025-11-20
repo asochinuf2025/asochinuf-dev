@@ -211,6 +211,7 @@ const seedCursos = async () => {
     if (clienteId) {
       console.log('Asignando acceso al curso 1 para heisinger.vivanco@gmail.com...');
 
+      // Insertar en t_acceso_cursos
       await pool.query(`
         INSERT INTO t_acceso_cursos (
           usuario_id,
@@ -222,7 +223,19 @@ const seedCursos = async () => {
         )
       `, [clienteId, cursoId1]);
 
-      console.log('✓ Acceso asignado al Curso 1 (Nutrición Deportiva)\n');
+      // Insertar en t_inscripciones
+      await pool.query(`
+        INSERT INTO t_inscripciones (
+          usuario_id,
+          id_curso,
+          estado
+        ) VALUES (
+          $1, $2, 'activa'
+        )
+      `, [clienteId, cursoId1]);
+
+      console.log('✓ Acceso asignado al Curso 1 (Nutrición Deportiva)');
+      console.log('✓ Inscripción creada en t_inscripciones\n');
     }
 
     console.log('========================================');
