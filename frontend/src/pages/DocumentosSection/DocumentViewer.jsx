@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Download } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
 import { API_ENDPOINTS } from '../../config/apiConfig';
@@ -8,7 +8,7 @@ import { API_ENDPOINTS } from '../../config/apiConfig';
 // pdfjs-dist will be loaded dynamically when needed
 let pdfjsLib = null;
 
-const DocumentViewer = ({ documento, isOpen, onClose, onDeleted, esAdmin }) => {
+const DocumentViewer = ({ documento, isOpen, onClose }) => {
   const { isDarkMode, token } = useAuth();
   const [pdfPages, setPdfPages] = useState([]);
   const [pdfCache, setPdfCache] = useState(null); // Cache del PDF cargado
@@ -17,6 +17,7 @@ const DocumentViewer = ({ documento, isOpen, onClose, onDeleted, esAdmin }) => {
   const [loadingPdf, setLoadingPdf] = useState(false);
   const [pdfError, setPdfError] = useState(null);
   const [zoom, setZoom] = useState(100);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
 
   const formatDate = (date) => {
@@ -33,6 +34,15 @@ const DocumentViewer = ({ documento, isOpen, onClose, onDeleted, esAdmin }) => {
     if (bytes > 1024) return (bytes / 1024).toFixed(1) + ' KB';
     return bytes + ' B';
   };
+
+  // Detectar cambios en tamaño de pantalla
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Load PDF when viewer opens or documento changes
   useEffect(() => {
@@ -282,36 +292,57 @@ const DocumentViewer = ({ documento, isOpen, onClose, onDeleted, esAdmin }) => {
             <div className={`flex-1 w-full ${isDarkMode ? 'bg-gray-900' : 'bg-gray-100'} flex items-center justify-center relative`}>
               {isPdf ? (
                 <div className="w-full h-full flex flex-col">
-                  {loadingPdf ? (
-                    <div className="flex-1 flex items-center justify-center">
-                      <div className="animate-spin">
-                        <div className="w-8 h-8 border-4 border-[#8c5cff] border-t-transparent rounded-full"></div>
-                      </div>
-                    </div>
-                  ) : pdfError ? (
-                    <div className="flex-1 flex items-center justify-center text-center">
-                      <div>
-                        <div className="text-6xl mb-4">⚠️</div>
-                        <p className={`text-lg font-semibold ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                          {pdfError}
-                        </p>
-                      </div>
-                    </div>
-                  ) : pdfPages.length > 0 && pdfPages[currentPage - 1] ? (
-                    <div className="flex-1 overflow-auto flex items-center justify-center p-4">
-                      <img
-                        src={pdfPages[currentPage - 1]}
-                        alt={`Page ${currentPage}`}
-                        className="max-w-full max-h-full object-contain"
-                        style={{ transform: `scale(${zoom / 100})` }}
+                  {isMobile ? (
+                    // Vista estándar para móviles - Embed nativo de PDF
+                    <div className="w-full h-full flex flex-col">
+                      <iframe
+                        src={`${API_ENDPOINTS.DOCUMENTOS.GET_ONE(documento.id)}?preview=true#toolbar=0&navpanes=0`}
+                        className="flex-1 w-full border-0"
+                        title={documento.titulo}
                       />
+                      <div className={`flex items-center justify-center gap-2 p-3 border-t ${
+                        isDarkMode ? 'border-[#8c5cff]/20 bg-[#0f1117]' : 'border-purple-200 bg-white'
+                      }`}>
+                        <span className={`text-xs font-semibold ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                          💡 Consejo: Descarga el archivo para mejor visualización
+                        </span>
+                      </div>
                     </div>
                   ) : (
-                    <div className="flex-1 flex items-center justify-center">
-                      <div className="animate-spin">
-                        <div className="w-8 h-8 border-4 border-[#8c5cff] border-t-transparent rounded-full"></div>
-                      </div>
-                    </div>
+                    // Vista con zoom y navegación para desktop
+                    <>
+                      {loadingPdf ? (
+                        <div className="flex-1 flex items-center justify-center">
+                          <div className="animate-spin">
+                            <div className="w-8 h-8 border-4 border-[#8c5cff] border-t-transparent rounded-full"></div>
+                          </div>
+                        </div>
+                      ) : pdfError ? (
+                        <div className="flex-1 flex items-center justify-center text-center">
+                          <div>
+                            <div className="text-6xl mb-4">⚠️</div>
+                            <p className={`text-lg font-semibold ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                              {pdfError}
+                            </p>
+                          </div>
+                        </div>
+                      ) : pdfPages.length > 0 && pdfPages[currentPage - 1] ? (
+                        <div className="flex-1 overflow-auto flex items-center justify-center p-4">
+                          <img
+                            src={pdfPages[currentPage - 1]}
+                            alt={`Page ${currentPage}`}
+                            className="max-w-full max-h-full object-contain"
+                            style={{ transform: `scale(${zoom / 100})` }}
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex-1 flex items-center justify-center">
+                          <div className="animate-spin">
+                            <div className="w-8 h-8 border-4 border-[#8c5cff] border-t-transparent rounded-full"></div>
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               ) : documento.miniatura ? (

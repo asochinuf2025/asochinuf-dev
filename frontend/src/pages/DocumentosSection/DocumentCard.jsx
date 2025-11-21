@@ -185,20 +185,30 @@ const DocumentCard = ({ documento, onOpen, isDarkMode, esAdmin, onDeleted }) => 
 
             {esAdmin && (
               <motion.button
-                whileHover={{ scale: 1.08 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={!deleting ? { scale: 1.08 } : {}}
+                whileTap={!deleting ? { scale: 0.95 } : {}}
                 onClick={handleEliminar}
                 disabled={deleting}
                 title="Eliminar"
-                className={`flex-1 px-2 py-1 rounded text-xs font-semibold transition-colors ${
+                className={`flex-1 px-2 py-1 rounded text-xs font-semibold transition-colors flex items-center justify-center gap-1 ${
                   deleting
-                    ? 'opacity-50 cursor-not-allowed'
+                    ? 'opacity-75 cursor-not-allowed'
                     : isDarkMode
                       ? 'hover:bg-red-500/20 text-red-400'
                       : 'hover:bg-red-100 text-red-600'
                 }`}
               >
-                🗑 Eliminar
+                {deleting ? (
+                  <>
+                    <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    <span>Eliminando</span>
+                  </>
+                ) : (
+                  <>
+                    <span>🗑</span>
+                    <span>Eliminar</span>
+                  </>
+                )}
               </motion.button>
             )}
           </div>

@@ -1046,8 +1046,8 @@ const GestionCursosSection = ({ containerVariants }) => {
                     </p>
                   </div>
 
-                  {/* URL del Video Promocional */}
-                  <div>
+                  {/* URL del Video Promocional - OCULTO */}
+                  <div className="hidden">
                     <label className={`block text-sm font-semibold mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                       URL del Video Promocional
                     </label>
@@ -1065,8 +1065,8 @@ const GestionCursosSection = ({ containerVariants }) => {
                     />
                   </div>
 
-                  {/* URL del Curso */}
-                  <div>
+                  {/* URL del Curso - OCULTO */}
+                  <div className="hidden">
                     <label className={`block text-sm font-semibold mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                       URL del Curso
                     </label>
