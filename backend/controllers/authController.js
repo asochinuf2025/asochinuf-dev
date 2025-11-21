@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import pool from '../config/database.js';
 import Joi from 'joi';
 import crypto from 'crypto';
+import { enviarVerificacionEmail } from '../services/emailService.js';
 
 // Esquemas de validación
 const schemaRegistro = Joi.object({
@@ -55,26 +56,31 @@ export const registro = async (req, res) => {
     const salt = await bcryptjs.genSalt(10);
     const passwordHash = await bcryptjs.hash(password, salt);
 
-    // Crear usuario (por defecto cliente)
+    // Crear usuario (por defecto cliente, inactivo hasta verificar email)
     const resultado = await pool.query(
-      'INSERT INTO t_usuarios (email, password_hash, nombre, apellido, tipo_perfil, activo, fecha_registro) VALUES ($1, $2, $3, $4, $5, $6, NOW()) RETURNING id, email, nombre, apellido, tipo_perfil, foto',
-      [emailNormalizado, passwordHash, nombre, apellido, 'cliente', true]
+      'INSERT INTO t_usuarios (email, password_hash, nombre, apellido, tipo_perfil, activo, email_verificado, fecha_registro) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW()) RETURNING id, email, nombre, apellido, tipo_perfil, foto',
+      [emailNormalizado, passwordHash, nombre, apellido, 'cliente', false, false]
     );
 
     const usuario = resultado.rows[0];
-    const token = generarToken(usuario);
+
+    // Generar token de verificación
+    const tokenVerificacion = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(tokenVerificacion).digest('hex');
+
+    // Guardar token de verificación en la base de datos
+    await pool.query(
+      'INSERT INTO t_verification_tokens (usuario_id, token_hash, fecha_expiracion, usado) VALUES ($1, $2, NOW() + INTERVAL \'24 hours\', false)',
+      [usuario.id, tokenHash]
+    );
+
+    // Enviar correo de verificación
+    await enviarVerificacionEmail(usuario.email, usuario.nombre, tokenVerificacion);
 
     res.status(201).json({
-      mensaje: 'Usuario registrado exitosamente',
-      token,
-      usuario: {
-        id: usuario.id,
-        email: usuario.email,
-        nombre: usuario.nombre,
-        apellido: usuario.apellido,
-        tipo_perfil: usuario.tipo_perfil,
-        foto: usuario.foto,
-      },
+      mensaje: 'Usuario registrado exitosamente. Por favor, verifica tu email para completar el registro.',
+      email: usuario.email,
+      requiresEmailVerification: true,
     });
   } catch (error) {
     console.error('Error en registro:', error);
@@ -93,17 +99,31 @@ export const login = async (req, res) => {
     const { email, password } = value;
     const emailNormalizado = email.toLowerCase();
 
-    // Buscar usuario
-    const resultado = await pool.query(
-      'SELECT * FROM t_usuarios WHERE LOWER(email) = $1 AND activo = true',
+    // Buscar usuario por email (sin verificar activo aún)
+    const resultadoUsuario = await pool.query(
+      'SELECT * FROM t_usuarios WHERE LOWER(email) = $1',
       [emailNormalizado]
     );
 
-    if (resultado.rows.length === 0) {
+    if (resultadoUsuario.rows.length === 0) {
       return res.status(401).json({ error: 'Email o contraseña incorrectos' });
     }
 
-    const usuario = resultado.rows[0];
+    const usuario = resultadoUsuario.rows[0];
+
+    // Verificar si el email ha sido verificado
+    if (!usuario.email_verificado) {
+      return res.status(403).json({
+        error: 'Tu email no ha sido verificado. Por favor, revisa tu bandeja de entrada y haz clic en el enlace de verificación.',
+        requiresEmailVerification: true,
+        email: usuario.email
+      });
+    }
+
+    // Verificar si el usuario está activo
+    if (!usuario.activo) {
+      return res.status(403).json({ error: 'Tu cuenta ha sido desactivada' });
+    }
 
     // Verificar contraseña
     const esValida = await bcryptjs.compare(password, usuario.password_hash);
@@ -285,6 +305,122 @@ export const restablecerContrasena = async (req, res) => {
   } catch (error) {
     console.error('Error restableciendo contraseña:', error);
     res.status(500).json({ error: 'Error al restablecer contraseña' });
+  }
+};
+
+// ==================== VERIFICACIÓN DE EMAIL ====================
+
+// Verificar token de verificación de email
+export const verificarTokenEmail = async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    if (!token) {
+      return res.status(400).json({ error: 'Token no proporcionado' });
+    }
+
+    // Hashear el token recibido
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+    // Buscar token en la base de datos
+    const resultado = await pool.query(
+      'SELECT usuario_id, fecha_expiracion, usado FROM t_verification_tokens WHERE token_hash = $1',
+      [tokenHash]
+    );
+
+    if (resultado.rows.length === 0) {
+      return res.status(400).json({ error: 'Token de verificación inválido' });
+    }
+
+    const tokenData = resultado.rows[0];
+
+    // Validar si el token ya fue usado
+    if (tokenData.usado) {
+      return res.status(400).json({ error: 'Este token de verificación ya ha sido utilizado' });
+    }
+
+    // Validar si el token ha expirado
+    if (new Date() > new Date(tokenData.fecha_expiracion)) {
+      return res.status(400).json({ error: 'El token de verificación ha expirado' });
+    }
+
+    res.json({ usuarioId: tokenData.usuario_id, valido: true });
+  } catch (error) {
+    console.error('Error verificando token:', error);
+    res.status(500).json({ error: 'Error al verificar token' });
+  }
+};
+
+// Confirmar email con token
+export const confirmarEmail = async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    if (!token) {
+      return res.status(400).json({ error: 'Token no proporcionado' });
+    }
+
+    // Hashear el token recibido
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+    // Buscar token en la base de datos
+    const resultado = await pool.query(
+      'SELECT usuario_id, fecha_expiracion, usado FROM t_verification_tokens WHERE token_hash = $1',
+      [tokenHash]
+    );
+
+    if (resultado.rows.length === 0) {
+      return res.status(400).json({ error: 'Token de verificación inválido' });
+    }
+
+    const tokenData = resultado.rows[0];
+
+    // Validar si el token ya fue usado
+    if (tokenData.usado) {
+      return res.status(400).json({ error: 'Este token de verificación ya ha sido utilizado' });
+    }
+
+    // Validar si el token ha expirado
+    if (new Date() > new Date(tokenData.fecha_expiracion)) {
+      return res.status(400).json({ error: 'El token de verificación ha expirado' });
+    }
+
+    // Marcar email como verificado y activar usuario
+    await pool.query(
+      'UPDATE t_usuarios SET email_verificado = true, activo = true WHERE id = $1',
+      [tokenData.usuario_id]
+    );
+
+    // Marcar token como usado
+    await pool.query(
+      'UPDATE t_verification_tokens SET usado = true, fecha_uso = NOW() WHERE token_hash = $1',
+      [tokenHash]
+    );
+
+    // Obtener usuario actualizado
+    const usuarioResult = await pool.query(
+      'SELECT id, email, nombre, apellido, tipo_perfil, foto FROM t_usuarios WHERE id = $1',
+      [tokenData.usuario_id]
+    );
+
+    const usuario = usuarioResult.rows[0];
+    const jwtToken = generarToken(usuario);
+
+    res.json({
+      mensaje: 'Email verificado exitosamente. Bienvenido a ASOCHINUF',
+      token: jwtToken,
+      usuario: {
+        id: usuario.id,
+        email: usuario.email,
+        nombre: usuario.nombre,
+        apellido: usuario.apellido,
+        tipo_perfil: usuario.tipo_perfil,
+        foto: usuario.foto,
+      },
+    });
+  } catch (error) {
+    console.error('Error confirmando email:', error);
+    res.status(500).json({ error: 'Error al confirmar email' });
   }
 };
 

@@ -7,6 +7,8 @@ import {
   solicitarRecuperacion,
   verificarToken as verificarTokenRecuperacion,
   restablecerContrasena,
+  verificarTokenEmail,
+  confirmarEmail,
   obtenerUsuarios,
   crearUsuario,
   actualizarUsuario,
@@ -31,6 +33,10 @@ router.get('/me', verificarToken, obtenerPerfil);
 router.post('/solicitar-recuperacion', solicitarRecuperacion);
 router.get('/verificar-token/:token', verificarTokenRecuperacion);
 router.post('/restablecer-contrasena', restablecerContrasena);
+
+// Verificación de email
+router.get('/verificar-email/:token', verificarTokenEmail);
+router.post('/confirmar-email', confirmarEmail);
 
 // Gestión de usuarios (solo admin)
 router.get('/usuarios', verificarAdmin, obtenerUsuarios);

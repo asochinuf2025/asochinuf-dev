@@ -18,7 +18,9 @@ const inicializarBD = async () => {
         apellido VARCHAR(100) NOT NULL,
         tipo_perfil VARCHAR(50) NOT NULL CHECK (tipo_perfil IN ('admin', 'nutricionista', 'cliente')),
         activo BOOLEAN DEFAULT true,
+        email_verificado BOOLEAN DEFAULT false,
         foto VARCHAR(255),
+        google_id VARCHAR(255),
         fecha_registro TIMESTAMP DEFAULT NOW(),
         CONSTRAINT email_unique UNIQUE(email)
       );
@@ -29,6 +31,27 @@ const inicializarBD = async () => {
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_usuarios_email ON t_usuarios(email);`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_usuarios_tipo_perfil ON t_usuarios(tipo_perfil);`);
     console.log('✓ Índices en t_usuarios creados\\n');
+
+    // ========== TABLA t_verification_tokens ==========
+    console.log('Creando tabla t_verification_tokens...');
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS t_verification_tokens (
+        id SERIAL PRIMARY KEY,
+        usuario_id INTEGER NOT NULL,
+        token_hash VARCHAR(255) NOT NULL UNIQUE,
+        fecha_expiracion TIMESTAMP NOT NULL,
+        usado BOOLEAN DEFAULT false,
+        fecha_uso TIMESTAMP,
+        fecha_creacion TIMESTAMP DEFAULT NOW(),
+        FOREIGN KEY (usuario_id) REFERENCES t_usuarios(id) ON DELETE CASCADE
+      );
+    `);
+    console.log('✓ Tabla t_verification_tokens creada');
+
+    // Índices para t_verification_tokens
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_verification_tokens_usuario_id ON t_verification_tokens(usuario_id);`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_verification_tokens_token_hash ON t_verification_tokens(token_hash);`);
+    console.log('✓ Índices en t_verification_tokens creados\\n');
 
     // ========== TABLA t_pacientes (NEW) ==========
     console.log('Creando tabla t_pacientes...');
