@@ -23,6 +23,8 @@ const AuthModal = ({ isOpen, onClose }) => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showEmailVerification, setShowEmailVerification] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState('');
   const [focusedField, setFocusedField] = useState(null);
   const [error, setError] = useState('');
 
@@ -73,17 +75,11 @@ const AuthModal = ({ isOpen, onClose }) => {
     try {
       await registro(formData.email, formData.password, formData.nombre, formData.apellido);
 
-      setShowSuccess(true);
-      setTimeout(() => {
-        setFormData({ email: '', password: '', nombre: '', apellido: '', confirmarPassword: '' });
-        setIsSubmitting(false);
-        setShowSuccess(false);
-        onClose();
-        // Pequeño delay para asegurar que el estado de AuthContext está actualizado
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 100);
-      }, 1500);
+      // Si el registro requiere verificación de email
+      setRegisteredEmail(formData.email);
+      setShowEmailVerification(true);
+      setFormData({ email: '', password: '', nombre: '', apellido: '', confirmarPassword: '' });
+      setIsSubmitting(false);
     } catch (error) {
       setError(error.message);
       setIsSubmitting(false);
@@ -262,8 +258,59 @@ const AuthModal = ({ isOpen, onClose }) => {
                     </motion.div>
                   )}
 
-                  {/* Formulario */}
-                  {!showSuccess ? (
+                  {/* Verificación de Email */}
+                  {showEmailVerification ? (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ type: 'spring', stiffness: 150, damping: 15 }}
+                      className="flex flex-col items-center justify-center py-8 space-y-6"
+                    >
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                        className="p-3 bg-[#8c5cff]/20 rounded-full border border-[#8c5cff]/50"
+                      >
+                        <Mail size={32} className="text-[#8c5cff]" />
+                      </motion.div>
+
+                      <div className="text-center space-y-2">
+                        <h3 className="text-2xl font-bold text-white">¡Verifica tu Email!</h3>
+                        <p className="text-gray-400">
+                          Hemos enviado un enlace de verificación a:
+                        </p>
+                        <p className="text-[#8c5cff] font-semibold">{registeredEmail}</p>
+                      </div>
+
+                      <div className={`w-full p-4 rounded-lg border ${
+                        'bg-blue-500/10 border-blue-500/30'
+                      }`}>
+                        <p className="text-sm text-gray-300">
+                          <strong>📧 ¿Qué hacer ahora?</strong><br/>
+                          1. Abre tu bandeja de entrada<br/>
+                          2. Busca el email de ASOCHINUF<br/>
+                          3. Haz clic en el enlace de verificación<br/>
+                          4. ¡Acceso completo a tu cuenta!
+                        </p>
+                      </div>
+
+                      <button
+                        onClick={() => {
+                          setShowEmailVerification(false);
+                          setAuthMode('login');
+                          onClose();
+                        }}
+                        className="w-full bg-gradient-to-r from-[#8c5cff] to-[#6a3dcf] text-white font-semibold py-2 px-4 rounded-lg hover:shadow-lg transition-all"
+                      >
+                        ✓ Aceptar y Cerrar
+                      </button>
+
+                      <p className="text-xs text-gray-500 text-center">
+                        El enlace expira en 24 horas. <br/>
+                        Revisa tu carpeta de spam si no ves el email.
+                      </p>
+                    </motion.div>
+                  ) : !showSuccess ? (
                     <motion.form
                       onSubmit={
                         authMode === 'login'

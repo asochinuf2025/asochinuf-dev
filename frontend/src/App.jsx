@@ -8,6 +8,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 const Home = lazy(() => import('./components/Home'));
 const Inicio = lazy(() => import('./pages/Inicio'));
 const ResetPassword = lazy(() => import('./components/ResetPassword'));
+const VerifyEmail = lazy(() => import('./pages/VerifyEmail'));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -23,6 +24,7 @@ function App() {
         <AuthProvider>
           <Routes>
             <Route path="/" element={<Suspense fallback={<LoadingFallback />}><Home /></Suspense>} />
+            <Route path="/verificar-email" element={<Suspense fallback={<LoadingFallback />}><VerifyEmail /></Suspense>} />
             <Route path="/restablecer-contrasena" element={<Suspense fallback={<LoadingFallback />}><ResetPassword /></Suspense>} />
             <Route
               path="/dashboard"

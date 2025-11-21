@@ -13,6 +13,8 @@ export const API_ENDPOINTS = {
     SOLICITAR_RECUPERACION: `${API_URL}/api/auth/solicitar-recuperacion`,
     VERIFICAR_TOKEN: (token) => `${API_URL}/api/auth/verificar-token/${token}`,
     RESTABLECER_CONTRASENA: `${API_URL}/api/auth/restablecer-contrasena`,
+    VERIFICAR_EMAIL: (token) => `${API_URL}/api/auth/verificar-email/${token}`,
+    CONFIRMAR_EMAIL: `${API_URL}/api/auth/confirmar-email`,
     CAMBIAR_CONTRASENA: `${API_URL}/api/auth/cambiar-contrasena`,
     ACTUALIZAR_FOTO: `${API_URL}/api/auth/actualizar-foto`,
   },
