@@ -78,11 +78,19 @@ export const AuthProvider = ({ children }) => {
         throw new Error(data.error || 'Error al registrarse');
       }
 
-      localStorage.setItem('asochinuf_token', data.token);
-      localStorage.setItem('asochinuf_usuario', JSON.stringify(data.usuario));
+      // Si el registro requiere verificación de email, no guardar token aún
+      if (data.requiresEmailVerification) {
+        return data; // Devolver el objeto tal cual para que el componente lo maneje
+      }
 
-      setToken(data.token);
-      setUsuario(data.usuario);
+      // Si hay token (registro sin verificación), guardar normalmente
+      if (data.token) {
+        localStorage.setItem('asochinuf_token', data.token);
+        localStorage.setItem('asochinuf_usuario', JSON.stringify(data.usuario));
+
+        setToken(data.token);
+        setUsuario(data.usuario);
+      }
 
       return data;
     } catch (err) {

@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 export default function VerifyEmail() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { login, isDarkMode } = useAuth();
+  const { isDarkMode, actualizarUsuario } = useAuth();
 
   const [estado, setEstado] = useState('cargando'); // cargando, exitoso, error
   const [mensaje, setMensaje] = useState('');
@@ -31,58 +31,83 @@ export default function VerifyEmail() {
         setTitulo('Verificando tu email...');
         setMensaje('Por favor espera mientras verificamos tu dirección de correo.');
 
-        // Primero verificamos que el token sea válido
-        const verificacionResponse = await axios.get(
-          API_ENDPOINTS.AUTH.VERIFICAR_EMAIL(token)
-        );
-
-        if (!verificacionResponse.data.valido) {
-          throw new Error('Token inválido');
-        }
-
-        // Luego confirmamos el email
-        const confirmacionResponse = await axios.post(
+        // Confirmar el email directamente (sin validar primero)
+        // El backend ya valida el token
+        const response = await axios.post(
           API_ENDPOINTS.AUTH.CONFIRMAR_EMAIL,
-          { token }
+          { token },
+          {
+            timeout: 10000, // 10 segundos timeout
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
         );
+
+        // Verificar que la respuesta tenga los datos necesarios
+        if (!response.data || !response.data.token) {
+          throw new Error('Respuesta inválida del servidor');
+        }
 
         // Si la confirmación fue exitosa
         setEstado('exitoso');
         setTitulo('¡Email verificado!');
         setMensaje('Tu email ha sido verificado exitosamente. Iniciando sesión...');
 
-        // Guardar token y usuario automáticamente
-        if (confirmacionResponse.data.token) {
-          localStorage.setItem('asochinuf_token', confirmacionResponse.data.token);
+        // Guardar token y usuario en localStorage
+        try {
+          localStorage.setItem('asochinuf_token', response.data.token);
           localStorage.setItem(
             'asochinuf_usuario',
-            JSON.stringify(confirmacionResponse.data.usuario)
+            JSON.stringify(response.data.usuario)
           );
 
-          // Esperar 2 segundos para que vea el mensaje, luego redirigir
-          setTimeout(() => {
-            navigate('/dashboard');
-          }, 2000);
+          // Actualizar el contexto de autenticación
+          if (actualizarUsuario) {
+            actualizarUsuario(response.data.usuario, response.data.token);
+          }
+        } catch (storageError) {
+          console.error('Error guardando en localStorage:', storageError);
         }
+
+        // Esperar 2 segundos para que vea el mensaje, luego redirigir
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 2000);
       } catch (error) {
         console.error('Error verificando email:', error);
 
         setEstado('error');
         setTitulo('Error al verificar email');
 
-        if (error.response?.status === 400) {
+        // Manejo detallado de errores
+        if (error.response) {
+          const status = error.response.status;
+          const errorData = error.response.data;
+
+          if (status === 400) {
+            setMensaje(
+              errorData?.error ||
+              'El token de verificación es inválido o ha expirado.'
+            );
+          } else if (status === 403) {
+            setMensaje(
+              errorData?.error ||
+              'Este token ya ha sido utilizado o ha expirado.'
+            );
+          } else {
+            setMensaje(
+              errorData?.error ||
+              `Error del servidor (${status}). Por favor intenta de nuevo.`
+            );
+          }
+        } else if (error.request) {
           setMensaje(
-            error.response.data.error ||
-            'El token de verificación es inválido o ha expirado.'
-          );
-        } else if (error.response?.status === 403) {
-          setMensaje(
-            error.response.data.error ||
-            'Este token ya ha sido utilizado o ha expirado.'
+            'No hay conexión con el servidor. Verifica tu conexión a internet.'
           );
         } else {
           setMensaje(
-            error.response?.data?.error ||
+            error.message ||
             'Hubo un error verificando tu email. Por favor intenta de nuevo.'
           );
         }
@@ -91,8 +116,11 @@ export default function VerifyEmail() {
       }
     };
 
-    verificarEmail();
-  }, [token, navigate]);
+    // Solo ejecutar si hay token
+    if (token) {
+      verificarEmail();
+    }
+  }, [token, navigate, actualizarUsuario]);
 
   return (
     <div className={`min-h-screen flex items-center justify-center p-4 ${
