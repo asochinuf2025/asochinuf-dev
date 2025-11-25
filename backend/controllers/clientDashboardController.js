@@ -14,9 +14,10 @@ export const obtenerEstadisticasCliente = async (req, res) => {
     console.log('🔍 Obteniendo estadísticas para usuario:', usuarioId);
     console.log('📦 req.usuario:', req.usuario);
 
-    // 1. Contar cursos disponibles
+    // 1. Contar cursos disponibles (activos)
     const cursosDisponiblesResult = await pool.query(
-      `SELECT COUNT(*) as total FROM t_cursos WHERE estado = 'activo'`
+      `SELECT COUNT(*) as total FROM t_cursos WHERE estado = $1`,
+      ['activo']
     );
     const cursosDisponibles = parseInt(cursosDisponiblesResult.rows[0]?.total || 0);
 
@@ -39,25 +40,23 @@ export const obtenerEstadisticasCliente = async (req, res) => {
     );
     const misCursos = misCursosResult.rows || [];
 
-    // 3. Contar total de eventos (planteles)
-    const eventosResult = await pool.query(
-      `SELECT COUNT(*) as total FROM t_planteles WHERE estado = 'activo'`
-    );
-    const totalEventos = parseInt(eventosResult.rows[0]?.total || 0);
+    // 3. Total de eventos = Total de cursos activos (igual al paso 1)
+    const totalEventos = cursosDisponibles;
 
-    // 4. Obtener próximo evento (plantel más cercano en fecha o el primero)
+    // 4. Obtener próximo evento (el curso más reciente/activo)
     const proximoEventoResult = await pool.query(
       `SELECT
-        id_plantel,
+        id_curso,
         nombre,
-        descripcion,
-        ubicacion,
-        created_at,
-        updated_at
-      FROM t_planteles
-      WHERE estado = 'activo'
-      ORDER BY created_at ASC
-      LIMIT 1`
+        codigo_curso,
+        duracion_horas,
+        precio,
+        created_at
+      FROM t_cursos
+      WHERE estado = $1
+      ORDER BY created_at DESC
+      LIMIT 1`,
+      ['activo']
     );
     const proximoEvento = proximoEventoResult.rows[0] || null;
 
