@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import DashboardSection from './DashboardSection';
-import AnthropometricDashboardTab from '../AnthropometricDashboardTab/AnthropometricDashboardTab';
-import { Home, BarChart3 } from 'lucide-react';
+import AnthropometricDashboardTab from './AnthropometricDashboardTab';
+import CuotasDashboardTab from './CuotasDashboardTab';
+import { Home, BarChart3, DollarSign } from 'lucide-react';
 
 const UnifiedDashboardSection = ({ containerVariants, itemVariants }) => {
   const { isDarkMode, usuario } = useAuth();
@@ -76,7 +77,26 @@ const UnifiedDashboardSection = ({ containerVariants, itemVariants }) => {
             <span className="whitespace-nowrap">Antropometría</span>
           </motion.button>
 
-          {/* Aquí irán las pestañas 2, 3 y 4 cuando se implementen */}
+          {/* Tab: Cuotas (Solo admin) */}
+          {usuario?.tipo_perfil === 'admin' && (
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setActiveTab('cuotas')}
+              className={`flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 rounded-t-lg font-semibold text-xs md:text-sm flex-shrink-0 transition-all ${
+                activeTab === 'cuotas'
+                  ? isDarkMode
+                    ? 'bg-[#8c5cff] text-white'
+                    : 'bg-purple-600 text-white'
+                  : isDarkMode
+                  ? 'text-gray-400 hover:text-white hover:bg-[#8c5cff]/20'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-purple-100'
+              }`}
+            >
+              <DollarSign size={16} className="md:block hidden" />
+              <span className="whitespace-nowrap">Cuotas</span>
+            </motion.button>
+          )}
         </div>
       )}
 
@@ -103,6 +123,18 @@ const UnifiedDashboardSection = ({ containerVariants, itemVariants }) => {
             transition={{ duration: 0.2 }}
           >
             <AnthropometricDashboardTab />
+          </motion.div>
+        )}
+
+        {activeTab === 'cuotas' && (
+          <motion.div
+            key="cuotas"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+          >
+            <CuotasDashboardTab />
           </motion.div>
         )}
       </AnimatePresence>

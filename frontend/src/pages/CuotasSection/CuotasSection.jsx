@@ -280,69 +280,17 @@ const CuotasSection = ({ containerVariants }) => {
               <EstadoCuotasSection containerVariants={containerVariants} />
             ) : (
               <>
-                {/* Estadísticas Admin */}
-                {estadisticas && (
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      className={`p-6 rounded-xl border ${
-                        isDarkMode
-                          ? 'bg-gradient-to-br from-[#1a1c22] to-[#0f1117] border-[#8c5cff]/20'
-                          : 'bg-white border-purple-200'
-                      }`}
-                    >
-                      <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total de Cuotas</p>
-                      <p className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                        {estadisticas.totalCuotas?.total || 0}
-                      </p>
-                      <p className={`text-xs mt-2 ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>
-                        CLP ${parseFloat(estadisticas.totalCuotas?.monto_total || 0).toLocaleString('es-CL')}
-                      </p>
-                    </motion.div>
-
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      className={`p-6 rounded-xl border ${
-                        isDarkMode
-                          ? 'bg-gradient-to-br from-[#1a1c22] to-[#0f1117] border-[#8c5cff]/20'
-                          : 'bg-white border-purple-200'
-                      }`}
-                    >
-                      <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Usuarios con Morosidad</p>
-                      <p className={`text-2xl font-bold text-red-500`}>
-                        {estadisticas.usuariosConMorosidad?.length || 0}
-                      </p>
-                    </motion.div>
-
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      className={`p-6 rounded-xl border ${
-                        isDarkMode
-                          ? 'bg-gradient-to-br from-[#1a1c22] to-[#0f1117] border-[#8c5cff]/20'
-                          : 'bg-white border-purple-200'
-                      }`}
-                    >
-                      <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total Recaudado</p>
-                      <p className={`text-2xl font-bold text-green-500`}>
-                        CLP ${parseFloat(estadisticas.recaudacion?.total_recaudado || 0).toLocaleString('es-CL')}
-                      </p>
-                    </motion.div>
-
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      className={`p-6 rounded-xl border ${
-                        isDarkMode
-                          ? 'bg-gradient-to-br from-[#1a1c22] to-[#0f1117] border-[#8c5cff]/20'
-                          : 'bg-white border-purple-200'
-                      }`}
-                    >
-                      <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Pagos Completados</p>
-                      <p className={`text-2xl font-bold text-[#8c5cff]`}>
-                        {estadisticas.recaudacion?.pagos_completados || 0}
-                      </p>
-                    </motion.div>
-                  </div>
-                )}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`p-4 rounded-lg border-l-4 border-[#8c5cff] mb-4 ${
+                    isDarkMode ? 'bg-[#8c5cff]/10' : 'bg-purple-50'
+                  }`}
+                >
+                  <p className={isDarkMode ? 'text-[#8c5cff]' : 'text-purple-700'}>
+                    Las estadísticas y gráficos de cuotas están disponibles en el Dashboard → Cuotas
+                  </p>
+                </motion.div>
 
                 <AdminCuotasTable cuotas={cuotas} onRefresh={cargarCuotas} containerVariants={containerVariants} />
               </>
