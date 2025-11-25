@@ -84,15 +84,23 @@ export const obtenerEstadisticasDashboard = async (req, res) => {
     })).reverse();
 
     // 9. Pagadores vs morosos (para gráfico de dona)
+    // Obtener usuarios únicos y su estado de morosidad
     const pagadoresResult = await pool.query(
-      `SELECT
-         COUNT(DISTINCT CASE WHEN cu.estado = 'pagado' THEN cu.usuario_id END) as usuarios_pagadores,
-         COUNT(DISTINCT CASE WHEN cu.estado IN ('pendiente', 'vencido') THEN cu.usuario_id END) as usuarios_morosos
-       FROM t_cuotas_usuario cu`
+      `WITH usuario_estado AS (
+        SELECT
+          cu.usuario_id,
+          MAX(CASE WHEN cu.estado IN ('pendiente', 'vencido') THEN 1 ELSE 0 END) as es_moroso
+        FROM t_cuotas_usuario cu
+        GROUP BY cu.usuario_id
+      )
+      SELECT
+        COUNT(CASE WHEN es_moroso = 0 THEN 1 END) as usuarios_pagadores,
+        COUNT(CASE WHEN es_moroso = 1 THEN 1 END) as usuarios_morosos
+      FROM usuario_estado`
     );
     const pagadoresMorosos = [{
-      usuarios_pagadores: pagadoresResult.rows[0]?.usuarios_pagadores || 0,
-      usuarios_morosos: pagadoresResult.rows[0]?.usuarios_morosos || 0
+      usuarios_pagadores: parseInt(pagadoresResult.rows[0]?.usuarios_pagadores) || 0,
+      usuarios_morosos: parseInt(pagadoresResult.rows[0]?.usuarios_morosos) || 0
     }];
 
     // 10. Top 10 morosos (usuarios con mayor monto pendiente)

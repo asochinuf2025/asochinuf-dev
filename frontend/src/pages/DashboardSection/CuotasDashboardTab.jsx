@@ -231,18 +231,19 @@ const CuotasDashboardTab = () => {
           <h3 className={`text-lg font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
             Usuarios: Pagadores vs Morosos
           </h3>
-          {stats?.pagadoresMorosos && stats.pagadoresMorosos.length > 0 ? (
+          {stats?.pagadoresMorosos && stats.pagadoresMorosos.length > 0 &&
+           (stats.pagadoresMorosos[0]?.usuarios_pagadores > 0 || stats.pagadoresMorosos[0]?.usuarios_morosos > 0) ? (
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
                   data={[
                     {
                       name: 'Pagadores',
-                      value: stats.pagadoresMorosos[0]?.usuarios_pagadores || 0
+                      value: parseInt(stats.pagadoresMorosos[0]?.usuarios_pagadores) || 0
                     },
                     {
                       name: 'Morosos',
-                      value: stats.pagadoresMorosos[0]?.usuarios_morosos || 0
+                      value: parseInt(stats.pagadoresMorosos[0]?.usuarios_morosos) || 0
                     }
                   ]}
                   cx="50%"
