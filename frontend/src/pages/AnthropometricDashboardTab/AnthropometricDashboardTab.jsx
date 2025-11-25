@@ -37,6 +37,10 @@ const AnthropometricDashboardTab = () => {
 
   // Actualizar última actualización y planteles cuando cambian las stats
   useEffect(() => {
+    console.log('Stats actualizado:', stats);
+    console.log('DistribucionPosicion:', stats?.distribucionPosicion);
+    console.log('DistribucionPorZona:', stats?.distribucionPorZona);
+
     if (stats?.ultimaActualizacion) {
       const fecha = new Date(stats.ultimaActualizacion);
       setUltimaActualizacion(fecha.toLocaleDateString('es-CL'));

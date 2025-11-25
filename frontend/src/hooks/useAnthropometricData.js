@@ -69,7 +69,12 @@ export const useAnthropometricData = () => {
       );
 
       if (response.data.success) {
+        console.log('Response data received:', response.data);
+        console.log('distribucionPosicion:', response.data.distribucionPosicion);
+        console.log('distribucionPorZona:', response.data.distribucionPorZona);
         setStats(response.data);
+      } else {
+        console.error('Response not successful:', response.data);
       }
     } catch (err) {
       console.error('Error cargando estadísticas:', err);
