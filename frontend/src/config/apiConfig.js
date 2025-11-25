@@ -75,6 +75,10 @@ export const API_ENDPOINTS = {
     ESTADISTICAS: `${API_URL}/api/cursos-dashboard/estadisticas`,
     RESUMEN: `${API_URL}/api/cursos-dashboard/resumen`,
   },
+  // Dashboard de Cliente
+  CLIENT_DASHBOARD: {
+    ESTADISTICAS: `${API_URL}/api/client-dashboard/estadisticas`,
+  },
   // Pagos Mercado Pago
   PAYMENTS: {
     INICIAR_PAGO: `${API_URL}/api/payments/iniciar`,

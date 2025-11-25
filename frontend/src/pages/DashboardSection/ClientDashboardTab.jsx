@@ -108,12 +108,12 @@ const ClientDashboardTab = () => {
               >
                 Próximo Evento
               </p>
-              <p className={`text-2xl font-bold mt-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                {loading ? '...' : proximoEvento ? proximoEvento.nombre || 'Sin nombre' : 'N/A'}
+              <p className={`text-lg font-bold mt-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                {loading ? '...' : proximoEvento ? proximoEvento.titulo || 'Sin nombre' : 'N/A'}
               </p>
-              {proximoEvento && (
-                <p className={`text-xs mt-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  {new Date(proximoEvento.fecha_evento || proximoEvento.created_at).toLocaleDateString(
+              {proximoEvento && proximoEvento.fecha_evento && (
+                <p className={`text-sm font-semibold mt-2 ${isDarkMode ? 'text-orange-400' : 'text-orange-600'}`}>
+                  {new Date(proximoEvento.fecha_evento).toLocaleDateString(
                     'es-CL'
                   )}
                 </p>

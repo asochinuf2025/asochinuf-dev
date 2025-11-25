@@ -9,10 +9,17 @@ import pool from '../config/database.js';
  */
 export const obtenerEstadisticasCliente = async (req, res) => {
   try {
-    const usuarioId = req.usuario.id || req.usuario.usuario_id;
+    const usuarioId = req.usuario.id;
+
+    if (!usuarioId) {
+      console.error('❌ usuarioId no definido');
+      return res.status(400).json({
+        success: false,
+        message: 'Usuario ID no disponible',
+      });
+    }
 
     console.log('🔍 Obteniendo estadísticas para usuario:', usuarioId);
-    console.log('📦 req.usuario:', req.usuario);
 
     // 1. Contar cursos disponibles (activos)
     const cursosDisponiblesResult = await pool.query(
@@ -20,6 +27,7 @@ export const obtenerEstadisticasCliente = async (req, res) => {
       ['activo']
     );
     const cursosDisponibles = parseInt(cursosDisponiblesResult.rows[0]?.total || 0);
+    console.log('✓ Cursos disponibles contados:', cursosDisponibles);
 
     // 2. Obtener mis cursos (inscripciones del usuario)
     const misCursosResult = await pool.query(
@@ -39,31 +47,52 @@ export const obtenerEstadisticasCliente = async (req, res) => {
       [usuarioId]
     );
     const misCursos = misCursosResult.rows || [];
+    console.log('✓ Mis cursos obtenidos:', misCursos.length);
 
-    // 3. Total de eventos = Total de cursos activos (igual al paso 1)
-    const totalEventos = cursosDisponibles;
+    // 3. Contar total de eventos visibles
+    let totalEventos = 0;
+    try {
+      const totalEventosResult = await pool.query(
+        `SELECT COUNT(*) as total FROM t_eventos WHERE visible = $1`,
+        [true]
+      );
+      totalEventos = parseInt(totalEventosResult.rows[0]?.total || 0);
+      console.log('✓ Total de eventos contados:', totalEventos);
+    } catch (err) {
+      console.log('⚠️ Error contando eventos (tabla puede no existir):', err.message);
+      totalEventos = cursosDisponibles; // fallback
+    }
 
-    // 4. Obtener próximo evento (el curso más reciente/activo)
-    const proximoEventoResult = await pool.query(
-      `SELECT
-        id_curso,
-        nombre,
-        codigo_curso,
-        duracion_horas,
-        precio,
-        created_at
-      FROM t_cursos
-      WHERE estado = $1
-      ORDER BY created_at DESC
-      LIMIT 1`,
-      ['activo']
-    );
-    const proximoEvento = proximoEventoResult.rows[0] || null;
+    // 4. Obtener próximo evento (el evento más cercano al futuro desde hoy)
+    let proximoEvento = null;
+    try {
+      const proximoEventoResult = await pool.query(
+        `SELECT
+          id,
+          titulo,
+          categoria,
+          fecha_evento,
+          hora_evento,
+          ubicacion
+        FROM t_eventos
+        WHERE visible = $1 AND fecha_evento >= CURRENT_DATE
+        ORDER BY fecha_evento ASC
+        LIMIT 1`,
+        [true]
+      );
+      proximoEvento = proximoEventoResult.rows[0] || null;
+      console.log('✓ Próximo evento obtenido:', proximoEvento?.titulo || 'N/A');
+    } catch (err) {
+      console.log('⚠️ Error obteniendo próximo evento (tabla puede no existir):', err.message);
+      proximoEvento = null;
+    }
 
-    console.log('✓ Cursos disponibles:', cursosDisponibles);
-    console.log('✓ Mis cursos:', misCursos.length);
-    console.log('✓ Total eventos:', totalEventos);
-    console.log('✓ Próximo evento:', proximoEvento?.nombre);
+    console.log('✓ Retornando estadísticas:', {
+      cursosDisponibles,
+      misCursos: misCursos.length,
+      totalEventos,
+      proximoEvento: proximoEvento?.nombre,
+    });
 
     // Retornar respuesta exitosa
     res.json({
@@ -76,7 +105,7 @@ export const obtenerEstadisticasCliente = async (req, res) => {
       },
     });
   } catch (err) {
-    console.error('❌ Error obteniendo estadísticas del cliente:', err);
+    console.error('❌ Error obteniendo estadísticas del cliente:', err.message);
     console.error('Stack:', err.stack);
     res.status(500).json({
       success: false,

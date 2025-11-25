@@ -28,7 +28,7 @@ export const useClientDashboardData = () => {
 
         // Obtener todas las estadísticas del cliente en un solo endpoint
         const response = await axios.get(
-          `${API_ENDPOINTS.BASE}/api/client-dashboard/estadisticas`,
+          API_ENDPOINTS.CLIENT_DASHBOARD.ESTADISTICAS,
           config
         );
 
