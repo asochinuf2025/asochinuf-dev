@@ -9,7 +9,10 @@ import pool from '../config/database.js';
  */
 export const obtenerEstadisticasCliente = async (req, res) => {
   try {
-    const usuarioId = req.usuario.id;
+    const usuarioId = req.usuario.id || req.usuario.usuario_id;
+
+    console.log('🔍 Obteniendo estadísticas para usuario:', usuarioId);
+    console.log('📦 req.usuario:', req.usuario);
 
     // 1. Contar cursos disponibles
     const cursosDisponiblesResult = await pool.query(
@@ -58,6 +61,11 @@ export const obtenerEstadisticasCliente = async (req, res) => {
     );
     const proximoEvento = proximoEventoResult.rows[0] || null;
 
+    console.log('✓ Cursos disponibles:', cursosDisponibles);
+    console.log('✓ Mis cursos:', misCursos.length);
+    console.log('✓ Total eventos:', totalEventos);
+    console.log('✓ Próximo evento:', proximoEvento?.nombre);
+
     // Retornar respuesta exitosa
     res.json({
       success: true,
@@ -69,7 +77,8 @@ export const obtenerEstadisticasCliente = async (req, res) => {
       },
     });
   } catch (err) {
-    console.error('Error obteniendo estadísticas del cliente:', err.message);
+    console.error('❌ Error obteniendo estadísticas del cliente:', err);
+    console.error('Stack:', err.stack);
     res.status(500).json({
       success: false,
       message: 'Error al obtener estadísticas del cliente',
