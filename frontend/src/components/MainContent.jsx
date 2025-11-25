@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 
 // Lazy load all dashboard sections for better performance
-const DashboardSection = lazy(() => import('../pages/DashboardSection/DashboardSection'));
+const UnifiedDashboardSection = lazy(() => import('../pages/DashboardSection/UnifiedDashboardSection'));
 const UnifiedCursosSection = lazy(() => import('../pages/CursosSection/UnifiedCursosSection'));
 const DatosSection = lazy(() => import('../pages/DatosSection/DatosSection'));
 const UnifiedExcelSection = lazy(() => import('../pages/ExcelSection/UnifiedExcelSection'));
@@ -59,7 +59,7 @@ const MainContent = ({ activeTab, cursoSeleccionado, onCloseCursoDetalle, setAct
           <>
             {activeTab === 'inicio' && (
               <Suspense fallback={<SectionLoadingFallback />}>
-                <DashboardSection containerVariants={containerVariants} itemVariants={itemVariants} />
+                <UnifiedDashboardSection containerVariants={containerVariants} itemVariants={itemVariants} />
               </Suspense>
             )}
             {activeTab === 'cursos' && (

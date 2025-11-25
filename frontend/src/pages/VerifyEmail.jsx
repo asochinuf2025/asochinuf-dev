@@ -18,9 +18,15 @@ export default function VerifyEmail() {
 
   const token = searchParams.get('token');
 
+  // Debug log
+  useEffect(() => {
+    console.log('VerifyEmail mounted - isDarkMode:', isDarkMode, 'token:', token);
+  }, [isDarkMode, token]);
+
   useEffect(() => {
     const verificarEmail = async () => {
       if (!token) {
+        console.error('No token found in URL');
         setEstado('error');
         setTitulo('Token no proporcionado');
         setMensaje('No se encontró un token de verificación válido en la URL.');
@@ -28,6 +34,7 @@ export default function VerifyEmail() {
       }
 
       try {
+        console.log('Starting email verification with token:', token.substring(0, 20) + '...');
         setTitulo('Verificando tu email...');
         setMensaje('Por favor espera mientras verificamos tu dirección de correo.');
 
@@ -46,9 +53,11 @@ export default function VerifyEmail() {
 
         // Verificar que la respuesta tenga los datos necesarios
         if (!response.data || !response.data.token) {
+          console.error('Invalid response from server:', response.data);
           throw new Error('Respuesta inválida del servidor');
         }
 
+        console.log('Email verification successful');
         // Si la confirmación fue exitosa
         setEstado('exitoso');
         setTitulo('¡Email verificado!');
@@ -124,7 +133,7 @@ export default function VerifyEmail() {
 
   return (
     <div className={`min-h-screen flex items-center justify-center p-4 ${
-      isDarkMode ? 'bg-[#0a0e27]' : 'bg-gradient-to-br from-purple-50 to-blue-50'
+      isDarkMode ? 'bg-gray-950' : 'bg-gradient-to-br from-purple-50 to-blue-50'
     }`}>
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
@@ -132,7 +141,7 @@ export default function VerifyEmail() {
         transition={{ duration: 0.5 }}
         className={`w-full max-w-md rounded-2xl shadow-2xl p-8 ${
           isDarkMode
-            ? 'bg-[#0f1117] border border-[#8c5cff]/20'
+            ? 'bg-gray-900 border border-purple-500/30'
             : 'bg-white border border-purple-200'
         }`}
       >
@@ -168,8 +177,8 @@ export default function VerifyEmail() {
             </motion.div>
           )}
 
-          <h1 className={`text-2xl font-bold mt-4 ${
-            isDarkMode ? 'text-white' : 'text-gray-900'
+          <h1 className={`text-3xl font-bold mt-4 ${
+            isDarkMode ? 'text-blue-300' : 'text-gray-900'
           }`}>
             {titulo}
           </h1>
@@ -177,7 +186,7 @@ export default function VerifyEmail() {
 
         {/* Mensaje */}
         <p className={`text-center mb-6 ${
-          isDarkMode ? 'text-gray-400' : 'text-gray-600'
+          isDarkMode ? 'text-gray-300' : 'text-gray-600'
         }`}>
           {mensaje}
         </p>
