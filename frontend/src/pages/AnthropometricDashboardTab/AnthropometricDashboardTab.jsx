@@ -351,10 +351,11 @@ const AnthropometricDashboardTab = () => {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ posicion, cantidad }) => `${posicion}: ${cantidad}`}
+                  label={({ name, value }) => `${name}: ${value}`}
                   outerRadius={90}
                   fill="#8884d8"
                   dataKey="cantidad"
+                  nameKey="posicion"
                 >
                   {stats.distribucionPosicion.filter(item => item.posicion !== 'Sin especificar').map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -368,6 +369,7 @@ const AnthropometricDashboardTab = () => {
                     color: isDarkMode ? '#fff' : '#000',
                   }}
                   formatter={(value) => `${value} jugadores`}
+                  labelFormatter={(label) => `${label}`}
                 />
               </PieChart>
             </ResponsiveContainer>
@@ -403,10 +405,11 @@ const AnthropometricDashboardTab = () => {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ zona, cantidad }) => `${zona}: ${cantidad}`}
+                  label={({ name, value }) => `${name}: ${value}`}
                   outerRadius={90}
                   fill="#8884d8"
                   dataKey="cantidad"
+                  nameKey="zona"
                 >
                   {stats.distribucionPorZona.map((entry) => (
                     <Cell key={`cell-${entry.zona}`} fill={ZONE_COLORS[entry.zona]} />
@@ -420,6 +423,7 @@ const AnthropometricDashboardTab = () => {
                     color: isDarkMode ? '#fff' : '#000',
                   }}
                   formatter={(value) => `${value} jugadores`}
+                  labelFormatter={(label) => `${label}`}
                 />
               </PieChart>
             </ResponsiveContainer>
