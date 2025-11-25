@@ -70,6 +70,11 @@ export const API_ENDPOINTS = {
     REGISTRAR_PAGO: (cuotaId) => `${API_URL}/api/cuotas/${cuotaId}/pagos`,
     ESTADISTICAS: `${API_URL}/api/cuotas/estadisticas/general`,
   },
+  // Dashboard de Cursos
+  CURSOS_DASHBOARD: {
+    ESTADISTICAS: `${API_URL}/api/cursos-dashboard/estadisticas`,
+    RESUMEN: `${API_URL}/api/cursos-dashboard/resumen`,
+  },
   // Pagos Mercado Pago
   PAYMENTS: {
     INICIAR_PAGO: `${API_URL}/api/payments/iniciar`,

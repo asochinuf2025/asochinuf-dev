@@ -22,7 +22,7 @@ export const useCursosData = () => {
         };
 
         const response = await axios.get(
-          `${API_ENDPOINTS.API_URL}/cursos-dashboard/estadisticas`,
+          API_ENDPOINTS.CURSOS_DASHBOARD.ESTADISTICAS,
           config
         );
 
