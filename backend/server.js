@@ -20,6 +20,7 @@ import pacientesRoutes from './routes/pacientes.js';
 import anthropometricRoutes from './routes/anthropometric.js';
 import cuotasDashboardRoutes from './routes/cuotasDashboard.js';
 import cursosDashboardRoutes from './routes/cursosDashboard.js';
+import clientDashboardRoutes from './routes/clientDashboard.js';
 
 dotenv.config();
 
@@ -87,6 +88,7 @@ app.use('/api/pacientes', pacientesRoutes);
 app.use('/api/anthropometric', anthropometricRoutes);
 app.use('/api/cuotas-dashboard', cuotasDashboardRoutes);
 app.use('/api/cursos-dashboard', cursosDashboardRoutes);
+app.use('/api/client-dashboard', clientDashboardRoutes);
 
 // Health check
 app.get('/api/health', async (req, res) => {

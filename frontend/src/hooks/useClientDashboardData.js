@@ -26,40 +26,22 @@ export const useClientDashboardData = () => {
           headers: { Authorization: `Bearer ${token}` }
         };
 
-        // Obtener cursos disponibles
-        const cursosResponse = await axios.get(API_ENDPOINTS.CURSOS.GET_ALL, config);
-        const cursosDisponibles = cursosResponse.data?.data?.length || 0;
-
-        // Obtener mis cursos (inscripciones del usuario)
-        const misInscripcionesResponse = await axios.get(
-          API_ENDPOINTS.INSCRIPCIONES.MIS_CURSOS,
+        // Obtener todas las estadísticas del cliente en un solo endpoint
+        const response = await axios.get(
+          `${API_ENDPOINTS.BASE}/api/client-dashboard/estadisticas`,
           config
         );
-        const misCursos = misInscripcionesResponse.data?.data || [];
 
-        // Obtener eventos (usando endpoint de planteles como base para eventos)
-        const eventosResponse = await axios.get(API_ENDPOINTS.PLANTELES.GET_ALL, config);
-        const eventos = eventosResponse.data?.data || [];
-        const totalEventos = eventos.length;
-
-        // Calcular próximo evento (el más cercano en fecha)
-        let proximoEvento = null;
-        if (eventos.length > 0) {
-          // Ordenar por fecha más cercana
-          const eventosOrdenados = eventos.sort((a, b) => {
-            const fechaA = new Date(a.fecha_evento || a.created_at);
-            const fechaB = new Date(b.fecha_evento || b.created_at);
-            return fechaA - fechaB;
+        if (response.data.success) {
+          setData({
+            cursosDisponibles: response.data.data.cursosDisponibles,
+            misCursos: response.data.data.misCursos,
+            totalEventos: response.data.data.totalEventos,
+            proximoEvento: response.data.data.proximoEvento
           });
-          proximoEvento = eventosOrdenados[0];
+        } else {
+          setError('Error al cargar estadísticas');
         }
-
-        setData({
-          cursosDisponibles,
-          misCursos,
-          totalEventos,
-          proximoEvento
-        });
       } catch (err) {
         console.error('Error fetching client dashboard data:', err);
         setError(err.response?.data?.message || 'Error al cargar datos');
