@@ -280,18 +280,7 @@ const CuotasSection = ({ containerVariants }) => {
               <EstadoCuotasSection containerVariants={containerVariants} />
             ) : (
               <>
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className={`p-4 rounded-lg border-l-4 border-[#8c5cff] mb-4 ${
-                    isDarkMode ? 'bg-[#8c5cff]/10' : 'bg-purple-50'
-                  }`}
-                >
-                  <p className={isDarkMode ? 'text-[#8c5cff]' : 'text-purple-700'}>
-                    Las estadísticas y gráficos de cuotas están disponibles en el Dashboard → Cuotas
-                  </p>
-                </motion.div>
-
+               
                 <AdminCuotasTable cuotas={cuotas} onRefresh={cargarCuotas} containerVariants={containerVariants} />
               </>
             )

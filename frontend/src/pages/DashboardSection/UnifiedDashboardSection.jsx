@@ -4,7 +4,8 @@ import { useAuth } from '../../context/AuthContext';
 import DashboardSection from './DashboardSection';
 import AnthropometricDashboardTab from './AnthropometricDashboardTab';
 import CuotasDashboardTab from './CuotasDashboardTab';
-import { Home, BarChart3, DollarSign } from 'lucide-react';
+import CursosDashboardTab from './CursosDashboardTab';
+import { Home, BarChart3, DollarSign, BookOpen } from 'lucide-react';
 
 const UnifiedDashboardSection = ({ containerVariants, itemVariants }) => {
   const { isDarkMode, usuario } = useAuth();
@@ -97,6 +98,27 @@ const UnifiedDashboardSection = ({ containerVariants, itemVariants }) => {
               <span className="whitespace-nowrap">Cuotas</span>
             </motion.button>
           )}
+
+          {/* Tab: Cursos (Solo admin) */}
+          {usuario?.tipo_perfil === 'admin' && (
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setActiveTab('cursos')}
+              className={`flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 rounded-t-lg font-semibold text-xs md:text-sm flex-shrink-0 transition-all ${
+                activeTab === 'cursos'
+                  ? isDarkMode
+                    ? 'bg-[#8c5cff] text-white'
+                    : 'bg-purple-600 text-white'
+                  : isDarkMode
+                  ? 'text-gray-400 hover:text-white hover:bg-[#8c5cff]/20'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-purple-100'
+              }`}
+            >
+              <BookOpen size={16} className="md:block hidden" />
+              <span className="whitespace-nowrap">Cursos</span>
+            </motion.button>
+          )}
         </div>
       )}
 
@@ -135,6 +157,18 @@ const UnifiedDashboardSection = ({ containerVariants, itemVariants }) => {
             transition={{ duration: 0.2 }}
           >
             <CuotasDashboardTab />
+          </motion.div>
+        )}
+
+        {activeTab === 'cursos' && (
+          <motion.div
+            key="cursos"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+          >
+            <CursosDashboardTab />
           </motion.div>
         )}
       </AnimatePresence>
