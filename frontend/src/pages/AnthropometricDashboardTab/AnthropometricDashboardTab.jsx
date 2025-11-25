@@ -37,10 +37,6 @@ const AnthropometricDashboardTab = () => {
 
   // Actualizar última actualización y planteles cuando cambian las stats
   useEffect(() => {
-    console.log('Stats actualizado:', stats);
-    console.log('DistribucionPosicion:', stats?.distribucionPosicion);
-    console.log('DistribucionPorZona:', stats?.distribucionPorZona);
-
     if (stats?.ultimaActualizacion) {
       const fecha = new Date(stats.ultimaActualizacion);
       setUltimaActualizacion(fecha.toLocaleDateString('es-CL'));
@@ -343,12 +339,13 @@ const AnthropometricDashboardTab = () => {
             variants={itemVariants}
             className={`${
               isDarkMode ? 'bg-[#1a1c22] border-[#8c5cff]/20' : 'bg-white border-purple-200'
-            } border rounded-2xl p-6`}
+            } border rounded-2xl p-6 flex flex-col`}
           >
             <h3 className={`text-lg font-bold mb-6 text-center ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
               Distribución por Posición
             </h3>
-            <ResponsiveContainer width="100%" height={350}>
+            <div style={{ width: '100%', height: '350px' }}>
+              <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={stats.distribucionPosicion.filter(item => item.posicion !== 'Sin especificar')}
@@ -377,6 +374,7 @@ const AnthropometricDashboardTab = () => {
                 />
               </PieChart>
             </ResponsiveContainer>
+            </div>
           </motion.div>
         ) : (
           <motion.div
@@ -397,12 +395,13 @@ const AnthropometricDashboardTab = () => {
             variants={itemVariants}
             className={`${
               isDarkMode ? 'bg-[#1a1c22] border-[#8c5cff]/20' : 'bg-white border-purple-200'
-            } border rounded-2xl p-6`}
+            } border rounded-2xl p-6 flex flex-col`}
           >
             <h3 className={`text-lg font-bold mb-6 text-center ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
               Distribución por Zona
             </h3>
-            <ResponsiveContainer width="100%" height={350}>
+            <div style={{ width: '100%', height: '350px' }}>
+              <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={stats.distribucionPorZona}
@@ -431,6 +430,7 @@ const AnthropometricDashboardTab = () => {
                 />
               </PieChart>
             </ResponsiveContainer>
+            </div>
           </motion.div>
         ) : (
           <motion.div
