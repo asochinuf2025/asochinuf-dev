@@ -450,7 +450,7 @@ const CursoDetallePage = ({ curso: cursoProp, onBack, containerVariants }) => {
                           <div className="p-4 space-y-2">
                             {seccion.lecciones?.map((leccion, idx) => (
                               <motion.button
-                                key={leccion.id_leccion || idx}
+                                key={`leccion-${seccion.numero}-${idx}`}
                                 onClick={() => {
                                   if (tieneAcceso) {
                                     setLeccionSeleccionada(leccion);
