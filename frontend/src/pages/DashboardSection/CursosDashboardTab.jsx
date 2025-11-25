@@ -63,20 +63,6 @@ const CursosDashboardTab = () => {
       variants={containerVariants}
       className="space-y-6"
     >
-      {/* Header */}
-      <motion.div variants={itemVariants}>
-        <div className="flex items-center gap-3 mb-6">
-          <BookOpen size={32} className="text-[#8c5cff]" />
-          <div>
-            <h1 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-              Gestión de Cursos
-            </h1>
-            <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              Panel de control y análisis de cursos
-            </p>
-          </div>
-        </div>
-      </motion.div>
 
       {/* 6 Cards de Métricas */}
       <motion.div

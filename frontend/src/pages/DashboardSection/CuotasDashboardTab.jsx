@@ -64,20 +64,6 @@ const CuotasDashboardTab = () => {
       variants={containerVariants}
       className="space-y-6"
     >
-      {/* Header */}
-      <motion.div variants={itemVariants}>
-        <div className="flex items-center gap-3 mb-6">
-          <DollarSign size={32} className="text-[#8c5cff]" />
-          <div>
-            <h1 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-              Gestión de Cuotas
-            </h1>
-            <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              Panel de control y análisis de cuotas mensuales
-            </p>
-          </div>
-        </div>
-      </motion.div>
 
       {/* 6 Cards de Métricas */}
       <motion.div

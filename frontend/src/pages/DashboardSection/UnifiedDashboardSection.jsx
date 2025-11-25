@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import AnthropometricDashboardTab from './AnthropometricDashboardTab';
 import CuotasDashboardTab from './CuotasDashboardTab';
 import CursosDashboardTab from './CursosDashboardTab';
+import ClientDashboardTab from './ClientDashboardTab';
 import { Home, BarChart3, DollarSign, BookOpen } from 'lucide-react';
 
 const UnifiedDashboardSection = ({ containerVariants, itemVariants }) => {
@@ -104,7 +105,21 @@ const UnifiedDashboardSection = ({ containerVariants, itemVariants }) => {
 
       {/* Content - Tab switching */}
       <AnimatePresence mode="wait">
-        {activeTab === 'antropometria' && (
+        {/* Dashboard para clientes */}
+        {!isNutritionistOrAdmin && (
+          <motion.div
+            key="client-dashboard"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+          >
+            <ClientDashboardTab />
+          </motion.div>
+        )}
+
+        {/* Dashboard para nutricionistas y admins */}
+        {isNutritionistOrAdmin && activeTab === 'antropometria' && (
           <motion.div
             key="antropometria"
             initial={{ opacity: 0, y: 10 }}
@@ -116,7 +131,7 @@ const UnifiedDashboardSection = ({ containerVariants, itemVariants }) => {
           </motion.div>
         )}
 
-        {activeTab === 'cuotas' && (
+        {isNutritionistOrAdmin && activeTab === 'cuotas' && (
           <motion.div
             key="cuotas"
             initial={{ opacity: 0, y: 10 }}
@@ -128,7 +143,7 @@ const UnifiedDashboardSection = ({ containerVariants, itemVariants }) => {
           </motion.div>
         )}
 
-        {activeTab === 'cursos' && (
+        {isNutritionistOrAdmin && activeTab === 'cursos' && (
           <motion.div
             key="cursos"
             initial={{ opacity: 0, y: 10 }}
