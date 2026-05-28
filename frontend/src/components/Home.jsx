@@ -59,6 +59,7 @@ const Home = () => {
   const [showMemberDescription, setShowMemberDescription] = useState(null);
   const [activeEventTab, setActiveEventTab] = useState('ultimos');
   const [isAutoRotating, setIsAutoRotating] = useState(true);
+  const [cursos, setCursos] = useState(mockData.cursos);
   const { scrollYProgress } = useScroll();
 
   // Optimizar parallax - desactivar en móvil para mejor rendimiento
@@ -76,6 +77,30 @@ const Home = () => {
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Cargar cursos reales desde la API
+  useEffect(() => {
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+    fetch(`${apiUrl}/api/cursos`)
+      .then(res => res.ok ? res.json() : Promise.reject())
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          const mapped = data
+            .filter(c => c.estado === 'activo' || c.estado == null)
+            .map((c, i) => ({
+              id: c.id_curso,
+              title: c.nombre,
+              description: c.descripcion || '',
+              duration: c.duracion_horas ? `${c.duracion_horas} horas` : '',
+              level: c.nivel || '',
+              imagen_portada: c.imagen_portada || null,
+              imagePosition: i % 2 === 0 ? 'left' : 'right',
+            }));
+          if (mapped.length > 0) setCursos(mapped);
+        }
+      })
+      .catch(() => {/* mantiene los cursos del mock como fallback */});
   }, []);
 
   // Auto-rotate event tabs
@@ -611,7 +636,7 @@ const Home = () => {
 
           {/* Magazine-style horizontal cards */}
           <div className="space-y-8">
-            {mockData.cursos.map((curso, index) => (
+            {cursos.map((curso, index) => (
               <motion.div
                 key={curso.id}
                 initial={isMobile ? { opacity: 1 } : { opacity: 0, x: index % 2 === 0 ? -100 : 100 }}
@@ -628,27 +653,38 @@ const Home = () => {
 
                   <div className="relative flex flex-col md:flex-row">
                     {/* Visual Section with Number */}
-                    <div className={`relative md:w-2/5 h-48 md:h-auto bg-gradient-to-br from-[#8c5cff]/30 via-[#6a3dcf]/20 to-transparent p-6 flex flex-col justify-between ${
+                    <div className={`relative md:w-2/5 h-48 md:h-auto ${curso.imagen_portada ? '' : 'bg-gradient-to-br from-[#8c5cff]/30 via-[#6a3dcf]/20 to-transparent'} p-6 flex flex-col justify-between overflow-hidden ${
                       index % 2 === 0 ? 'md:order-1' : 'md:order-2'
                     }`}>
+                      {/* Course cover image */}
+                      {curso.imagen_portada && (
+                        <img
+                          src={curso.imagen_portada}
+                          alt={curso.title}
+                          className="absolute inset-0 w-full h-full object-cover opacity-60"
+                        />
+                      )}
+
                       {/* Large decorative number */}
                       <div className="absolute top-4 right-4 text-[80px] md:text-[120px] font-black text-[#8c5cff]/10 leading-none" style={{ fontWeight: 900 }}>
                         {String(index + 1).padStart(2, '0')}
                       </div>
 
                       {/* Floating icon */}
-                      <motion.div
-                        className="relative z-10 mt-auto"
-                        animate={!isMobile ? { y: [0, -10, 0] } : {}}
-                        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                      >
-                        <div className="relative inline-block">
-                          <div className="absolute inset-0 bg-[#8c5cff] rounded-2xl blur-xl opacity-50"></div>
-                          <div className="relative bg-gradient-to-br from-[#8c5cff] to-[#6a3dcf] rounded-2xl p-4 shadow-2xl">
-                            <GraduationCap size={40} className="text-white" strokeWidth={1.5} />
+                      {!curso.imagen_portada && (
+                        <motion.div
+                          className="relative z-10 mt-auto"
+                          animate={!isMobile ? { y: [0, -10, 0] } : {}}
+                          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                        >
+                          <div className="relative inline-block">
+                            <div className="absolute inset-0 bg-[#8c5cff] rounded-2xl blur-xl opacity-50"></div>
+                            <div className="relative bg-gradient-to-br from-[#8c5cff] to-[#6a3dcf] rounded-2xl p-4 shadow-2xl">
+                              <GraduationCap size={40} className="text-white" strokeWidth={1.5} />
+                            </div>
                           </div>
-                        </div>
-                      </motion.div>
+                        </motion.div>
+                      )}
 
                       {/* Level badge */}
                       <div className="absolute top-4 left-4 z-20">

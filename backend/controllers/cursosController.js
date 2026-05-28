@@ -5,34 +5,7 @@ import pool from '../config/database.js';
  */
 export const getAllCursos = async (req, res) => {
   try {
-    const result = await pool.query(`
-      SELECT
-        id_curso,
-        codigo_curso,
-        nombre,
-        descripcion,
-        lo_que_aprenderas,
-        requisitos,
-        categoria_id,
-        nivel,
-        duracion_horas,
-        modalidad,
-        fecha_inicio,
-        fecha_fin,
-        precio,
-        descuento,
-        precio_final,
-        moneda,
-        nombre_instructor,
-        imagen_portada,
-        video_promocional,
-        materiales,
-        url_curso,
-        estado,
-        fecha_creacion
-      FROM t_cursos
-      ORDER BY fecha_creacion DESC
-    `);
+    const result = await pool.query(`SELECT * FROM t_cursos ORDER BY fecha_creacion DESC`);
 
     res.json(result.rows);
   } catch (error) {
