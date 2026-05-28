@@ -46,11 +46,9 @@ const CursoPreviewModal = ({ curso, isOpen, onClose, onRegistrarse }) => {
     (acc, s) => acc + s.lecciones?.reduce((a, l) => a + (l.duracion || 0), 0), 0
   ) || 0;
 
-  if (!isOpen || !curso) return null;
-
   return (
     <AnimatePresence>
-      <motion.div
+      {isOpen && curso && <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -208,8 +206,7 @@ const CursoPreviewModal = ({ curso, isOpen, onClose, onRegistrarse }) => {
               Regístrate para inscribirte
             </motion.button>
           </div>
-        </motion.div>
-      </motion.div>
+        </motion.div>}
     </AnimatePresence>
   );
 };
