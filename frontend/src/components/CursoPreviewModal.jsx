@@ -206,7 +206,8 @@ const CursoPreviewModal = ({ curso, isOpen, onClose, onRegistrarse }) => {
               Regístrate para inscribirte
             </motion.button>
           </div>
-        </motion.div>}
+        </motion.div>
+      </motion.div>}
     </AnimatePresence>
   );
 };
