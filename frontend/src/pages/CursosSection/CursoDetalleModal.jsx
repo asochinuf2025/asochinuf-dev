@@ -267,7 +267,7 @@ const CursoDetalleModal = ({ curso, isOpen, onClose, isDarkMode, onPaymentSucces
                     {curso?.precio && (
                       <div className="flex items-center gap-2">
                         <span className="text-2xl font-bold">
-                          ${curso.precio.toLocaleString()}
+                          ${Number(curso.precio).toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                         </span>
                       </div>
                     )}
@@ -522,7 +522,7 @@ const CursoDetalleModal = ({ curso, isOpen, onClose, isDarkMode, onPaymentSucces
                       Precio del curso
                     </p>
                     <p className="text-3xl font-bold text-[#8c5cff]">
-                      ${curso?.precio?.toLocaleString()}
+                      ${Number(curso?.precio).toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                     </p>
                   </div>
                   <button

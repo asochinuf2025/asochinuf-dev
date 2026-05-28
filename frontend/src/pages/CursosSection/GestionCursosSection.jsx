@@ -566,7 +566,7 @@ const GestionCursosSection = ({ containerVariants }) => {
                         <div className={`flex items-center gap-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                           <DollarSign size={14} />
                           <span>
-                            {curso.precio === 0 ? 'Gratis' : `$${curso.precio.toLocaleString()}`}
+                            {curso.precio === 0 ? 'Gratis' : `$${Number(curso.precio).toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
                           </span>
                         </div>
                       )}

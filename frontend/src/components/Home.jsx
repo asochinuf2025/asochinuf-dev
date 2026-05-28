@@ -15,6 +15,7 @@ import InfiniteTestimonials from './InfiniteTestimonials';
 import GhostCursor from './GhostCursor';
 import RotatingText from './RotatingText';
 import { mockData } from '../mock';
+import CursoPreviewModal from './CursoPreviewModal';
 
 // Animated Counter Component
 const AnimatedCounter = ({ from = 0, to, duration = 2.5 }) => {
@@ -60,6 +61,7 @@ const Home = () => {
   const [activeEventTab, setActiveEventTab] = useState('ultimos');
   const [isAutoRotating, setIsAutoRotating] = useState(true);
   const [cursos, setCursos] = useState(mockData.cursos);
+  const [cursoPreview, setCursoPreview] = useState(null);
   const { scrollYProgress } = useScroll();
 
   // Optimizar parallax - desactivar en móvil para mejor rendimiento
@@ -724,6 +726,7 @@ const Home = () => {
                           {/* Explore button */}
                           <motion.button
                             whileHover={!isMobile ? { scale: 1.05, x: 5 } : {}}
+                            onClick={() => setCursoPreview(curso)}
                             className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-[#8c5cff] to-[#6a3dcf] rounded-full text-white font-semibold text-sm shadow-lg hover:shadow-xl hover:shadow-[#8c5cff]/50 transition-all duration-300"
                           >
                             <span>Explorar</span>
@@ -1330,6 +1333,14 @@ const Home = () => {
 
       {/* Auth Modal - Login, Registro, Recuperación */}
       <AuthModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
+
+      {/* Modal preview de curso para visitantes */}
+      <CursoPreviewModal
+        curso={cursoPreview}
+        isOpen={!!cursoPreview}
+        onClose={() => setCursoPreview(null)}
+        onRegistrarse={() => { setCursoPreview(null); setIsLoginOpen(true); }}
+      />
     </div>
   );
 };
