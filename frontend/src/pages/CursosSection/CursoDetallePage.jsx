@@ -172,7 +172,8 @@ const CursoDetallePage = ({ curso: cursoProp, onBack, containerVariants }) => {
   };
 
   const formatearPrecio = (precio, moneda = 'CLP') => {
-    if (!precio || precio === 0) return 'Gratis';
+    const n = Number(precio);
+    if (!n || n === 0) return 'Gratis';
 
     const formatoMoneda = {
       CLP: '$ ',
@@ -180,7 +181,7 @@ const CursoDetallePage = ({ curso: cursoProp, onBack, containerVariants }) => {
       EUR: '€ '
     };
 
-    return `${formatoMoneda[moneda] || formatoMoneda.CLP}${precio.toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+    return `${formatoMoneda[moneda] || formatoMoneda.CLP}${n.toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
   };
 
   const formatearFecha = (fecha) => {

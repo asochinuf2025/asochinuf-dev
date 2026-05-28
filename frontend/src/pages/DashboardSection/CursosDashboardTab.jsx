@@ -90,7 +90,7 @@ const CursosDashboardTab = () => {
         {/* Card 3: Ingresos Totales */}
         <MetricCard
           title="Ingresos Potenciales"
-          value={`CLP ${(stats?.totalIngresos || 0).toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
+          value={`CLP ${Number(stats?.totalIngresos || 0).toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
           icon={<DollarSign size={24} className="text-green-500" />}
           isDarkMode={isDarkMode}
           bgColor="green"
@@ -189,7 +189,7 @@ const CursosDashboardTab = () => {
                 />
                 <YAxis tick={{ fontSize: 12, fill: isDarkMode ? '#9ca3af' : '#6b7280' }} />
                 <Tooltip
-                  formatter={(value) => `CLP ${value.toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
+                  formatter={(value) => `CLP ${Number(value).toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
                   contentStyle={{
                     backgroundColor: isDarkMode ? '#1f2937' : '#ffffff',
                     border: isDarkMode ? '1px solid #4b5563' : '1px solid #e5e7eb',

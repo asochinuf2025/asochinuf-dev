@@ -100,7 +100,7 @@ const CuotasDashboardTab = () => {
         {/* Card 4: Total de Ingresos */}
         <MetricCard
           title="Ingresos Totales"
-          value={`CLP ${(stats?.totalIngresos || 0).toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
+          value={`CLP ${Number(stats?.totalIngresos || 0).toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
           icon={<TrendingUp size={24} className="text-emerald-500" />}
           isDarkMode={isDarkMode}
           bgColor="emerald"
@@ -118,7 +118,7 @@ const CuotasDashboardTab = () => {
         {/* Card 6: Monto por Pagar */}
         <MetricCard
           title="Monto Total por Pagar"
-          value={`CLP ${(stats?.montoPorPagar || 0).toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
+          value={`CLP ${Number(stats?.montoPorPagar || 0).toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
           icon={<DollarSign size={24} className="text-orange-500" />}
           isDarkMode={isDarkMode}
           bgColor="orange"
@@ -190,7 +190,7 @@ const CuotasDashboardTab = () => {
                 />
                 <YAxis tick={{ fontSize: 12, fill: isDarkMode ? '#9ca3af' : '#6b7280' }} />
                 <Tooltip
-                  formatter={(value) => `CLP ${value.toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
+                  formatter={(value) => `CLP ${Number(value).toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
                   contentStyle={{
                     backgroundColor: isDarkMode ? '#1f2937' : '#ffffff',
                     border: isDarkMode ? '1px solid #4b5563' : '1px solid #e5e7eb',
@@ -290,7 +290,7 @@ const CuotasDashboardTab = () => {
                   </div>
                   <div className="text-right">
                     <p className="font-semibold text-red-500">
-                      CLP {moroso.monto_pendiente.toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                      CLP {Number(moroso.monto_pendiente).toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                     </p>
                     <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                       {moroso.cantidad_cuotas_pendientes} cuota(s)

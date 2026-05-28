@@ -724,14 +724,14 @@ const Home = () => {
                           </div>
 
                           {/* Explore button */}
-                          <motion.button
-                            whileHover={!isMobile ? { scale: 1.05, x: 5 } : {}}
-                            onClick={(e) => { e.stopPropagation(); setCursoPreview(curso); }}
-                            className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-[#8c5cff] to-[#6a3dcf] rounded-full text-white font-semibold text-sm shadow-lg hover:shadow-xl hover:shadow-[#8c5cff]/50 transition-all duration-300"
+                          <button
+                            type="button"
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setCursoPreview(curso); }}
+                            className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-[#8c5cff] to-[#6a3dcf] rounded-full text-white font-semibold text-sm shadow-lg hover:shadow-xl hover:shadow-[#8c5cff]/50 transition-all duration-300 hover:scale-105 relative z-10"
                           >
                             <span>Explorar</span>
                             <ArrowRight size={16} />
-                          </motion.button>
+                          </button>
                         </div>
                       </div>
 

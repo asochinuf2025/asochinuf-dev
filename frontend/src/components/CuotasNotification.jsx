@@ -211,7 +211,7 @@ const CuotasNotification = ({ isDarkMode, setActiveTab }) => {
                           {['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'][cuota.mes - 1]} {cuota.ano}
                         </p>
                         <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>
-                          CLP ${cuota.monto.toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                          CLP ${Number(cuota.monto).toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                         </p>
                       </motion.div>
                     ))}

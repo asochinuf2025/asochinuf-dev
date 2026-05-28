@@ -183,7 +183,7 @@ const MyQuotasSection = ({ containerVariants }) => {
                       <td className={`px-6 py-4 text-sm font-semibold ${
                         isDarkMode ? 'text-[#8c5cff]' : 'text-purple-600'
                       }`}>
-                        CLP ${cuota.monto.toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                        CLP ${Number(cuota.monto).toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                       </td>
                       <td className={`px-6 py-4 text-sm`}>
                         <div className="flex flex-col gap-1">

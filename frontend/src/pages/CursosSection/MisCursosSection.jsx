@@ -51,7 +51,7 @@ const MisCursosSection = ({ containerVariants, onVerDetalleCurso }) => {
       EUR: '€ '
     };
 
-    return `${formatoMoneda[moneda] || formatoMoneda.CLP}${precio.toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+    return `${formatoMoneda[moneda] || formatoMoneda.CLP}${Number(precio).toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
   };
 
   const formatearFecha = (fecha) => {

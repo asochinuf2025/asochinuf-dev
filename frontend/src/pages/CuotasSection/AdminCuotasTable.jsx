@@ -185,7 +185,7 @@ const AdminCuotasTable = ({ cuotas, onRefresh, containerVariants }) => {
                         {meses[cuota.mes - 1]}/{cuota.ano}
                       </td>
                       <td className={`px-6 py-4 text-sm font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                        CLP ${cuota.monto.toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                        CLP ${Number(cuota.monto).toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                       </td>
                       <td className={`px-6 py-4 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>
                         {formatFecha(cuota.fecha_vencimiento)}

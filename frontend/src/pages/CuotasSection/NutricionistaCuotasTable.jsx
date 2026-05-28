@@ -111,7 +111,7 @@ const NutricionistaCuotasTable = ({ cuotas, onRefresh, containerVariants }) => {
                         <div>
                           <p className={isDarkMode ? 'text-gray-500' : 'text-gray-600'}>Monto</p>
                           <p className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                            CLP ${cuota.monto.toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                            CLP ${Number(cuota.monto).toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                           </p>
                         </div>
                         <div>
@@ -189,7 +189,7 @@ const NutricionistaCuotasTable = ({ cuotas, onRefresh, containerVariants }) => {
                         <div>
                           <p className={isDarkMode ? 'text-gray-500' : 'text-gray-600'}>Monto</p>
                           <p className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                            CLP ${cuota.monto.toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                            CLP ${Number(cuota.monto).toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                           </p>
                         </div>
                         <div>
