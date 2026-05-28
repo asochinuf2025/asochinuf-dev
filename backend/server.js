@@ -126,7 +126,7 @@ app.get('*', (req, res) => {
 const iniciarServidor = async () => {
   try {
     // Probar conexión a BD con reintentos
-    console.log('🔄 Intentando conectar a Neon con reintentos...');
+    console.log('🔄 Intentando conectar a Railway PostgreSQL...');
     const resultado = await pool.connect();
     console.log('✅ Conexión a PostgreSQL exitosa:', resultado[0]);
 

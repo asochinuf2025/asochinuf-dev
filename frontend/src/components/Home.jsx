@@ -651,7 +651,7 @@ const Home = () => {
                   index % 2 === 0 ? '' : 'md:flex-row-reverse'
                 }`}>
                   {/* Animated gradient overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#8c5cff]/0 via-[#8c5cff]/5 to-[#8c5cff]/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#8c5cff]/0 via-[#8c5cff]/5 to-[#8c5cff]/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
 
                   <div className="relative flex flex-col md:flex-row">
                     {/* Visual Section with Number */}
