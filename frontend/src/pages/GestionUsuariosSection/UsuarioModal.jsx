@@ -317,7 +317,7 @@ const UsuarioModal = ({ isOpen, isEditing, formData, setFormData, onSubmit, onCa
                             <span className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                               {['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'][cuota.mes - 1]} {cuota.ano}
                               <span className={`ml-2 text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>
-                                CLP ${cuota.monto.toLocaleString('es-CL')}
+                                CLP ${cuota.monto.toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                               </span>
                             </span>
                           </label>

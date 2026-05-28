@@ -183,7 +183,7 @@ const PaymentModal = ({ isOpen, onClose, cuota, onSuccess }) => {
                       {meses[cuota.mes - 1]} {cuota.ano}
                     </p>
                     <p className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                      CLP ${cuota.monto.toLocaleString('es-CL')}
+                      CLP ${cuota.monto.toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                     </p>
                   </div>
                   <div className="flex justify-between items-center text-sm">

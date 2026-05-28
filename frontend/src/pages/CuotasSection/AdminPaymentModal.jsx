@@ -145,7 +145,7 @@ const AdminPaymentModal = ({ isOpen, onClose, cuota, onSuccess }) => {
                         Monto
                       </p>
                       <p className={`font-semibold text-[#8c5cff]`}>
-                        CLP ${cuota.monto.toLocaleString('es-CL')}
+                        CLP ${cuota.monto.toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                       </p>
                     </div>
                     <div className="flex justify-between items-center text-sm">
