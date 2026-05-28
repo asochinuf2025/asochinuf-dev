@@ -53,8 +53,6 @@ const GoogleLoginButton = ({ onSuccess, onClose, variant = 'default', className 
 
     try {
       const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-      console.log('🔐 Google Client ID:', clientId);
-
       if (!clientId) {
         console.error('❌ VITE_GOOGLE_CLIENT_ID no está configurado');
         toast.error('Error de configuración: Cliente ID de Google no encontrado');
@@ -83,7 +81,6 @@ const GoogleLoginButton = ({ onSuccess, onClose, variant = 'default', className 
     setIsLoading(true);
 
     try {
-      console.log('🔐 Enviando token de Google al backend...');
 
       const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
@@ -100,7 +97,6 @@ const GoogleLoginButton = ({ onSuccess, onClose, variant = 'default', className 
         throw new Error(data.error || 'Error al procesar login con Google');
       }
 
-      console.log('✅ Login con Google exitoso:', data.usuario.email);
 
       // Guardar token y usuario en localStorage (ANTES de navegar)
       localStorage.setItem('asochinuf_token', data.token);
